@@ -57,8 +57,3 @@ db.version(1).stores({
   settings: 'id',
   reviewSessions: 'documentId',
 })
-
-// Console access for the no-UI verification steps (T0.4, T1.1). Dev only.
-if (import.meta.env.DEV) {
-  ;(window as unknown as { jotDb: typeof db }).jotDb = db
-}
