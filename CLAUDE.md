@@ -38,6 +38,9 @@ Scaffolded in T0.1. Package manager is pnpm (pinned via `packageManager` in `pac
 - `src/index.css` — Tailwind v4 entry + shadcn theme variables (`:root` / `.dark`). Design tokens land here (T0.2).
 - `src/components/ui/` — shadcn components (Radix base, added via `pnpm dlx shadcn@latest add <name>`).
 - `src/lib/` — shared utilities (`utils.ts` re-exports `cn`).
+- `src/editor/` — CodeMirror 6 editor: `Editor.tsx` (one view per document, wired to autosave), `keymap.ts` (vscode keymap as the sole keymap), `theme.ts` (§1.7 highlighting, all colors via CSS variables).
+- `src/components/shell/` — floating-panel shell (sidebar, editor panel, status bar); `sample.ts` holds placeholder content until Phase 3.
+- `scripts/keymap-collisions.mjs` — `pnpm check:keymap`; run after any keymap change (T2.2).
 - `src/review/ruleset/` — the Style Review rule set (bundled at build time, T5.8). `checks.md` and `output-schema.md` are authoritative for Phase 5 flag production.
 - `@/` is aliased to `src/` (see `vite.config.ts`, `tsconfig*.json`).
 - `.claude/launch.json` — dev-server config for the preview browser.
