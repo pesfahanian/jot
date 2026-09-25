@@ -21,6 +21,8 @@ Both themes' CSS variables from the design system's final round dropped into the
 - Reference: Design system, final round, §2.
 
 **T0.3 — Deploy pipeline, empty shell**
+> **Deferred (2026-09-25, owner's decision):** no deployment until development is complete. Phases are verified on localhost only; this ticket is picked up after Phase 6, and the "every subsequent phase deploys" criterion no longer applies.
+
 Ship the blank scaffold to the real deployment target before building anything on top of it.
 - [ ] A build of the current (empty) app is live at the real subdomain.
 - [ ] Every subsequent phase deploys to this same target, not just localhost.
