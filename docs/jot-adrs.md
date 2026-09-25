@@ -141,3 +141,17 @@ Prepared ahead of repo creation, for the local Claude Code implementation sessio
 **Reasoning:** A deliberate move away from keyboard-shortcut-driven, no-mouse-first interaction patterns for now — the same reasoning that removed keyboard shortcuts from the AI review feature earlier in the process. Quick-switch specifically only existed as a reason to have a shortcut in the first place; with no shortcut, there's no reason to keep a document-finder modal when the sidebar already does that job with a mouse.
 
 **Consequences:** Document switching relies on the sidebar and open tabs only. If a coding agent building this feature is tempted to add a command palette or quick-open as a natural addition to a keyboard-centric editor, that instinct should be overridden — it was deliberately removed, not overlooked.
+
+---
+
+## ADR-011: Desktop only, no responsive layout
+
+**Status:** Accepted
+
+**Context:** Every design frame across this project was rendered at 1000–1400px. The interaction model — multi-pane layout, hover-dependent controls, right-click context menus — has no mobile equivalent, and this was flagged as an unaddressed gap in the design system's own inventory.
+
+**Decision:** Jot is desktop-only. No responsive breakpoints, no attempt at a mobile layout. Below a minimum window width, the app doesn't try to reflow — it replaces its entire content with a plain message telling the person to widen their window.
+
+**Reasoning:** The interaction model was designed and tested exclusively at desktop widths. A mobile-adapted version of multi-pane editing, hover controls, and right-click menus would be a different product, not a smaller version of this one.
+
+**Consequences:** No responsive QA needed beyond confirming the guard triggers correctly at the threshold. Threshold set at 1000px — the lower bound of what was actually tested throughout design.

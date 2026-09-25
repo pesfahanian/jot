@@ -131,6 +131,14 @@ Counts, cursor position, theme switch cell, review control, API key cell.
 - [ ] All cells match the design doc's fixed-width, no-reflow requirement across every state.
 - Reference: Design system §1.9, §1.13.
 
+**T3.10 — Minimum-width guard**
+Desktop only (ADR-011).
+- [ ] Below 1000px, the app (sidebar, editor, everything) doesn't mount or render at all — only a plain, centered text message.
+- [ ] Above 1000px, normal operation, no guard visible.
+- [ ] Resizing live across the threshold, in either direction, triggers the swap correctly without needing a reload.
+- Message tone: blunt, not apologetic — final copy at implementation's discretion.
+- Reference: ADR-011.
+
 ---
 
 ## Phase 4 — Theming
@@ -182,6 +190,35 @@ Gating on N/N decided; writes and closes; undo toast.
 Focus ring, resolved-state dimming, replace-vs-delete distinction (arrow vs. bare strikethrough).
 - [ ] A pure-deletion flag never carries a replacement arrow — this specific bug occurred once already during design; re-verify it doesn't recur in code.
 - Reference: Interaction spec §3–§4.
+
+> **Flag production (addendum, 2026-09-25).** T5.1–T5.7 specify the review UI; T5.8–T5.12 specify how flags are produced. The rule set lives in `src/review/ruleset/` — `checks.md` (execution model, per-rule detection) and `output-schema.md` (result shape) are authoritative; read both in full before implementing any of these. Summary: **Pass A** (client-side, before any model call) runs all Tier 1 detection, T1b-03/T1b-04 in full, and the mechanical pre-checks for T1b-05 (density) and T1b-06 (independent-clause validity); mode-independent rules are final here, while the four mode-dependent ones (T1-01, T1-08, T1-11, T1b-05 density) record candidates only. **One shared OpenRouter call** per document then covers section mode classification (first), T1b-01/T1b-02, the gated T1b-05/T1b-06 follow-ups, all of Tier 2, and fix generation for T1-01/04/05/07/08/09/10/11 on already-confirmed spans. **Pass B** (client-side, arithmetic only) buckets Pass A candidates into the returned sections and finalizes them by mode. The model never re-decides whether a Tier 1 or Tier 1b-mechanical rule fired.
+>
+> Mapping onto `ReviewFlag`: `id` is the real rule ID (`T1-01`…`T1-12`, `T1b-01`…`T1b-06`, `T2-01`…`T2-08`, replacing the interaction spec's placeholder IDs); `family` is `tier1`/`tier1b`/`tier2`; `span` is matched verbatim against the live document, and a non-match downgrades to a comment-only note (existing interaction-spec mechanism); `after` sets `kind` — `null` → `flag` (Tier 2 and T1b-04), non-empty → `replace`, `""` → `delete` (handled defensively; no current rule emits it); `rationale` is present on every record. Aggregate rules (T1-03, T1-09, T1-10, T1-11, T2-07, T1b-05 density) emit one independent record per contributing instance, sharing `id`/`family`/`rationale`.
+
+**T5.8 — Ruleset loading**
+Bundle `src/review/ruleset/` into the app at build time (e.g. Vite `?raw` imports) — no runtime fetch, no backend.
+- [ ] All 8 files' content is available to the app as static, bundled strings.
+
+**T5.9 — Pass A: client-side detection**
+All Tier 1 rules, T1b-03, T1b-04, and the mechanical pre-checks for T1b-05/T1b-06, per `checks.md`'s per-rule detection methods.
+- [ ] Mode-independent rules produce a final verdict and, where mechanical, a real (non-empty) `after` directly from this pass — no model call involved.
+- [ ] The four mode-dependent rules (T1-01, T1-08, T1-11, T1b-05 density) produce raw candidates with position only, correctly withholding a verdict.
+
+**T5.10 — Shared OpenRouter call**
+The single per-document call: mode classification, T1b-01/T1b-02, the conditional T1b-05/T1b-06 follow-ups, all of Tier 2, and fix generation for the generative-fix Tier 1 rules.
+- [ ] Confirmed as one call per document, not several — the efficiency requirement this was specifically designed around.
+- [ ] T1b-05's repetition/motivation steps and T1b-06's relatedness step are only included in the prompt when their respective client-side gate already passed — not sent unconditionally.
+- [ ] Both example files are included as grounding content.
+- [ ] Response is parsed into the `sections` array and the shared call's own flag entries per `output-schema.md`.
+
+**T5.11 — Pass B: mode reconciliation**
+Bucket Pass A's raw candidates into the returned `sections` and finalize pass/fail using each section's mode.
+- [ ] The three distinct arithmetic types (rate cap, flat per-sentence, flat per-document budget) are each implemented correctly — verify against `checks.md`'s worked description of T1-11 specifically, since its per-document (not per-section) budget is the one most likely to be implemented wrong by analogy to the other two.
+
+**T5.12 — Assemble final flags, map to `ReviewFlag`**
+Combine Pass A's mode-independent flags, Pass B's reconciled flags, and the shared call's own flags into one final list; map every field per the mapping above.
+- [ ] A flag whose `span` doesn't match the live document exactly downgrades to a comment-only note, using the same mechanism already built for this in the interaction spec — not a new one.
+- [ ] Aggregate rules render as multiple independent flag records, never collapsed into one.
 
 ---
 

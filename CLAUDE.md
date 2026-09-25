@@ -23,6 +23,7 @@ Two more documents exist for deep detail on specific features, referenced from t
 - CodeMirror 6, not Monaco. `@replit/codemirror-vscode-keymap` supplies VSCode keybinding parity. (ADR-002)
 - Vite + React + shadcn. Not Next.js — nothing here needs SSR or file-based routing. (ADR-005)
 - stackedit.io is a UX reference only. Never copy from its source. (ADR-001)
+- Desktop only. No responsive layout or breakpoints; below 1000px the app renders only a "widen your window" message. (ADR-011)
 
 ## Testing philosophy
 
@@ -37,5 +38,6 @@ Scaffolded in T0.1. Package manager is pnpm (pinned via `packageManager` in `pac
 - `src/index.css` — Tailwind v4 entry + shadcn theme variables (`:root` / `.dark`). Design tokens land here (T0.2).
 - `src/components/ui/` — shadcn components (Radix base, added via `pnpm dlx shadcn@latest add <name>`).
 - `src/lib/` — shared utilities (`utils.ts` re-exports `cn`).
+- `src/review/ruleset/` — the Style Review rule set (bundled at build time, T5.8). `checks.md` and `output-schema.md` are authoritative for Phase 5 flag production.
 - `@/` is aliased to `src/` (see `vite.config.ts`, `tsconfig*.json`).
 - `.claude/launch.json` — dev-server config for the preview browser.
