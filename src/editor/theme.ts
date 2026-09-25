@@ -92,7 +92,8 @@ const markdownDecorations = ViewPlugin.fromClass(
 
 // Shell values from design system §1.8–§1.9: Source Code Pro 13.5, gutter
 // 46px right-aligned with a 10px inner pad, text 22px past the rule (as 8a/8b
-// render it), 18px top pad.
+// render it), 18px top pad. The size variables are set per pane: split panes
+// drop to 13px with a 40/8/16 gutter, three panes to 34/8/12 (6f).
 const MONO = "'Source Code Pro', ui-monospace, monospace"
 
 const baseTheme = EditorView.theme({
@@ -100,7 +101,7 @@ const baseTheme = EditorView.theme({
     height: '100%',
     color: 'var(--foreground)',
     backgroundColor: 'var(--document)',
-    fontSize: '13.5px',
+    fontSize: 'var(--editor-size, 13.5px)',
   },
   '&.cm-focused': { outline: 'none' },
   '.cm-scroller': {
@@ -112,16 +113,16 @@ const baseTheme = EditorView.theme({
     padding: '18px 0',
     caretColor: 'var(--primary)',
   },
-  '.cm-line': { padding: '0 22px 0 22px' },
+  '.cm-line': { padding: '0 var(--text-inset, 22px)' },
   '.cm-gutters': {
     backgroundColor: 'var(--document)',
     color: 'var(--ink-dim)',
     border: 'none',
     borderRight: '1px solid var(--rule-on-document)',
   },
-  '.cm-gutter.cm-lineNumbers': { minWidth: '46px' },
+  '.cm-gutter.cm-lineNumbers': { minWidth: 'var(--gutter-width, 46px)' },
   '.cm-lineNumbers .cm-gutterElement': {
-    padding: '0 10px 0 0',
+    padding: '0 var(--gutter-pad, 10px) 0 0',
     textAlign: 'right',
   },
   '.cm-activeLineGutter': {
@@ -146,7 +147,7 @@ const baseTheme = EditorView.theme({
   '.cm-jot-codeblock': {
     backgroundColor: 'var(--inset)',
     borderLeft: '2px solid var(--border)',
-    paddingLeft: '20px',
+    paddingLeft: 'calc(var(--text-inset, 22px) - 2px)',
   },
   '.cm-jot-heading-mark, .cm-jot-heading-mark *': { color: 'var(--syn-heading)', fontWeight: '400' },
   '.cm-jot-link-text': { textDecoration: 'underline', textUnderlineOffset: '3px' },

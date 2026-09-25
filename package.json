@@ -21,6 +21,7 @@
     "@codemirror/view": "^6.43.13",
     "@fontsource/public-sans": "^5.3.0",
     "@fontsource/source-code-pro": "^5.3.0",
+    "@lezer/common": "^1.5.3",
     "@lezer/highlight": "^1.2.4",
     "@lezer/markdown": "^1.7.2",
     "@replit/codemirror-vscode-keymap": "^6.0.2",
@@ -28,11 +29,14 @@
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
     "dexie": "^4.4.6",
+    "dexie-react-hooks": "^4.4.0",
     "lucide-react": "^1.48.0",
+    "marked": "^18.0.14",
     "radix-ui": "^1.6.7",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

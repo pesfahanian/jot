@@ -76,6 +76,11 @@
     --color-code-inline: var(--code-inline);
     --color-control: var(--control);
     --color-border-float: var(--border-float);
+    --color-hover-lift: var(--hover-lift);
+    --color-press: var(--press);
+    --color-toast-bg: var(--toast-bg);
+    --color-toast-fg: var(--toast-fg);
+    --color-toast-muted: var(--toast-muted);
 }
 
 /* ── Design system, final round, §2 — shadcn variables ─────────────────── */
@@ -211,6 +216,15 @@
     --syn-quote: #5F6469;
     --leading-doc: 1.65;
     --wordmark-tracking: -0.01em;
+    /* §1.12 interaction steps: hover lifts one step, pressed drops one */
+    --hover-lift: #EBEDEF;
+    --press: #E4E6E9;
+    /* toast — the one inverted surface (§1.13, 6c) */
+    --toast-bg: var(--foreground);
+    --toast-fg: var(--popover);
+    --toast-muted: #A7ABB0;
+    --toast-line: #868B91;
+    --toast-track: #5F6469;
 }
 
 .dark {
@@ -224,6 +238,13 @@
     --syn-quote: #B7B19C;
     --leading-doc: 1.7;
     --wordmark-tracking: -0.025em;
+    --hover-lift: #1E1E21;
+    --press: #141416;
+    --toast-bg: var(--foreground);
+    --toast-fg: var(--background);
+    --toast-muted: #5A5854;
+    --toast-line: #7E7A71;
+    --toast-track: #D6D3CB;
 }
 
 @layer base {
@@ -235,7 +256,10 @@
     @apply bg-background text-foreground font-sans;
     font-feature-settings: "calt" 1, "kern" 1, "liga" 1;
   }
-  .dark body {
-    font-feature-settings: "calt" 1, "kern" 1, "liga" 1, "ss03" 1, "zero" 1;
-  }
+}
+
+/* Undo-window bar on the toast: full at open, empty when the window ends. */
+@keyframes jot-countdown {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }

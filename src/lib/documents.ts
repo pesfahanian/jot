@@ -28,9 +28,12 @@ export function listDocuments(): Promise<JotDocument[]> {
   return db.documents.toArray()
 }
 
-// Resolves to false when the document no longer exists.
+// Resolves to false when the document no longer exists. Only edits to the
+// document itself (content, title) move updatedAt — it drives the relative
+// timestamp and date sort, so recoloring or pinning mustn't reorder the list.
 export async function updateDocument(id: string, patch: DocumentPatch): Promise<boolean> {
-  const changed = await db.documents.update(id, { ...patch, updatedAt: Date.now() })
+  const edit = patch.content !== undefined || patch.title !== undefined
+  const changed = await db.documents.update(id, edit ? { ...patch, updatedAt: Date.now() } : patch)
   return changed === 1
 }
 

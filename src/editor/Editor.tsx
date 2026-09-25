@@ -3,7 +3,7 @@ import { history } from '@codemirror/commands'
 import { markdownLanguage } from '@codemirror/lang-markdown'
 import { bracketMatching, indentOnInput, LanguageSupport } from '@codemirror/language'
 import { highlightSelectionMatches, search } from '@codemirror/search'
-import { Compartment, EditorState } from '@codemirror/state'
+import { Compartment, EditorSelection, EditorState } from '@codemirror/state'
 import {
   drawSelection,
   dropCursor,
@@ -14,15 +14,16 @@ import {
   rectangularSelection,
 } from '@codemirror/view'
 import { useEffect, useRef } from 'react'
-import { createAutosave } from '@/lib/autosave'
+import { useWorkspace } from '@/state/workspace'
 import { editorKeymap } from './keymap'
+import { getSession } from './sessions'
 import { jotEditorTheme } from './theme'
 
 interface EditorProps {
   documentId: string
   initialContent: string
-  // Fires on every edit with the new content — the in-memory binding (T2.1).
-  onChange?: (content: string) => void
+  paneId: string
+  focused: boolean
 }
 
 // Tells CodeMirror which palette is active. Changing it is what makes the
@@ -33,19 +34,30 @@ const themeMode = new Compartment()
 const themeModeFor = (dark: boolean) => EditorView.theme({}, { dark })
 const isDark = () => document.documentElement.classList.contains('dark')
 
-// One CodeMirror instance bound to one document. Remount (key by id) to
-// switch documents; every edit goes straight to autosave (ADR-008).
-export function Editor({ documentId, initialContent, onChange }: EditorProps) {
+const isRenaming = (documentId: string) => useWorkspace.getState().renamingId === documentId
+
+function reportCursor(view: EditorView, documentId: string) {
+  const head = view.state.selection.main.head
+  const line = view.state.doc.lineAt(head)
+  useWorkspace.getState().setCursor({ documentId, line: line.number, col: head - line.from + 1 })
+}
+
+// One CodeMirror view bound to one document in one pane. Remount (key by
+// id) to switch documents. Text lives in the document's shared session, so
+// the same document open in two panes stays in step and is saved once
+// (ADR-008).
+export function Editor({ documentId, initialContent, paneId, focused }: EditorProps) {
   const host = useRef<HTMLDivElement>(null)
-  const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
+  const viewRef = useRef<EditorView | null>(null)
+  const focusedRef = useRef(focused)
+  focusedRef.current = focused
 
   useEffect(() => {
-    const autosave = createAutosave(documentId)
+    const session = getSession(documentId, initialContent)
     const view = new EditorView({
       parent: host.current!,
       state: EditorState.create({
-        doc: initialContent,
+        doc: session.content,
         extensions: [
           lineNumbers(),
           highlightActiveLineGutter(),
@@ -71,34 +83,59 @@ export function Editor({ documentId, initialContent, onChange }: EditorProps) {
           jotEditorTheme,
           themeMode.of(themeModeFor(isDark())),
           EditorView.updateListener.of((u) => {
-            if (!u.docChanged) return
-            const content = u.state.doc.toString()
-            autosave.write(content)
-            onChangeRef.current?.(content)
+            session.handleUpdate(u)
+            if (u.focusChanged && u.view.hasFocus) useWorkspace.getState().focusPane(paneId)
+            if ((u.selectionSet || u.docChanged || u.focusChanged) && focusedRef.current) reportCursor(u.view, documentId)
           }),
         ],
       }),
     })
-    view.focus()
+    viewRef.current = view
+    const detach = session.attach(view)
+    if (focusedRef.current) {
+      if (!isRenaming(documentId)) view.focus()
+      reportCursor(view, documentId)
+    }
 
     const themeObserver = new MutationObserver(() => {
       view.dispatch({ effects: themeMode.reconfigure(themeModeFor(isDark())) })
       // The selection layer still draws from the pre-switch geometry in the
       // frame that re-measures; redraw it one frame after that.
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => view.dispatch({ selection: view.state.selection })),
-      )
+      requestAnimationFrame(() => requestAnimationFrame(() => view.dispatch({ selection: view.state.selection })))
     })
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 
     return () => {
       themeObserver.disconnect()
+      detach()
       view.destroy()
-      void autosave.dispose()
+      viewRef.current = null
     }
-    // initialContent is read once at mount; the editor owns the text after that.
+    // initialContent seeds a new session once; the session owns the text after that.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [documentId])
+  }, [documentId, paneId])
+
+  // Becoming the focused pane moves keyboard focus here and refreshes the
+  // status bar's cursor cell. A rename in progress keeps focus in its field
+  // (a new document opens straight into rename); when it ends, focus comes
+  // back to the text.
+  const renaming = useWorkspace((s) => s.renamingId === documentId)
+  useEffect(() => {
+    const view = viewRef.current
+    if (!focused || !view) return
+    if (!renaming && !view.hasFocus) view.focus()
+    reportCursor(view, documentId)
+  }, [focused, documentId, renaming])
+
+  // Jump requests (a search hit's line) for this document, in the focused pane.
+  const reveal = useWorkspace((s) => s.reveal)
+  useEffect(() => {
+    const view = viewRef.current
+    if (!view || !focused || !reveal || reveal.documentId !== documentId) return
+    const line = view.state.doc.line(Math.min(reveal.line, view.state.doc.lines))
+    view.dispatch({ selection: EditorSelection.cursor(line.from), effects: EditorView.scrollIntoView(line.from, { y: 'center' }) })
+    view.focus()
+  }, [reveal, focused, documentId])
 
   return <div ref={host} className="min-h-0 flex-auto overflow-hidden" />
 }

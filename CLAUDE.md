@@ -39,7 +39,11 @@ Scaffolded in T0.1. Package manager is pnpm (pinned via `packageManager` in `pac
 - `src/components/ui/` — shadcn components (Radix base, added via `pnpm dlx shadcn@latest add <name>`).
 - `src/lib/` — shared utilities (`utils.ts` re-exports `cn`).
 - `src/editor/` — CodeMirror 6 editor: `Editor.tsx` (one view per document, wired to autosave), `keymap.ts` (vscode keymap as the sole keymap), `theme.ts` (§1.7 highlighting, all colors via CSS variables).
-- `src/components/shell/` — floating-panel shell (sidebar, editor panel, status bar); `sample.ts` holds placeholder content until Phase 3.
+- `src/components/shell/` — floating-panel shell: `Shell.tsx` (tray, sidebar handle, panes, file drop, first run), `Sidebar.tsx`, `EditorPane.tsx` (tab strip + overflow, pane controls, export menu), `DocumentMenu.tsx` (right-click menu: color, rename, pin, delete), `StatusBar.tsx`, `Toast.tsx`.
+- `src/state/` — `workspace.ts` (zustand: panes/tabs/focus/sidebar/toast; layout persisted to the `workspace` table), `actions.ts` (new/rename/color/pin/delete-with-undo/import), `theme.ts` (light/dark/system preference), `hooks.ts` (live document list).
+- `src/editor/sessions.ts` — one shared session per open document, so the same document in two panes stays in step and has one autosave.
+- `src/lib/docList.ts` — pure sort / OR color filter / search logic (T6.2 unit-test target); `src/lib/export.ts` — md / plain-text / PDF export; `src/lib/counts.ts` — status-bar counts.
+- `docs/design/` — design canvases from the Claude Design project (open via the dev server, e.g. `/docs/design/Jot%20Missing%20Flows.dc.html`).
 - `scripts/keymap-collisions.mjs` — `pnpm check:keymap`; run after any keymap change (T2.2).
 - `src/review/ruleset/` — the Style Review rule set (bundled at build time, T5.8). `checks.md` and `output-schema.md` are authoritative for Phase 5 flag production.
 - `@/` is aliased to `src/` (see `vite.config.ts`, `tsconfig*.json`).

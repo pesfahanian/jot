@@ -46,14 +46,35 @@ export interface ReviewSession {
   flags: ReviewFlag[]
 }
 
+// Shell layout, restored on reload: which documents are open where, plus
+// sidebar preferences. UI state only — nothing here is document content.
+export interface PaneLayout {
+  id: string
+  tabs: string[]
+  active: string | null
+}
+
+export interface Workspace {
+  id: 'workspace'
+  panes: PaneLayout[]
+  focusedPaneId: string
+  sidebarWidth: number
+  sort: 'date' | 'name'
+}
+
 export const db = new Dexie('jot') as Dexie & {
   documents: EntityTable<JotDocument, 'id'>
   settings: EntityTable<Settings, 'id'>
   reviewSessions: EntityTable<ReviewSession, 'documentId'>
+  workspace: EntityTable<Workspace, 'id'>
 }
 
 db.version(1).stores({
   documents: 'id, updatedAt',
   settings: 'id',
   reviewSessions: 'documentId',
+})
+
+db.version(2).stores({
+  workspace: 'id',
 })
