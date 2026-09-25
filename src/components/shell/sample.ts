@@ -1,6 +1,5 @@
 // Static content from the floating-panel frames (8a/8b). Placeholder only:
-// the document model (Phase 1), editor (Phase 2) and sidebar/tabs (Phase 3)
-// replace every piece of this.
+// the sidebar, tabs and status bar (Phase 3) replace every piece of this.
 
 export type TagSlot = 1 | 2 | 3 | 4 | 5 | 6
 
@@ -32,48 +31,7 @@ export const tabs: { name: string; tag?: TagSlot }[] = [
   { name: 'scratch' },
 ]
 
-// One entry per editor line. Each segment carries the syntax role it renders in.
-export type Seg = { t: string; role?: 'heading' | 'emph' | 'link' | 'code' | 'punct' | 'quote' | 'done' | 'mark' }
-export type Line = { segs: Seg[]; block?: 'code' }
-
-export const firstLineNumber = 28
 export const cursorLine = 40
-
-export const lines: Line[] = [
-  { segs: [{ t: '### ', role: 'heading' }, { t: '3. Rollout', role: 'heading' }] },
-  { segs: [] },
-  { segs: [{ t: '- ', role: 'punct' }, { t: 'Migrate each service in turn, starting with' }] },
-  { segs: [{ t: '  the queue workers, the scheduler, and CI.' }] },
-  { segs: [{ t: '- ', role: 'punct' }, { t: 'Every service gets a dry run before cutover.' }] },
-  { segs: [] },
-  { segs: [{ t: 'Owners ' }, { t: 'must', role: 'emph' }, { t: ' confirm their slot in' }] },
-  {
-    segs: [
-      { t: '[', role: 'punct' },
-      { t: 'the shared tracker', role: 'link' },
-      { t: '](./notes/tracker.md)', role: 'punct' },
-      { t: ' before Friday.' },
-    ],
-  },
-  { segs: [] },
-  { segs: [{ t: '  pnpm migrate --service queue --dry-run', role: 'code' }], block: 'code' },
-  { segs: [{ t: '  pnpm migrate --service queue --cutover', role: 'code' }], block: 'code' },
-  { segs: [] },
-  {
-    segs: [
-      { t: 'Rollback stays live for ' },
-      { t: '48h', role: 'code' },
-      { t: ' after each ' },
-      { t: 'cutover', role: 'mark' },
-      { t: '.' },
-    ],
-  },
-  { segs: [] },
-  { segs: [{ t: '> ', role: 'punct' }, { t: 'Nothing here changes the freeze window.', role: 'quote' }] },
-  { segs: [] },
-  { segs: [{ t: '- [ ] ', role: 'punct' }, { t: 'name a backup owner per service' }] },
-  { segs: [{ t: '- [x] ', role: 'punct' }, { t: 'book the maintenance channel', role: 'done' }] },
-]
 
 export const counters: [label: string, value: string][] = [
   ['bytes', '1 904'],
