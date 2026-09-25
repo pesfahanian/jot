@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: oklch(0.885 0.004 250); font-family: "Public Sans", Helvetica, sans-serif; }
+  a { color: oklch(0.28 0.012 250); }
+  a:hover { color: oklch(0.60 0.13 75); }
+  * { box-sizing: border-box; }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 18px; padding: 40px">
+
+  <div style="display: flex; align-items: baseline; gap: 12px; font-size: 12px; color: oklch(0.42 0.01 250)">
+    <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px; border-radius: 4px">3a</span>
+    <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Shell at rest</span>
+    <span>radii backported from dark, real syntax hues, theme cell in the status bar</span>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 48px">
+    <div style="flex: 0 0 1400px; width: 1400px; height: 880px; display: flex; flex-direction: column; background: oklch(0.955 0.004 250); border: 1px solid oklch(0.78 0.008 250); color: oklch(0.28 0.012 250)">
+      <div style="flex: 1 1 auto; display: flex; min-height: 0">
+
+        <div style="flex: 0 0 auto; flex-basis: {{ sidebarWidth }}; width: 248px; min-width: 180px; display: flex; flex-direction: column; background: oklch(0.925 0.005 250); min-height: 0">
+          <div style="display: flex; align-items: center; gap: 5px; height: 38px; padding: 0 8px 0 12px; border-bottom: 1px solid oklch(0.855 0.006 250)">
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; font-weight: 600; letter-spacing: -0.01em; flex: 1 1 auto">jot</span>
+            <span title="sorted by date, newest first — click for name order" style="display: flex; align-items: center; justify-content: center; gap: 3px; width: 24px; height: 20px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); border-radius: 6px" data-comment-anchor="6704ca19e6-span">
+              <span style="display: flex; flex-direction: column; gap: 2px; align-items: flex-start">
+                <span style="width: 9px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+                <span style="width: 6px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+                <span style="width: 3px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+              </span>
+              <span style="position: relative; display: block; width: 1.5px; height: 10px; background: oklch(0.36 0.012 250)">
+                <span style="position: absolute; left: -2px; bottom: 0; width: 5.5px; height: 1.5px; background: oklch(0.36 0.012 250); transform: rotate(45deg); transform-origin: left bottom"></span>
+                <span style="position: absolute; left: 1.5px; bottom: 1.5px; width: 5.5px; height: 1.5px; background: oklch(0.36 0.012 250); transform: rotate(-45deg); transform-origin: left bottom"></span>
+              </span>
+            </span>
+            <span title="filter by color" style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); border-radius: 6px" data-comment-anchor="363e9d3b1d-div">
+              <span style="display: grid; grid-template-columns: 5px 5px; grid-template-rows: 5px 5px; gap: 1.5px">
+                <span style="border-radius: 1px; background: oklch(0.58 0.10 25)"></span>
+                <span style="background: oklch(0.70 0.09 95)"></span>
+                <span style="background: oklch(0.62 0.08 200)"></span>
+                <span style="background: oklch(0.55 0.10 260)"></span>
+              </span>
+            </span>
+            <span title="search" style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); border-radius: 6px">
+              <span style="position: relative; display: block; width: 8px; height: 8px; border: 1.5px solid oklch(0.36 0.012 250); border-radius: 50%">
+                <span style="position: absolute; left: 6px; top: 6px; width: 5px; height: 1.5px; background: oklch(0.36 0.012 250); transform: rotate(45deg); transform-origin: left center"></span>
+              </span>
+            </span>
+          </div>
+
+          <div style="flex: 1 1 auto; overflow: hidden; display: flex; flex-direction: column" data-comment-anchor="d9e2375698-div">
+            <div style="display: flex; flex-direction: column; padding: 6px 0; border-bottom: 1px solid oklch(0.855 0.006 250)">
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; background: oklch(0.99 0.002 250); border-left: 2px solid oklch(0.60 0.13 75)">
+                <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.70 0.09 95); flex: 0 0 auto"></span>
+                <span style="display: flex; flex-direction: column; align-items: center; width: 7px; flex: 0 0 auto"><span style="width: 7px; height: 7px; border: 1.5px solid oklch(0.42 0.01 250); border-radius: 50%"></span><span style="width: 1.5px; height: 4px; background: oklch(0.42 0.01 250)"></span></span>
+                <span style="font-size: 13px; font-weight: 500; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">prompt-review-pass</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">2m</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+                <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.62 0.08 200); flex: 0 0 auto"></span>
+                <span style="display: flex; flex-direction: column; align-items: center; width: 7px; flex: 0 0 auto"><span style="width: 7px; height: 7px; border: 1.5px solid oklch(0.42 0.01 250); border-radius: 50%"></span><span style="width: 1.5px; height: 4px; background: oklch(0.42 0.01 250)"></span></span>
+                <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">jot-spec</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">21d</span>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; padding: 6px 0">
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+                <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.70 0.09 95); flex: 0 0 auto"></span>
+                <span style="width: 7px; flex: 0 0 auto"></span>
+                <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">status-bar</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">41m</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+                <span style="width: 8px; height: 8px; flex: 0 0 auto"></span>
+                <span style="width: 7px; flex: 0 0 auto"></span>
+                <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">scratch</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">3h</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+                <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.60 0.09 145); flex: 0 0 auto"></span>
+                <span style="width: 7px; flex: 0 0 auto"></span>
+                <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">deploy-runbook</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">7h</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+                <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.58 0.10 25); flex: 0 0 auto"></span>
+                <span style="width: 7px; flex: 0 0 auto"></span>
+                <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">notes/2026-08-30</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">13d</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+                <span style="width: 8px; height: 8px; flex: 0 0 auto"></span>
+                <span style="width: 7px; flex: 0 0 auto"></span>
+                <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">reading-queue</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">1mo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div onMouseDown="{{ startResize }}" title="drag to resize sidebar" style="flex: 0 0 5px; cursor: col-resize; background: oklch(0.855 0.006 250); background-clip: content-box; border-left: 2px solid transparent; border-right: 2px solid transparent"></div>
+
+        <div style="flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: oklch(0.99 0.002 250)">
+
+          <div style="flex: 0 0 auto; display: flex; align-items: stretch; height: 38px; background: oklch(0.925 0.005 250); border-bottom: 1px solid oklch(0.855 0.006 250)">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 0 12px; background: oklch(0.99 0.002 250); border-top: 2px solid oklch(0.60 0.13 75); border-right: 1px solid oklch(0.855 0.006 250); margin-bottom: -1px; border-radius: 6px 6px 0 0">
+              <span style="width: 7px; height: 7px; border-radius: 2px; background: oklch(0.70 0.09 95)"></span>
+              <span style="font-size: 13px; font-weight: 500">prompt-review-pass</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: oklch(0.635 0.01 250)">×</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 9px; padding: 0 12px; border-top: 2px solid transparent; border-right: 1px solid oklch(0.855 0.006 250); color: oklch(0.50 0.01 250); border-radius: 6px 6px 0 0">
+              <span style="width: 7px; height: 7px; border-radius: 2px; background: oklch(0.70 0.09 95)"></span>
+              <span style="font-size: 13px">status-bar</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: oklch(0.72 0.01 250)">×</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 9px; padding: 0 12px; border-top: 2px solid transparent; border-right: 1px solid oklch(0.855 0.006 250); color: oklch(0.50 0.01 250); border-radius: 6px 6px 0 0">
+              <span style="width: 7px; height: 7px"></span>
+              <span style="font-size: 13px">scratch</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: oklch(0.72 0.01 250)">×</span>
+            </div>
+            <div style="flex: 1 1 auto; border-bottom: 1px solid transparent"></div>
+            <div style="display: flex; align-items: center; gap: 6px; padding: 0 10px; border-left: 1px solid oklch(0.855 0.006 250)">
+              <span title="split editor right" style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 7px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.36 0.012 250)">
+                <span style="display: flex; width: 11px; height: 9px; border: 1px solid oklch(0.50 0.01 250)"><span style="flex: 1 1 auto; border-right: 1px solid oklch(0.50 0.01 250)"></span><span style="flex: 1 1 auto"></span></span>
+                split
+              </span>
+              <span title="open rendered view in a new pane" style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.36 0.012 250)">render →</span>
+              <span title="export" style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 7px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.36 0.012 250)">export <span style="color: oklch(0.635 0.01 250)">▾</span></span>
+            </div>
+          </div>
+
+          <div style="flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden">
+            <div style="flex: 0 0 46px; padding: 16px 10px 0 0; text-align: right; font-family: 'Source Code Pro', monospace; font-size: 13.5px; line-height: 1.65; color: oklch(0.74 0.008 250); border-right: 1px solid oklch(0.93 0.004 250); user-select: none">
+              <div>28</div><div>29</div><div>30</div><div>31</div><div>32</div><div>33</div><div>34</div><div>35</div><div>36</div><div>37</div><div>38</div><div>39</div><div>40</div><div>41</div><div>42</div><div>43</div><div style="color: oklch(0.28 0.012 250); font-weight: 500">44</div><div>45</div><div>46</div><div>47</div><div>48</div>
+            </div>
+            <div style="flex: 1 1 auto; min-width: 0; padding: 16px 0 0 20px; font-family: 'Source Code Pro', monospace; font-size: 13.5px; line-height: 1.65; white-space: pre; overflow: hidden">
+<div><span style="color: #A83442">## </span><span style="color: #A83442; font-weight: 600">Constraints</span></div>
+<div style="min-height: 1.65em"></div>
+<div><span style="color: #969084">- </span>Keep the author's wording. No rewrites, no</div>
+<div>  reordering, no tightening.</div>
+<div><span style="color: #969084">- </span>Every change carries a one-line reason.</div>
+<div><span style="color: #969084">- </span>Byte count may not grow by more than 5%.</div>
+<div style="min-height: 1.65em"></div>
+<div style="background: oklch(0.965 0.004 250); border-left: 2px solid oklch(0.855 0.006 250); margin-left: -22px; padding-left: 20px">    diff --unified=1 old.md new.md</div>
+<div style="min-height: 1.65em"></div>
+<div>See <span style="color: #969084">[</span><span style="color: #0068B2; text-decoration: underline; text-decoration-color: #0068B2; text-underline-offset: 3px">the earlier notes</span><span style="color: #969084">](./notes/2026-08-30.md)</span> for why</div>
+<div>the summarize-first version fell apart on long</div>
+<div>documents.</div>
+<div style="min-height: 1.65em"></div>
+<div><span style="color: #A83442">## </span><span style="color: #A83442; font-weight: 600">Open</span></div>
+<div style="min-height: 1.65em"></div>
+<div>Does the review need the <span style="color: #969084">**</span><span style="color: #7B6000; font-weight: 600">full</span><span style="color: #969084">**</span> revision history,</div>
+<div>or only the <span style="background: #F2ECB6">last pass<span style="display: inline-block; width: 2px; height: 17px; background: oklch(0.28 0.012 250); vertical-align: -4px; margin: 0 -1px"></span></span>? Test both against</div>
+<div><span style="color: #969084; background: oklch(0.965 0.004 250)">`</span><span style="color: #0B7643; background: oklch(0.965 0.004 250)">jot/status-bar.md</span><span style="color: #969084; background: oklch(0.965 0.004 250)">`</span> first, then the runbook.</div>
+<div style="min-height: 1.65em"></div>
+<div><span style="color: #969084">- [ ] </span>write the diff harness</div>
+<div><span style="color: #969084">- [x] </span><span style="color: oklch(0.635 0.01 250); text-decoration: line-through">collect three sample docs</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 0 0 auto; display: flex; align-items: stretch; height: 26px; background: oklch(0.925 0.005 250); border-top: 1px solid oklch(0.855 0.006 250); font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+        <div style="display: flex; align-items: center; padding: 0 8px; border-right: 1px solid oklch(0.855 0.006 250)">
+          <span style="display: flex; align-items: center; gap: 6px; height: 18px; padding: 0 7px; border: 1px solid oklch(0.78 0.008 250); background: oklch(0.955 0.004 250); border-radius: 6px; color: oklch(0.28 0.012 250)">
+            <span style="width: 5px; height: 5px; background: oklch(0.60 0.13 75)"></span>review style
+          </span>
+        </div>
+        <div style="flex: 1 1 auto"></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">bytes</span><span>2 471</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">chars</span><span>2 463</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">words</span><span>402</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">lines</span><span>68</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">paras</span><span>9</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250); font-weight: 500"><span style="color: oklch(0.635 0.01 250); font-weight: 400">cursor</span><span>44:29</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 12px 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">theme</span><span style="color: oklch(0.28 0.012 250)">light</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 40px; margin-top: 26px">
+
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 300px">
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: oklch(0.42 0.01 250)">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px; border-radius: 4px">3b</span>
+        <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Color filter box</span>
+      </div>
+      <div style="width: 300px; height: 420px; position: relative; display: flex; flex-direction: column; background: oklch(0.925 0.005 250); border: 1px solid oklch(0.78 0.008 250); color: oklch(0.28 0.012 250); overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 5px; height: 38px; padding: 0 8px 0 12px; border-bottom: 1px solid oklch(0.855 0.006 250)">
+          <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; font-weight: 600; flex: 1 1 auto">jot</span>
+          <span style="display: flex; align-items: center; justify-content: center; gap: 3px; width: 24px; height: 20px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); border-radius: 6px">
+            <span style="display: flex; flex-direction: column; gap: 2px; align-items: flex-start">
+              <span style="width: 9px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+              <span style="width: 6px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+              <span style="width: 3px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+            </span>
+            <span style="position: relative; display: block; width: 1.5px; height: 10px; background: oklch(0.36 0.012 250)">
+              <span style="position: absolute; left: -2px; bottom: 0; width: 5.5px; height: 1.5px; background: oklch(0.36 0.012 250); transform: rotate(45deg); transform-origin: left bottom"></span>
+              <span style="position: absolute; left: 1.5px; bottom: 1.5px; width: 5.5px; height: 1.5px; background: oklch(0.36 0.012 250); transform: rotate(-45deg); transform-origin: left bottom"></span>
+            </span>
+          </span>
+          <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid oklch(0.28 0.012 250); background: oklch(0.99 0.002 250); border-radius: 6px">
+            <span style="display: grid; grid-template-columns: 5px 5px; grid-template-rows: 5px 5px; gap: 1.5px">
+              <span style="background: oklch(0.58 0.10 25)"></span>
+              <span style="background: oklch(0.70 0.09 95)"></span>
+              <span style="background: oklch(0.62 0.08 200)"></span>
+              <span style="background: oklch(0.55 0.10 260)"></span>
+            </span>
+          </span>
+          <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); border-radius: 6px">
+            <span style="position: relative; display: block; width: 8px; height: 8px; border: 1.5px solid oklch(0.36 0.012 250); border-radius: 50%">
+              <span style="position: absolute; left: 6px; top: 6px; width: 5px; height: 1.5px; background: oklch(0.36 0.012 250); transform: rotate(45deg); transform-origin: left center"></span>
+            </span>
+          </span>
+        </div>
+        <div style="flex: 1 1 auto; display: flex; flex-direction: column; overflow: hidden">
+          <div style="display: flex; flex-direction: column; padding: 6px 0; border-bottom: 1px solid oklch(0.855 0.006 250)">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; background: oklch(0.99 0.002 250); border-left: 2px solid oklch(0.60 0.13 75)">
+              <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.70 0.09 95); flex: 0 0 auto"></span>
+              <span style="display: flex; flex-direction: column; align-items: center; width: 7px; flex: 0 0 auto"><span style="width: 7px; height: 7px; border: 1.5px solid oklch(0.42 0.01 250); border-radius: 50%"></span><span style="width: 1.5px; height: 4px; background: oklch(0.42 0.01 250)"></span></span>
+              <span style="font-size: 13px; font-weight: 500; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">prompt-review-pass</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">2m</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+              <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.62 0.08 200); flex: 0 0 auto"></span>
+              <span style="display: flex; flex-direction: column; align-items: center; width: 7px; flex: 0 0 auto"><span style="width: 7px; height: 7px; border: 1.5px solid oklch(0.42 0.01 250); border-radius: 50%"></span><span style="width: 1.5px; height: 4px; background: oklch(0.42 0.01 250)"></span></span>
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">jot-spec</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">21d</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; padding: 6px 0">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+              <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.58 0.10 25); flex: 0 0 auto"></span>
+              <span style="width: 7px; flex: 0 0 auto"></span>
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">deploy-notes</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">7h</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+              <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.70 0.09 95); flex: 0 0 auto"></span>
+              <span style="width: 7px; flex: 0 0 auto"></span>
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">review-model-picks</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">5d</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+              <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.70 0.09 95); flex: 0 0 auto"></span>
+              <span style="width: 7px; flex: 0 0 auto"></span>
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">status-bar</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">41m</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+              <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.58 0.10 25); flex: 0 0 auto"></span>
+              <span style="width: 7px; flex: 0 0 auto"></span>
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">notes/2026-08-30</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">13d</span>
+            </div>
+          </div>
+        </div>
+        <div style="position: absolute; right: 8px; top: 40px; width: 150px; background: oklch(0.99 0.002 250); border: 1px solid oklch(0.50 0.01 250); border-radius: 12px; overflow: hidden">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; padding: 5px">
+            <span style="display: flex; align-items: center; gap: 7px; padding: 4px 5px; border: 1px solid oklch(0.28 0.012 250); background: oklch(0.965 0.004 250)"><span style="width: 11px; height: 11px; border-radius: 4px; background: oklch(0.58 0.10 25)"></span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600">3</span></span>
+            <span style="display: flex; align-items: center; gap: 7px; padding: 4px 5px; border: 1px solid oklch(0.28 0.012 250); background: oklch(0.965 0.004 250)"><span style="width: 11px; height: 11px; border-radius: 4px; background: oklch(0.70 0.09 95)"></span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600">6</span></span>
+            <span style="display: flex; align-items: center; gap: 7px; padding: 4px 5px; border: 1px solid transparent"><span style="width: 11px; height: 11px; border-radius: 4px; background: oklch(0.60 0.09 145)"></span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.50 0.01 250)">2</span></span>
+            <span style="display: flex; align-items: center; gap: 7px; padding: 4px 5px; border: 1px solid oklch(0.28 0.012 250); background: oklch(0.965 0.004 250)"><span style="width: 11px; height: 11px; border-radius: 4px; background: oklch(0.62 0.08 200)"></span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600">4</span></span>
+            <span style="display: flex; align-items: center; gap: 7px; padding: 4px 5px; border: 1px solid transparent"><span style="width: 11px; height: 11px; border-radius: 4px; background: oklch(0.55 0.10 260)"></span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.50 0.01 250)">1</span></span>
+            <span style="display: flex; align-items: center; gap: 7px; padding: 4px 5px; border: 1px solid transparent"><span style="width: 11px; height: 11px; border-radius: 4px; background: oklch(0.55 0.09 320)"></span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.74 0.008 250)">0</span></span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 9px; border-top: 1px solid oklch(0.93 0.004 250); font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">
+            <span>13 of 17</span>
+            <span style="color: oklch(0.36 0.012 250); text-decoration: underline; text-underline-offset: 2px">clear</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: oklch(0.50 0.01 250); text-wrap: pretty">The filter lives entirely in the box: pick any number of colors, see the surviving count, clear. Every picked swatch carries the same outline and fill, so multi-select never looks like a single choice. Picking more colors can only add files.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 560px">
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: oklch(0.42 0.01 250)">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px; border-radius: 4px">3c</span>
+        <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Assigning a color</span>
+        <span>right-click a file or its tab</span>
+      </div>
+      <div style="width: 560px; height: 300px; position: relative; display: flex; background: oklch(0.99 0.002 250); border: 1px solid oklch(0.78 0.008 250); color: oklch(0.28 0.012 250); overflow: hidden">
+        <div style="flex: 0 0 206px; display: flex; flex-direction: column; background: oklch(0.925 0.005 250); border-right: 1px solid oklch(0.855 0.006 250); padding: 6px 0">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; background: oklch(0.99 0.002 250); border-left: 2px solid oklch(0.60 0.13 75)">
+            <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.70 0.09 95); flex: 0 0 auto"></span>
+            <span style="display: flex; flex-direction: column; align-items: center; width: 7px; flex: 0 0 auto"><span style="width: 7px; height: 7px; border: 1.5px solid oklch(0.42 0.01 250); border-radius: 50%"></span><span style="width: 1.5px; height: 4px; background: oklch(0.42 0.01 250)"></span></span>
+            <span style="font-size: 13px; font-weight: 500; flex: 1 1 auto">prompt-review-pass</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+            <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.70 0.09 95); flex: 0 0 auto"></span>
+            <span style="width: 7px; flex: 0 0 auto"></span>
+            <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto">status-bar</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+            <span style="width: 8px; height: 8px; flex: 0 0 auto"></span>
+            <span style="width: 7px; flex: 0 0 auto"></span>
+            <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto">scratch</span>
+          </div>
+        </div>
+        <div style="flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0">
+          <div style="flex: 1 1 auto; padding: 16px 0 0 20px; font-family: 'Source Code Pro', monospace; font-size: 13.5px; line-height: 1.65; white-space: pre; color: oklch(0.635 0.01 250)">
+<div><span style="color: oklch(0.80 0.04 75)">## </span>Constraints</div>
+<div style="min-height: 1.65em"></div>
+<div>- Keep the author's wording.</div>
+          </div>
+        </div>
+        <div style="position: absolute; left: 92px; top: 30px; width: 172px; background: oklch(0.99 0.002 250); border: 1px solid oklch(0.50 0.01 250); border-radius: 12px; overflow: hidden">
+          <div style="display: flex; align-items: center; gap: 5px; padding: 8px 9px">
+            <span style="display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1px solid transparent"><span style="width: 14px; height: 14px; border-radius: 4px; background: oklch(0.58 0.10 25)"></span></span>
+            <span style="display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1px solid oklch(0.28 0.012 250)"><span style="width: 14px; height: 14px; border-radius: 4px; background: oklch(0.70 0.09 95)"></span></span>
+            <span style="display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1px solid transparent"><span style="width: 14px; height: 14px; border-radius: 4px; background: oklch(0.60 0.09 145)"></span></span>
+            <span style="display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1px solid transparent"><span style="width: 14px; height: 14px; border-radius: 4px; background: oklch(0.62 0.08 200)"></span></span>
+            <span style="display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1px solid transparent"><span style="width: 14px; height: 14px; border-radius: 4px; background: oklch(0.55 0.10 260)"></span></span>
+            <span style="display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1px solid transparent"><span style="width: 14px; height: 14px; border-radius: 4px; background: oklch(0.55 0.09 320)"></span></span>
+            <span title="no color" style="display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1px solid transparent"><span style="width: 14px; height: 14px; border-radius: 4px; border: 1px solid oklch(0.78 0.008 250); background: linear-gradient(to top right, transparent calc(50% - 0.5px), oklch(0.78 0.008 250) calc(50% - 0.5px), oklch(0.78 0.008 250) calc(50% + 0.5px), transparent calc(50% + 0.5px))"></span></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 9px; padding: 6px 10px; border-top: 1px solid oklch(0.93 0.004 250); font-size: 12.5px; color: oklch(0.28 0.012 250)">
+            <span style="display: flex; align-items: center; justify-content: center; width: 14px"><span style="display: block; width: 11px; height: 1.5px; background: oklch(0.42 0.01 250)"></span></span>
+            rename
+          </div>
+          <div style="display: flex; align-items: center; gap: 9px; padding: 6px 10px; border-top: 1px solid oklch(0.93 0.004 250); font-size: 12.5px; color: oklch(0.28 0.012 250)">
+            <span style="display: flex; flex-direction: column; align-items: center; width: 14px"><span style="width: 7px; height: 7px; border: 1.5px solid oklch(0.42 0.01 250); border-radius: 50%"></span><span style="width: 1.5px; height: 4px; background: oklch(0.42 0.01 250)"></span></span>
+            unpin
+          </div>
+          <div style="display: flex; align-items: center; gap: 9px; padding: 6px 10px; border-top: 1px solid oklch(0.93 0.004 250); font-size: 12.5px; color: oklch(0.28 0.012 250)">
+            <span style="display: flex; align-items: center; justify-content: center; width: 14px; font-family: 'Source Code Pro', monospace; font-size: 13px; color: oklch(0.50 0.01 250)">×</span>
+            delete
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: oklch(0.50 0.01 250); text-wrap: pretty">No dedicated color button in the chrome. Colors sit at the top of the file's own context menu, in the same fixed order as the filter box, with the struck square for "no color" as a seventh slot in the same row; the assigned one is ringed and clicking another moves the ring. Rename, pin and delete follow below.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 300px">
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: oklch(0.42 0.01 250)">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px; border-radius: 4px">3e</span>
+        <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Sidebar with row menu button</span>
+      </div>
+      <div style="width: 300px; display: flex; flex-direction: column; background: oklch(0.925 0.005 250); border: 1px solid oklch(0.78 0.008 250); color: oklch(0.28 0.012 250)">
+        <div style="display: flex; align-items: center; gap: 5px; height: 38px; padding: 0 8px 0 12px; border-bottom: 1px solid oklch(0.855 0.006 250)">
+          <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; font-weight: 600; flex: 1 1 auto">jot</span>
+          <span style="display: flex; align-items: center; justify-content: center; gap: 3px; width: 24px; height: 20px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); border-radius: 6px">
+            <span style="display: flex; flex-direction: column; gap: 2px; align-items: flex-start">
+              <span style="width: 9px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+              <span style="width: 6px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+              <span style="width: 3px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+            </span>
+            <span style="position: relative; display: block; width: 1.5px; height: 10px; background: oklch(0.36 0.012 250)">
+              <span style="position: absolute; left: -2px; bottom: 0; width: 5.5px; height: 1.5px; background: oklch(0.36 0.012 250); transform: rotate(45deg); transform-origin: left bottom"></span>
+              <span style="position: absolute; left: 1.5px; bottom: 1.5px; width: 5.5px; height: 1.5px; background: oklch(0.36 0.012 250); transform: rotate(-45deg); transform-origin: left bottom"></span>
+            </span>
+          </span>
+          <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); border-radius: 6px">
+            <span style="display: grid; grid-template-columns: 5px 5px; grid-template-rows: 5px 5px; gap: 1.5px">
+              <span style="background: oklch(0.58 0.10 25)"></span>
+              <span style="background: oklch(0.70 0.09 95)"></span>
+              <span style="background: oklch(0.62 0.08 200)"></span>
+              <span style="background: oklch(0.55 0.10 260)"></span>
+            </span>
+          </span>
+          <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); border-radius: 6px">
+            <span style="position: relative; display: block; width: 8px; height: 8px; border: 1.5px solid oklch(0.36 0.012 250); border-radius: 50%">
+              <span style="position: absolute; left: 6px; top: 6px; width: 5px; height: 1.5px; background: oklch(0.36 0.012 250); transform: rotate(45deg); transform-origin: left center"></span>
+            </span>
+          </span>
+        </div>
+        <div style="display: flex; flex-direction: column; padding: 6px 0; border-bottom: 1px solid oklch(0.855 0.006 250)">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 5px 6px 5px 10px; background: oklch(0.99 0.002 250); border-left: 2px solid oklch(0.60 0.13 75)">
+            <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.70 0.09 95); flex: 0 0 auto"></span>
+            <span style="display: flex; flex-direction: column; align-items: center; width: 7px; flex: 0 0 auto"><span style="width: 7px; height: 7px; border: 1.5px solid oklch(0.42 0.01 250); border-radius: 50%"></span><span style="width: 1.5px; height: 4px; background: oklch(0.42 0.01 250)"></span></span>
+            <span style="font-size: 13px; font-weight: 500; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">prompt-review-pass</span>
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">2m</span>
+            <span title="actions" style="display: flex; flex-direction: column; align-items: center; gap: 2px; width: 16px; height: 18px; justify-content: center; flex: 0 0 auto">
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.42 0.01 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.42 0.01 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.42 0.01 250)"></span>
+            </span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 5px 6px 5px 10px; border-left: 2px solid transparent">
+            <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.62 0.08 200); flex: 0 0 auto"></span>
+            <span style="display: flex; flex-direction: column; align-items: center; width: 7px; flex: 0 0 auto"><span style="width: 7px; height: 7px; border: 1.5px solid oklch(0.42 0.01 250); border-radius: 50%"></span><span style="width: 1.5px; height: 4px; background: oklch(0.42 0.01 250)"></span></span>
+            <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">jot-spec</span>
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">21d</span>
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 2px; width: 16px; height: 18px; justify-content: center; flex: 0 0 auto">
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+            </span>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; padding: 6px 0">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 5px 6px 5px 10px; border-left: 2px solid transparent">
+            <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.70 0.09 95); flex: 0 0 auto"></span>
+            <span style="width: 7px; flex: 0 0 auto"></span>
+            <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">status-bar</span>
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">41m</span>
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 2px; width: 16px; height: 18px; justify-content: center; flex: 0 0 auto">
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+            </span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 5px 6px 5px 10px; border-left: 2px solid transparent; background: oklch(0.945 0.004 250)">
+            <span style="width: 8px; height: 8px; flex: 0 0 auto"></span>
+            <span style="width: 7px; flex: 0 0 auto"></span>
+            <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">scratch</span>
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">3h</span>
+            <span title="actions — hovered" style="display: flex; flex-direction: column; align-items: center; gap: 2px; width: 16px; height: 18px; justify-content: center; flex: 0 0 auto; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.99 0.002 250)">
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.28 0.012 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.28 0.012 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.28 0.012 250)"></span>
+            </span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 5px 6px 5px 10px; border-left: 2px solid transparent">
+            <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.60 0.09 145); flex: 0 0 auto"></span>
+            <span style="width: 7px; flex: 0 0 auto"></span>
+            <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">deploy-runbook</span>
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">7h</span>
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 2px; width: 16px; height: 18px; justify-content: center; flex: 0 0 auto">
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+            </span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 5px 6px 5px 10px; border-left: 2px solid transparent">
+            <span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(0.58 0.10 25); flex: 0 0 auto"></span>
+            <span style="width: 7px; flex: 0 0 auto"></span>
+            <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">notes/2026-08-30</span>
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">13d</span>
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 2px; width: 16px; height: 18px; justify-content: center; flex: 0 0 auto">
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+            </span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 5px 6px 5px 10px; border-left: 2px solid transparent">
+            <span style="width: 8px; height: 8px; flex: 0 0 auto"></span>
+            <span style="width: 7px; flex: 0 0 auto"></span>
+            <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">reading-queue</span>
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">1mo</span>
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 2px; width: 16px; height: 18px; justify-content: center; flex: 0 0 auto">
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+              <span style="width: 2.5px; height: 2.5px; background: oklch(0.80 0.006 250)"></span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: oklch(0.50 0.01 250); text-wrap: pretty">Same menu as right-click, given a visible handle. Dots sit at a light weight on every row and darken into a bordered button on hover (shown on <span style="font-family: 'Source Code Pro', monospace; font-size: 11px">scratch</span>), so the column is discoverable without competing with the filenames. Costs 24px of name width on every row.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 420px">
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: oklch(0.42 0.01 250)">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px; border-radius: 4px">3f</span>
+        <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Theme switch</span>
+        <span>status-bar cell, three states, one click cycles</span>
+      </div>
+      <div style="display: flex; flex-direction: column; border: 1px solid oklch(0.78 0.008 250); border-radius: 12px; overflow: hidden">
+        <div style="display: flex; align-items: center; height: 26px; background: oklch(0.925 0.005 250); border-bottom: 1px solid oklch(0.855 0.006 250); font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+          <div style="flex: 1 1 auto; padding: 0 11px; color: oklch(0.635 0.01 250)">…counters</div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 0 12px 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">theme</span><span style="color: oklch(0.28 0.012 250)">light</span></div>
+        </div>
+        <div style="display: flex; align-items: center; height: 26px; background: oklch(0.925 0.005 250); border-bottom: 1px solid oklch(0.855 0.006 250); font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+          <div style="flex: 1 1 auto; padding: 0 11px; color: oklch(0.635 0.01 250)">…counters</div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 0 12px 0 11px; border-left: 1px solid oklch(0.855 0.006 250); background: oklch(0.99 0.002 250)"><span style="color: oklch(0.635 0.01 250)">theme</span><span style="color: oklch(0.28 0.012 250)">dark</span></div>
+        </div>
+        <div style="display: flex; align-items: center; height: 26px; background: oklch(0.925 0.005 250); font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+          <div style="flex: 1 1 auto; padding: 0 11px; color: oklch(0.635 0.01 250)">…counters</div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 0 12px 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">theme</span><span style="color: oklch(0.28 0.012 250)">system</span><span style="color: oklch(0.635 0.01 250)">· dark</span></div>
+        </div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: oklch(0.50 0.01 250); text-wrap: pretty">A sun/moon icon can't say whether it shows the current theme or the one you'd get by clicking — exactly the ambiguity the icon rule exists to catch, so this is text. It reads as one more status-bar cell because that is what it is: global state, label plus value, same shape as <span style="font-family: 'Source Code Pro', monospace; font-size: 11px">bytes 2 471</span>. Click cycles light → dark → system; <span style="font-family: 'Source Code Pro', monospace; font-size: 11px">system</span> appends what the OS currently resolves to, so the cell never lies about what you are looking at. Default is <span style="font-family: 'Source Code Pro', monospace; font-size: 11px">system</span>.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 420px">
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: oklch(0.42 0.01 250)">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px; border-radius: 4px">3g</span>
+        <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Keycap on light — attempted</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 14px; padding: 20px; background: oklch(0.925 0.005 250); border: 1px solid oklch(0.78 0.008 250); border-radius: 12px">
+        <div style="padding: 14px 16px; background: oklch(0.925 0.005 250); border: 1px solid oklch(0.78 0.008 250); border-radius: 12px; box-shadow: inset 0 1px 0 0 #FFFFFF, 0 0 0 1px oklch(0.90 0.005 250), inset 0 -3px 0 0 oklch(0.855 0.006 250)">
+          <div style="font-size: 15px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 8px">Style review</div>
+          <div style="display: flex; align-items: center; gap: 4px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.50 0.01 250)">
+            <span style="display: flex; align-items: center; justify-content: center; min-width: 17px; height: 17px; padding: 0 4px; background: oklch(0.955 0.004 250); border: 1px solid oklch(0.78 0.008 250); border-radius: 4px; box-shadow: inset 0 1px 0 0 #FFFFFF, inset 0 -2px 0 0 oklch(0.87 0.006 250)">A</span>
+            <span style="display: flex; align-items: center; justify-content: center; min-width: 17px; height: 17px; padding: 0 4px; background: oklch(0.955 0.004 250); border: 1px solid oklch(0.78 0.008 250); border-radius: 4px; box-shadow: inset 0 1px 0 0 #FFFFFF, inset 0 -2px 0 0 oklch(0.87 0.006 250)">R</span>
+            <span style="margin-left: 6px">accept / reject</span>
+          </div>
+        </div>
+        <div style="font-family: 'Source Code Pro', monospace; font-size: 11px; line-height: 1.6; color: oklch(0.50 0.01 250)">inset 0 1px 0 #FFFFFF, 0 0 0 1px oklch(.90 .005 250), inset 0 -3px 0 oklch(.855 .006 250)</div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: oklch(0.50 0.01 250); text-wrap: pretty">It holds, with one condition: the panel must sit on <span style="font-family: 'Source Code Pro', monospace; font-size: 11px">panel</span>, not <span style="font-family: 'Source Code Pro', monospace; font-size: 11px">surface</span>. A near-white key has no room above itself for a highlight, so the effect dies on the editor's own ground. On panel there is .075 of lightness left to white — close to the .09 dark has above its elevated surface — and the bottom inset does the rest. Verdict: keep it, and pin the panel ground as part of the token. The small keys read better than the large panel; at 12px radius the bevel is subtle enough to be easy to miss.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 320px">
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: oklch(0.42 0.01 250)">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px; border-radius: 4px">3d</span>
+        <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Sort icon, two modes</span>
+      </div>
+      <div style="display: flex; flex-direction: column; border: 1px solid oklch(0.78 0.008 250); background: oklch(0.925 0.005 250)">
+        <div style="display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; border-bottom: 1px solid oklch(0.855 0.006 250)">
+          <span style="display: flex; align-items: center; justify-content: center; gap: 3px; width: 24px; height: 20px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); border-radius: 6px">
+            <span style="display: flex; flex-direction: column; gap: 2px; align-items: flex-start">
+              <span style="width: 9px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+              <span style="width: 6px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+              <span style="width: 3px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+            </span>
+            <span style="position: relative; display: block; width: 1.5px; height: 10px; background: oklch(0.36 0.012 250)">
+              <span style="position: absolute; left: -2px; bottom: 0; width: 5.5px; height: 1.5px; background: oklch(0.36 0.012 250); transform: rotate(45deg); transform-origin: left bottom"></span>
+              <span style="position: absolute; left: 1.5px; bottom: 1.5px; width: 5.5px; height: 1.5px; background: oklch(0.36 0.012 250); transform: rotate(-45deg); transform-origin: left bottom"></span>
+            </span>
+          </span>
+          <span style="font-size: 12px; color: oklch(0.36 0.012 250)">newest first — bars run long to short</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px">
+          <span style="display: flex; align-items: center; justify-content: center; gap: 3px; width: 24px; height: 20px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); border-radius: 6px">
+            <span style="display: flex; flex-direction: column; gap: 2px; align-items: flex-start">
+              <span style="width: 3px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+              <span style="width: 6px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+              <span style="width: 9px; height: 1.5px; background: oklch(0.36 0.012 250)"></span>
+            </span>
+            <span style="position: relative; display: block; width: 1.5px; height: 10px; background: oklch(0.36 0.012 250)">
+              <span style="position: absolute; left: -2px; top: 0; width: 5.5px; height: 1.5px; background: oklch(0.36 0.012 250); transform: rotate(-45deg); transform-origin: left top"></span>
+              <span style="position: absolute; left: 1.5px; top: 1.5px; width: 5.5px; height: 1.5px; background: oklch(0.36 0.012 250); transform: rotate(45deg); transform-origin: left top"></span>
+            </span>
+          </span>
+          <span style="font-size: 12px; color: oklch(0.36 0.012 250)">A to Z — bars run short to long</span>
+        </div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: oklch(0.50 0.01 250); text-wrap: pretty">One button, two drawings: bar order and arrow direction both flip. This is the weakest of the three icons — a bare sort glyph can say "sorting" but not "by what", so the mode reads from the flip rather than from the symbol. Worth a look side by side with the text version before we commit.</div>
+    </div>
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  state = { sw: null };
+
+  startResize = (e) => {
+    e.preventDefault();
+    const start = e.clientX;
+    const base = this.state.sw != null ? parseInt(this.state.sw, 10) : 248;
+    const move = (ev) => {
+      const w = Math.max(180, Math.min(460, base + (ev.clientX - start)));
+      this.setState({ sw: w + "px" });
+    };
+    const up = () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  };
+
+  renderVals() {
+    return { sidebarWidth: this.state.sw, startResize: this.startResize };
+  }
+}
+
+</script>
+</body>
+</html>

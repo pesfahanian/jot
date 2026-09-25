@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: oklch(0.885 0.004 250); font-family: "Public Sans", Helvetica, sans-serif; }
+  a { color: oklch(0.28 0.012 250); }
+  a:hover { color: oklch(0.60 0.13 75); }
+  * { box-sizing: border-box; }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 18px; padding: 40px">
+
+  <div style="display: flex; align-items: baseline; gap: 12px; font-size: 12px; color: oklch(0.42 0.01 250)">
+    <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px">2a</span>
+    <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Shell at rest — v2</span>
+    <span>flat list with pinned block, tags, sort + search buttons, review control in the status bar</span>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 48px">
+    <div style="flex: 0 0 1400px; width: 1400px; height: 880px; display: flex; flex-direction: column; background: oklch(0.955 0.004 250); border: 1px solid oklch(0.78 0.008 250); color: oklch(0.28 0.012 250)">
+      <div style="flex: 1 1 auto; display: flex; min-height: 0">
+
+        <div style="flex: 0 0 auto; flex-basis: {{ sidebarWidth }}; width: 248px; min-width: 180px; display: flex; flex-direction: column; background: oklch(0.925 0.005 250); min-height: 0">
+          <div style="display: flex; align-items: center; gap: 6px; height: 38px; padding: 0 8px 0 12px; border-bottom: 1px solid oklch(0.855 0.006 250)">
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; font-weight: 600; letter-spacing: -0.01em; flex: 1 1 auto">jot</span>
+            <span title="cycle sort: name / date" style="display: flex; align-items: center; height: 20px; padding: 0 6px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.36 0.012 250)">date ↓</span>
+            <span title="search" style="display: flex; align-items: center; height: 20px; padding: 0 6px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.36 0.012 250)">find</span>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 4px 4px; padding: 8px 7px 9px; border-bottom: 1px solid oklch(0.855 0.006 250); font-family: 'Source Code Pro', monospace; font-size: 11px">
+            <span style="display: flex; gap: 5px; padding: 1px 5px; color: oklch(0.36 0.012 250)">spec<span style="color: oklch(0.635 0.01 250)">6</span></span>
+            <span style="display: flex; gap: 5px; padding: 1px 5px; color: oklch(0.36 0.012 250)">prompts<span style="color: oklch(0.635 0.01 250)">4</span></span>
+            <span style="display: flex; gap: 5px; padding: 1px 5px; color: oklch(0.36 0.012 250)">notes<span style="color: oklch(0.635 0.01 250)">4</span></span>
+            <span style="display: flex; gap: 5px; padding: 1px 5px; color: oklch(0.36 0.012 250)">ops<span style="color: oklch(0.635 0.01 250)">2</span></span>
+            <span style="display: flex; gap: 5px; padding: 1px 5px; color: oklch(0.36 0.012 250)">temp<span style="color: oklch(0.635 0.01 250)">1</span></span>
+          </div>
+
+          <div style="flex: 1 1 auto; overflow: hidden; display: flex; flex-direction: column">
+            <div style="display: flex; flex-direction: column; padding: 6px 0; border-bottom: 1px solid oklch(0.855 0.006 250)">
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; background: oklch(0.99 0.002 250); border-left: 2px solid oklch(0.60 0.13 75)">
+                <span style="width: 5px; height: 5px; background: oklch(0.50 0.01 250); flex: 0 0 auto"></span>
+                <span style="font-size: 13px; font-weight: 500; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">prompt-review-pass.md</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">2m</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+                <span style="width: 5px; height: 5px; background: oklch(0.50 0.01 250); flex: 0 0 auto"></span>
+                <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">jot-spec.md</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">21d</span>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; padding: 6px 0">
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+                <span style="width: 5px; height: 5px; flex: 0 0 auto"></span>
+                <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">status-bar.md</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">41m</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+                <span style="width: 5px; height: 5px; flex: 0 0 auto"></span>
+                <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">scratch.md</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">3h</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+                <span style="width: 5px; height: 5px; flex: 0 0 auto"></span>
+                <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">deploy-runbook.md</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">7h</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+                <span style="width: 5px; height: 5px; flex: 0 0 auto"></span>
+                <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">notes/2026-08-30.md</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">13d</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+                <span style="width: 5px; height: 5px; flex: 0 0 auto"></span>
+                <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">reading-queue.md</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">1mo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div onMouseDown="{{ startResize }}" title="drag to resize sidebar" style="flex: 0 0 5px; cursor: col-resize; background: oklch(0.855 0.006 250); background-clip: content-box; border-left: 2px solid transparent; border-right: 2px solid transparent"></div>
+
+        <div style="flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: oklch(0.99 0.002 250)">
+
+          <div style="flex: 0 0 auto; display: flex; align-items: stretch; height: 38px; background: oklch(0.925 0.005 250); border-bottom: 1px solid oklch(0.855 0.006 250)">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 0 12px; background: oklch(0.99 0.002 250); border-top: 2px solid oklch(0.60 0.13 75); border-right: 1px solid oklch(0.855 0.006 250); margin-bottom: -1px">
+              <span style="font-size: 13px; font-weight: 500">prompt-review-pass.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: oklch(0.635 0.01 250)">×</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 9px; padding: 0 12px; border-top: 2px solid transparent; border-right: 1px solid oklch(0.855 0.006 250); color: oklch(0.50 0.01 250)">
+              <span style="font-size: 13px">status-bar.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: oklch(0.72 0.01 250)">×</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 9px; padding: 0 12px; border-top: 2px solid transparent; border-right: 1px solid oklch(0.855 0.006 250); color: oklch(0.50 0.01 250)">
+              <span style="font-size: 13px">scratch.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: oklch(0.72 0.01 250)">×</span>
+            </div>
+            <div style="flex: 1 1 auto; border-bottom: 1px solid transparent"></div>
+            <div style="display: flex; align-items: center; gap: 6px; padding: 0 10px; border-left: 1px solid oklch(0.855 0.006 250)">
+              <span title="split editor right" style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 7px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.36 0.012 250)">
+                <span style="display: flex; width: 11px; height: 9px; border: 1px solid oklch(0.50 0.01 250)"><span style="flex: 1 1 auto; border-right: 1px solid oklch(0.50 0.01 250)"></span><span style="flex: 1 1 auto"></span></span>
+                split
+              </span>
+              <span title="open rendered view in a new pane" style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.36 0.012 250)">render →</span>
+              <span title="export" style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 7px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.36 0.012 250)">export <span style="color: oklch(0.635 0.01 250)">▾</span></span>
+            </div>
+          </div>
+
+          <div style="flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden">
+            <div style="flex: 0 0 46px; padding: 16px 10px 0 0; text-align: right; font-family: 'Source Code Pro', monospace; font-size: 13.5px; line-height: 1.65; color: oklch(0.74 0.008 250); border-right: 1px solid oklch(0.93 0.004 250); user-select: none">
+              <div>28</div><div>29</div><div>30</div><div>31</div><div>32</div><div>33</div><div>34</div><div>35</div><div>36</div><div>37</div><div>38</div><div>39</div><div>40</div><div>41</div><div>42</div><div>43</div><div style="color: oklch(0.28 0.012 250); font-weight: 500">44</div><div>45</div><div>46</div><div>47</div><div>48</div>
+            </div>
+            <div style="flex: 1 1 auto; min-width: 0; padding: 16px 0 0 20px; font-family: 'Source Code Pro', monospace; font-size: 13.5px; line-height: 1.65; white-space: pre; overflow: hidden">
+<div><span style="color: oklch(0.72 0.06 75)">## </span><span style="font-weight: 600">Constraints</span></div>
+<div style="min-height: 1.65em"></div>
+<div><span style="color: oklch(0.635 0.01 250)">- </span>Keep the author's wording. No rewrites, no</div>
+<div>  reordering, no tightening.</div>
+<div><span style="color: oklch(0.635 0.01 250)">- </span>Every change carries a one-line reason.</div>
+<div><span style="color: oklch(0.635 0.01 250)">- </span>Byte count may not grow by more than 5%.</div>
+<div style="min-height: 1.65em"></div>
+<div style="background: oklch(0.965 0.004 250); border-left: 2px solid oklch(0.855 0.006 250); margin-left: -22px; padding-left: 20px">    diff --unified=1 old.md new.md</div>
+<div style="min-height: 1.65em"></div>
+<div>See <span style="color: oklch(0.635 0.01 250)">[</span><span style="text-decoration: underline; text-decoration-color: oklch(0.78 0.008 250); text-underline-offset: 3px">the earlier notes</span><span style="color: oklch(0.635 0.01 250)">](./notes/2026-08-30.md)</span> for why</div>
+<div>the summarize-first version fell apart on long</div>
+<div>documents.</div>
+<div style="min-height: 1.65em"></div>
+<div><span style="color: oklch(0.72 0.06 75)">## </span><span style="font-weight: 600">Open</span></div>
+<div style="min-height: 1.65em"></div>
+<div>Does the review need the <span style="color: oklch(0.635 0.01 250)">**</span><span style="font-weight: 600">full</span><span style="color: oklch(0.635 0.01 250)">**</span> revision history,</div>
+<div>or only the <span style="background: oklch(0.93 0.05 75)">last pass<span style="display: inline-block; width: 2px; height: 17px; background: oklch(0.28 0.012 250); vertical-align: -4px; margin: 0 -1px"></span></span>? Test both against</div>
+<div><span style="color: oklch(0.635 0.01 250); background: oklch(0.965 0.004 250)">`</span><span style="background: oklch(0.965 0.004 250)">jot/status-bar.md</span><span style="color: oklch(0.635 0.01 250); background: oklch(0.965 0.004 250)">`</span> first, then the runbook.</div>
+<div style="min-height: 1.65em"></div>
+<div><span style="color: oklch(0.635 0.01 250)">- [ ] </span>write the diff harness</div>
+<div><span style="color: oklch(0.635 0.01 250)">- [x] </span><span style="color: oklch(0.635 0.01 250); text-decoration: line-through">collect three sample docs</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 0 0 auto; display: flex; align-items: stretch; height: 26px; background: oklch(0.925 0.005 250); border-top: 1px solid oklch(0.855 0.006 250); font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+        <div style="display: flex; align-items: center; padding: 0 12px; border-right: 1px solid oklch(0.855 0.006 250); color: oklch(0.36 0.012 250)">prompt-review-pass.md</div>
+        <div style="display: flex; align-items: center; padding: 0 8px; border-right: 1px solid oklch(0.855 0.006 250)">
+          <span style="display: flex; align-items: center; gap: 6px; height: 18px; padding: 0 7px; border: 1px solid oklch(0.78 0.008 250); background: oklch(0.955 0.004 250); color: oklch(0.28 0.012 250)">
+            <span style="width: 5px; height: 5px; background: oklch(0.60 0.13 75)"></span>review style
+          </span>
+        </div>
+        <div style="flex: 1 1 auto"></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">bytes</span><span>2 471</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">chars</span><span>2 463</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">words</span><span>402</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">lines</span><span>68</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">paras</span><span>9</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 12px 0 11px; border-left: 1px solid oklch(0.855 0.006 250); font-weight: 500"><span style="color: oklch(0.635 0.01 250); font-weight: 400">cursor</span><span>44:29</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 40px; margin-top: 26px">
+
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 300px">
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: oklch(0.42 0.01 250)">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px">2b</span>
+        <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Search expanded</span>
+      </div>
+      <div style="width: 300px; height: 460px; display: flex; flex-direction: column; background: oklch(0.925 0.005 250); border: 1px solid oklch(0.78 0.008 250); color: oklch(0.28 0.012 250)">
+        <div style="display: flex; align-items: center; gap: 6px; height: 38px; padding: 0 8px 0 8px; border-bottom: 1px solid oklch(0.855 0.006 250)">
+          <span style="display: flex; align-items: center; gap: 7px; flex: 1 1 auto; height: 24px; padding: 0 8px; background: oklch(0.99 0.002 250); border: 1px solid oklch(0.60 0.13 75); font-family: 'Source Code Pro', monospace; font-size: 12px">
+            <span>diff harness<span style="display: inline-block; width: 2px; height: 13px; background: oklch(0.28 0.012 250); vertical-align: -2px; margin-left: 1px"></span></span>
+          </span>
+          <span style="display: flex; align-items: center; height: 20px; padding: 0 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">esc</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 7px 12px; border-bottom: 1px solid oklch(0.855 0.006 250); font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">
+          <span>5 matches in 4 documents</span>
+        </div>
+        <div style="flex: 1 1 auto; overflow: hidden; display: flex; flex-direction: column">
+          <div style="display: flex; flex-direction: column; gap: 3px; padding: 7px 12px 8px 10px; background: oklch(0.99 0.002 250); border-left: 2px solid oklch(0.60 0.13 75); border-bottom: 1px solid oklch(0.93 0.004 250)">
+            <div style="display: flex; align-items: baseline; gap: 8px">
+              <span style="font-size: 13px; font-weight: 500; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">prompt-review-pass.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">2m</span>
+            </div>
+            <div style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.50 0.01 250); overflow: hidden; text-overflow: ellipsis; white-space: nowrap"><span style="color: oklch(0.635 0.01 250)">48 </span>- [ ] write the <span style="background: #F2ECB6; color: oklch(0.28 0.012 250)">diff harness</span></div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px; padding: 7px 12px 8px 10px; border-left: 2px solid transparent; border-bottom: 1px solid oklch(0.93 0.004 250)">
+            <div style="display: flex; align-items: baseline; gap: 8px">
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">diff-harness-notes.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">4d</span>
+            </div>
+            <div style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">title match</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px; padding: 7px 12px 8px 10px; border-left: 2px solid transparent; border-bottom: 1px solid oklch(0.93 0.004 250)">
+            <div style="display: flex; align-items: baseline; gap: 8px">
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">jot-spec.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">21d</span>
+            </div>
+            <div style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.50 0.01 250); overflow: hidden; text-overflow: ellipsis; white-space: nowrap"><span style="color: oklch(0.635 0.01 250)">112 </span>the <span style="background: #F2ECB6; color: oklch(0.28 0.012 250)">diff harness</span> runs per pane</div>
+            <div style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.50 0.01 250); overflow: hidden; text-overflow: ellipsis; white-space: nowrap"><span style="color: oklch(0.635 0.01 250)">140 </span>…without a <span style="background: #F2ECB6; color: oklch(0.28 0.012 250)">diff harness</span> there is no</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px; padding: 7px 12px 8px 10px; border-left: 2px solid transparent">
+            <div style="display: flex; align-items: baseline; gap: 8px">
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">scratch.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">3h</span>
+            </div>
+            <div style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.50 0.01 250); overflow: hidden; text-overflow: ellipsis; white-space: nowrap"><span style="color: oklch(0.635 0.01 250)">6 </span>- [ ] <span style="background: #F2ECB6; color: oklch(0.28 0.012 250)">diff harness</span> before the tags</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: oklch(0.50 0.01 250); text-wrap: pretty">One field, one list. A body hit shows its line number and the matched line; a name-only hit says so instead of faking a snippet.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 300px">
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: oklch(0.42 0.01 250)">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px">2c</span>
+        <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Tag filter, two tags</span>
+      </div>
+      <div style="width: 300px; height: 460px; display: flex; flex-direction: column; background: oklch(0.925 0.005 250); border: 1px solid oklch(0.78 0.008 250); color: oklch(0.28 0.012 250)">
+        <div style="display: flex; align-items: center; gap: 6px; height: 38px; padding: 0 8px 0 12px; border-bottom: 1px solid oklch(0.855 0.006 250)">
+          <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; font-weight: 600; flex: 1 1 auto">jot</span>
+          <span style="display: flex; align-items: center; height: 20px; padding: 0 6px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.36 0.012 250)">name ↑</span>
+          <span style="display: flex; align-items: center; height: 20px; padding: 0 6px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.36 0.012 250)">find</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px 4px; padding: 8px 7px 9px; border-bottom: 1px solid oklch(0.855 0.006 250); font-family: 'Source Code Pro', monospace; font-size: 11px">
+          <span style="display: flex; gap: 5px; padding: 1px 5px; background: oklch(0.28 0.012 250); color: oklch(0.99 0.002 250)">spec<span style="color: oklch(0.78 0.008 250)">6</span></span>
+          <span style="display: flex; gap: 5px; padding: 1px 5px; color: oklch(0.36 0.012 250)">prompts<span style="color: oklch(0.635 0.01 250)">2</span></span>
+          <span style="display: flex; gap: 5px; padding: 1px 5px; background: oklch(0.28 0.012 250); color: oklch(0.99 0.002 250)">ai<span style="color: oklch(0.78 0.008 250)">3</span></span>
+          <span style="display: flex; gap: 5px; padding: 1px 5px; color: oklch(0.74 0.008 250)">notes<span>0</span></span>
+          <span style="display: flex; gap: 5px; padding: 1px 5px; color: oklch(0.74 0.008 250)">ops<span>0</span></span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 7px 10px 7px 12px; border-bottom: 1px solid oklch(0.855 0.006 250); font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">
+          <span>spec + ai · 3 of 17</span>
+          <span style="display: flex; align-items: center; height: 18px; padding: 0 6px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); color: oklch(0.36 0.012 250)">clear</span>
+        </div>
+        <div style="flex: 1 1 auto; display: flex; flex-direction: column">
+          <div style="display: flex; flex-direction: column; padding: 6px 0; border-bottom: 1px solid oklch(0.855 0.006 250)">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+              <span style="width: 5px; height: 5px; background: oklch(0.50 0.01 250); flex: 0 0 auto"></span>
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">jot-spec.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">21d</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; padding: 6px 0">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; background: oklch(0.99 0.002 250); border-left: 2px solid oklch(0.60 0.13 75)">
+              <span style="width: 5px; height: 5px; flex: 0 0 auto"></span>
+              <span style="font-size: 13px; font-weight: 500; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">prompt-review-pass.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">2m</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+              <span style="width: 5px; height: 5px; flex: 0 0 auto"></span>
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">review-model-picks.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">5d</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: oklch(0.50 0.01 250); text-wrap: pretty">Selected tags invert; counts re-read as "how many survive adding this one", so a 0 tag is visibly a dead end. Pinned block stays on top of the filtered list.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 760px">
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: oklch(0.42 0.01 250)">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px">2d</span>
+        <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Quick-switch</span>
+        <span>Cmd+P — documents only</span>
+      </div>
+      <div style="width: 760px; height: 460px; position: relative; display: flex; align-items: flex-start; justify-content: center; background: oklch(0.99 0.002 250); border: 1px solid oklch(0.78 0.008 250); overflow: hidden">
+        <div style="position: absolute; inset: 0; background: oklch(0.955 0.004 250); opacity: 0.72"></div>
+        <div style="position: absolute; inset: 0; display: flex; flex-direction: column; font-family: 'Source Code Pro', monospace; font-size: 13px; line-height: 1.65; color: oklch(0.80 0.006 250); padding: 14px 0 0 46px; white-space: pre">
+          <div>## Constraints</div>
+          <div style="min-height: 1.65em"></div>
+          <div>- Keep the author's wording.</div>
+        </div>
+        <div style="position: relative; width: 520px; margin-top: 74px; background: oklch(0.99 0.002 250); border: 1px solid oklch(0.50 0.01 250); color: oklch(0.28 0.012 250)">
+          <div style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-bottom: 1px solid oklch(0.855 0.006 250); font-family: 'Source Code Pro', monospace; font-size: 13px">
+            <span style="color: oklch(0.635 0.01 250)">›</span>
+            <span style="flex: 1 1 auto">rev<span style="display: inline-block; width: 2px; height: 14px; background: oklch(0.28 0.012 250); vertical-align: -2px; margin-left: 1px"></span></span>
+            <span style="font-size: 11px; color: oklch(0.635 0.01 250)">17 documents</span>
+          </div>
+          <div style="display: flex; flex-direction: column">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 10px; background: oklch(0.965 0.004 250); border-left: 2px solid oklch(0.60 0.13 75)">
+              <span style="font-size: 13px; font-weight: 500; flex: 1 1 auto">prompt-<span style="background: oklch(0.93 0.05 75)">rev</span>iew-pass.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.36 0.012 250)">open</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250); width: 34px; text-align: right">2m</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 10px; border-left: 2px solid transparent">
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto"><span style="background: oklch(0.93 0.05 75)">rev</span>iew-model-picks.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.36 0.012 250)">open</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250); width: 34px; text-align: right">5d</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 10px; border-left: 2px solid transparent; border-top: 1px solid oklch(0.93 0.004 250)">
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto">style-<span style="background: oklch(0.93 0.05 75)">rev</span>iew-prompt.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250); width: 34px; text-align: right">1d</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 10px; border-left: 2px solid transparent">
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto">deploy-<span style="background: oklch(0.93 0.05 75)">rev</span>ert-steps.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250); width: 34px; text-align: right">9d</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 10px; border-left: 2px solid transparent">
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto">p<span style="background: oklch(0.93 0.05 75)">re</span>-flight-<span style="background: oklch(0.93 0.05 75)">v</span>erify.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250); width: 34px; text-align: right">1mo</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 16px; padding: 7px 12px; border-top: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">
+            <span>↑↓ move</span><span>⏎ open</span><span>⇧⏎ open in split</span><span>esc close</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: oklch(0.50 0.01 250); text-wrap: pretty">Open documents rank first and say <span style="font-family: 'Source Code Pro', monospace; font-size: 11px">open</span>; the hairline below them separates "already open" from "recency, then match quality". No commands in this list.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 760px">
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: oklch(0.42 0.01 250)">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px">2e</span>
+        <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Delete, then undo</span>
+        <span>no confirmation step</span>
+      </div>
+      <div style="width: 760px; height: 260px; display: flex; flex-direction: column; background: oklch(0.99 0.002 250); border: 1px solid oklch(0.78 0.008 250); color: oklch(0.28 0.012 250); overflow: hidden">
+        <div style="flex: 1 1 auto; display: flex; min-height: 0">
+          <div style="flex: 0 0 248px; display: flex; flex-direction: column; background: oklch(0.925 0.005 250); border-right: 1px solid oklch(0.855 0.006 250); padding: 6px 0">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; background: oklch(0.99 0.002 250); border-left: 2px solid oklch(0.60 0.13 75)">
+              <span style="width: 5px; height: 5px; background: oklch(0.50 0.01 250); flex: 0 0 auto"></span>
+              <span style="font-size: 13px; font-weight: 500; flex: 1 1 auto">prompt-review-pass.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">2m</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+              <span style="width: 5px; height: 5px; flex: 0 0 auto"></span>
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto">status-bar.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">41m</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-left: 2px solid transparent">
+              <span style="width: 5px; height: 5px; flex: 0 0 auto"></span>
+              <span style="font-size: 13px; color: oklch(0.36 0.012 250); flex: 1 1 auto">deploy-runbook.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">7h</span>
+            </div>
+          </div>
+          <div style="flex: 1 1 auto; position: relative; display: flex; min-width: 0">
+            <div style="flex: 0 0 46px; padding: 14px 10px 0 0; text-align: right; font-family: 'Source Code Pro', monospace; font-size: 13.5px; line-height: 1.65; color: oklch(0.74 0.008 250); border-right: 1px solid oklch(0.93 0.004 250)">
+              <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div>
+            </div>
+            <div style="flex: 1 1 auto; padding: 14px 0 0 20px; font-family: 'Source Code Pro', monospace; font-size: 13.5px; line-height: 1.65; white-space: pre">
+<div><span style="color: oklch(0.72 0.06 75)">## </span><span style="font-weight: 600">Constraints</span></div>
+<div style="min-height: 1.65em"></div>
+<div><span style="color: oklch(0.635 0.01 250)">- </span>Keep the author's wording.</div>
+<div><span style="color: oklch(0.635 0.01 250)">- </span>Every change carries a reason.</div>
+            </div>
+            <div style="position: absolute; left: 14px; bottom: 14px; display: flex; flex-direction: column; width: 320px; background: oklch(0.28 0.012 250); color: oklch(0.99 0.002 250)">
+              <div style="display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 12px; font-family: 'Source Code Pro', monospace; font-size: 12px">
+                <span style="flex: 1 1 auto">deleted <span style="color: oklch(0.855 0.006 250)">scratch.md</span></span>
+                <span style="padding: 2px 7px; border: 1px solid oklch(0.60 0.13 75); color: oklch(0.88 0.09 82)">undo</span>
+                <span style="color: oklch(0.72 0.01 250)">×</span>
+              </div>
+              <div style="height: 2px; background: oklch(0.42 0.01 250)"><div style="width: 62%; height: 2px; background: oklch(0.60 0.13 75)"></div></div>
+            </div>
+          </div>
+        </div>
+        <div style="flex: 0 0 auto; display: flex; align-items: stretch; height: 26px; background: oklch(0.925 0.005 250); border-top: 1px solid oklch(0.855 0.006 250); font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+          <div style="display: flex; align-items: center; padding: 0 12px; border-right: 1px solid oklch(0.855 0.006 250); color: oklch(0.36 0.012 250)">prompt-review-pass.md</div>
+          <div style="flex: 1 1 auto"></div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">words</span><span>402</span></div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 0 12px 0 11px; border-left: 1px solid oklch(0.855 0.006 250); font-weight: 500"><span style="color: oklch(0.635 0.01 250); font-weight: 400">cursor</span><span>44:29</span></div>
+        </div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: oklch(0.50 0.01 250); text-wrap: pretty">The only inverted surface in the app, so it reads as transient. The 2px bar is the remaining undo window, not decoration.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 560px">
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: oklch(0.42 0.01 250)">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px">2f</span>
+        <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Review control — four states</span>
+      </div>
+      <div style="display: flex; flex-direction: column; border: 1px solid oklch(0.78 0.008 250); background: oklch(0.925 0.005 250)">
+        <div style="display: flex; align-items: center; gap: 14px; height: 34px; padding: 0 12px; border-bottom: 1px solid oklch(0.855 0.006 250)">
+          <span style="flex: 0 0 84px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">idle</span>
+          <span style="display: flex; align-items: center; gap: 6px; height: 18px; padding: 0 7px; border: 1px solid oklch(0.78 0.008 250); background: oklch(0.955 0.004 250); font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: oklch(0.28 0.012 250)">
+            <span style="width: 5px; height: 5px; background: oklch(0.60 0.13 75)"></span>review style
+          </span>
+          <span style="font-size: 11.5px; color: oklch(0.50 0.01 250)">document open and non-empty</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; height: 34px; padding: 0 12px; border-bottom: 1px solid oklch(0.855 0.006 250)">
+          <span style="flex: 0 0 84px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">disabled</span>
+          <span style="display: flex; align-items: center; gap: 6px; height: 18px; padding: 0 7px; border: 1px dashed oklch(0.855 0.006 250); font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: oklch(0.72 0.01 250)">
+            <span style="width: 5px; height: 5px; background: oklch(0.80 0.006 250)"></span>review style
+          </span>
+          <span style="font-size: 11.5px; color: oklch(0.50 0.01 250)">nothing to review — same slot, no click target</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; height: 34px; padding: 0 12px; border-bottom: 1px solid oklch(0.855 0.006 250)">
+          <span style="flex: 0 0 84px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">running</span>
+          <span style="display: flex; align-items: center; gap: 7px; height: 18px; padding: 0 7px; border: 1px solid oklch(0.78 0.008 250); background: oklch(0.955 0.004 250); font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: oklch(0.28 0.012 250)">
+            <span style="display: flex; width: 22px; height: 3px; background: oklch(0.855 0.006 250)"><span style="width: 45%; background: oklch(0.60 0.13 75)"></span></span>
+            reviewing <span style="color: oklch(0.635 0.01 250)">18s</span>
+          </span>
+          <span style="font-size: 11.5px; color: oklch(0.50 0.01 250)">editing continues; nothing blocks</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; height: 34px; padding: 0 12px">
+          <span style="flex: 0 0 84px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">error</span>
+          <span style="display: flex; align-items: center; gap: 8px; height: 18px; padding: 0 7px; border: 1px solid oklch(0.60 0.13 75); background: oklch(0.93 0.05 75); font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: oklch(0.28 0.012 250)">
+            review failed <span style="color: oklch(0.42 0.05 75)">429</span>
+            <span style="text-decoration: underline; text-underline-offset: 2px">retry</span>
+            <span style="color: oklch(0.42 0.05 75)">×</span>
+          </span>
+          <span style="font-size: 11.5px; color: oklch(0.50 0.01 250)">stays until dismissed or retried</span>
+        </div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: oklch(0.50 0.01 250); text-wrap: pretty">One fixed slot in the status bar, left of the counters. The amber square is the only decoration-free way in: fill means ready, bar means working, wash means failed.</div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 26px; font-size: 12px; color: oklch(0.42 0.01 250)">
+    <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px">2g</span>
+    <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Raw + rendered</span>
+    <span>render opens a second pane; the raw editor stays where it was</span>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 48px">
+    <div style="flex: 0 0 1400px; width: 1400px; height: 780px; display: flex; flex-direction: column; background: oklch(0.955 0.004 250); border: 1px solid oklch(0.78 0.008 250); color: oklch(0.28 0.012 250)">
+      <div style="flex: 1 1 auto; display: flex; min-height: 0">
+
+        <div style="flex: 0 0 186px; display: flex; flex-direction: column; background: oklch(0.925 0.005 250)">
+          <div style="display: flex; align-items: center; gap: 6px; height: 38px; padding: 0 8px 0 12px; border-bottom: 1px solid oklch(0.855 0.006 250)">
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; font-weight: 600; flex: 1 1 auto">jot</span>
+            <span style="display: flex; align-items: center; height: 20px; padding: 0 6px; border: 1px solid oklch(0.855 0.006 250); background: oklch(0.955 0.004 250); font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.36 0.012 250)">find</span>
+          </div>
+          <div style="display: flex; flex-direction: column; padding: 6px 0; border-bottom: 1px solid oklch(0.855 0.006 250)">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 10px; background: oklch(0.99 0.002 250); border-left: 2px solid oklch(0.60 0.13 75)">
+              <span style="width: 5px; height: 5px; background: oklch(0.50 0.01 250); flex: 0 0 auto"></span>
+              <span style="font-size: 12.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">prompt-review-pass.md</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; padding: 6px 0">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 10px; border-left: 2px solid transparent">
+              <span style="width: 5px; height: 5px; flex: 0 0 auto"></span>
+              <span style="font-size: 12.5px; color: oklch(0.36 0.012 250); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">status-bar.md</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 5px 10px; border-left: 2px solid transparent">
+              <span style="width: 5px; height: 5px; flex: 0 0 auto"></span>
+              <span style="font-size: 12.5px; color: oklch(0.36 0.012 250); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">scratch.md</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex: 0 0 5px; cursor: col-resize; background: oklch(0.855 0.006 250); background-clip: content-box; border-left: 2px solid transparent; border-right: 2px solid transparent"></div>
+
+        <div style="flex: 1 1 0; display: flex; flex-direction: column; min-width: 0; background: oklch(0.99 0.002 250)">
+          <div style="flex: 0 0 auto; display: flex; align-items: stretch; height: 38px; background: oklch(0.925 0.005 250); border-bottom: 1px solid oklch(0.855 0.006 250)">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 0 12px; background: oklch(0.99 0.002 250); border-top: 2px solid oklch(0.60 0.13 75); border-right: 1px solid oklch(0.855 0.006 250); margin-bottom: -1px">
+              <span style="font-size: 13px; font-weight: 500">prompt-review-pass.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: oklch(0.635 0.01 250)">×</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 9px; padding: 0 12px; border-top: 2px solid transparent; border-right: 1px solid oklch(0.855 0.006 250); color: oklch(0.50 0.01 250)">
+              <span style="font-size: 13px">status-bar.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: oklch(0.72 0.01 250)">×</span>
+            </div>
+            <div style="flex: 1 1 auto"></div>
+          </div>
+          <div style="flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden">
+            <div style="flex: 0 0 40px; padding: 14px 8px 0 0; text-align: right; font-family: 'Source Code Pro', monospace; font-size: 13px; line-height: 1.65; color: oklch(0.74 0.008 250); border-right: 1px solid oklch(0.93 0.004 250)">
+              <div>28</div><div>29</div><div>30</div><div>31</div><div>32</div><div>33</div><div>34</div><div>35</div><div>36</div><div>37</div><div>38</div><div>39</div><div>40</div><div style="color: oklch(0.28 0.012 250); font-weight: 500">41</div><div>42</div><div>43</div><div>44</div>
+            </div>
+            <div style="flex: 1 1 auto; min-width: 0; padding: 14px 0 0 16px; font-family: 'Source Code Pro', monospace; font-size: 13px; line-height: 1.65; white-space: pre; overflow: hidden">
+<div><span style="color: oklch(0.72 0.06 75)">## </span><span style="font-weight: 600">Constraints</span></div>
+<div style="min-height: 1.65em"></div>
+<div><span style="color: oklch(0.635 0.01 250)">- </span>Keep the author's wording.</div>
+<div><span style="color: oklch(0.635 0.01 250)">- </span>Every change carries a reason.</div>
+<div><span style="color: oklch(0.635 0.01 250)">- </span>Byte count may not grow 5%.</div>
+<div style="min-height: 1.65em"></div>
+<div style="background: oklch(0.965 0.004 250); border-left: 2px solid oklch(0.855 0.006 250); margin-left: -18px; padding-left: 16px">    diff --unified=1 old.md</div>
+<div style="min-height: 1.65em"></div>
+<div>See <span style="color: oklch(0.635 0.01 250)">[</span><span style="text-decoration: underline; text-decoration-color: oklch(0.78 0.008 250); text-underline-offset: 3px">the earlier notes</span><span style="color: oklch(0.635 0.01 250)">]</span> for</div>
+<div>why summarize-first failed.</div>
+<div style="min-height: 1.65em"></div>
+<div><span style="color: oklch(0.72 0.06 75)">## </span><span style="font-weight: 600">Open</span></div>
+<div style="min-height: 1.65em"></div>
+<div>Does it need the <span style="color: oklch(0.635 0.01 250)">**</span><span style="font-weight: 600">full</span><span style="color: oklch(0.635 0.01 250)">**</span> history<span style="display: inline-block; width: 2px; height: 16px; background: oklch(0.28 0.012 250); vertical-align: -4px; margin: 0 -1px"></span></div>
+<div>or only the last pass?</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex: 0 0 5px; cursor: col-resize; background: oklch(0.855 0.006 250); background-clip: content-box; border-left: 2px solid transparent; border-right: 2px solid transparent"></div>
+
+        <div style="flex: 1 1 0; display: flex; flex-direction: column; min-width: 0; background: oklch(0.99 0.002 250)">
+          <div style="flex: 0 0 auto; display: flex; align-items: stretch; height: 38px; background: oklch(0.925 0.005 250); border-bottom: 1px solid oklch(0.855 0.006 250)">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 0 12px; background: oklch(0.99 0.002 250); border-top: 2px solid oklch(0.78 0.008 250); border-right: 1px solid oklch(0.855 0.006 250); margin-bottom: -1px; color: oklch(0.36 0.012 250)">
+              <span style="font-size: 13px; font-weight: 500">prompt-review-pass.md</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">rendered</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: oklch(0.635 0.01 250)">×</span>
+            </div>
+            <div style="flex: 1 1 auto"></div>
+            <div style="display: flex; align-items: center; padding: 0 11px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">follows editor</div>
+          </div>
+          <div style="flex: 1 1 auto; min-height: 0; overflow: hidden; padding: 22px 32px 0 28px">
+            <div style="max-width: 520px; display: flex; flex-direction: column; gap: 14px">
+              <div style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em">Constraints</div>
+              <div style="display: flex; flex-direction: column; gap: 6px; font-size: 14.5px; line-height: 1.55; color: oklch(0.32 0.012 250)">
+                <div style="display: flex; gap: 10px"><span style="color: oklch(0.635 0.01 250)">·</span><span>Keep the author's wording.</span></div>
+                <div style="display: flex; gap: 10px"><span style="color: oklch(0.635 0.01 250)">·</span><span>Every change carries a reason.</span></div>
+                <div style="display: flex; gap: 10px"><span style="color: oklch(0.635 0.01 250)">·</span><span>Byte count may not grow 5%.</span></div>
+              </div>
+              <div style="padding: 10px 14px; background: oklch(0.965 0.004 250); border-left: 2px solid oklch(0.855 0.006 250); font-family: 'Source Code Pro', monospace; font-size: 12.5px; color: oklch(0.32 0.012 250)">diff --unified=1 old.md</div>
+              <div style="font-size: 14.5px; line-height: 1.6; color: oklch(0.32 0.012 250)">See <span style="text-decoration: underline; text-decoration-color: oklch(0.60 0.13 75); text-underline-offset: 3px">the earlier notes</span> for why summarize-first failed.</div>
+              <div style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em; margin-top: 8px">Open</div>
+              <div style="font-size: 14.5px; line-height: 1.6; color: oklch(0.32 0.012 250)">Does it need the <span style="font-weight: 600">full</span> history or only the last pass?</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 0 0 auto; display: flex; align-items: stretch; height: 26px; background: oklch(0.925 0.005 250); border-top: 1px solid oklch(0.855 0.006 250); font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+        <div style="display: flex; align-items: center; padding: 0 12px; border-right: 1px solid oklch(0.855 0.006 250); color: oklch(0.36 0.012 250)">prompt-review-pass.md</div>
+        <div style="display: flex; align-items: center; padding: 0 8px; border-right: 1px solid oklch(0.855 0.006 250)">
+          <span style="display: flex; align-items: center; gap: 7px; height: 18px; padding: 0 7px; border: 1px solid oklch(0.78 0.008 250); background: oklch(0.955 0.004 250)">
+            <span style="display: flex; width: 22px; height: 3px; background: oklch(0.855 0.006 250)"><span style="width: 45%; background: oklch(0.60 0.13 75)"></span></span>
+            reviewing <span style="color: oklch(0.635 0.01 250)">18s</span>
+          </span>
+        </div>
+        <div style="flex: 1 1 auto"></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">bytes</span><span>2 471</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">chars</span><span>2 463</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">words</span><span>402</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">lines</span><span>68</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid oklch(0.855 0.006 250)"><span style="color: oklch(0.635 0.01 250)">paras</span><span>9</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 12px 0 11px; border-left: 1px solid oklch(0.855 0.006 250); font-weight: 500"><span style="color: oklch(0.635 0.01 250); font-weight: 400">cursor</span><span>41:33</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 40px; margin-top: 26px">
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 720px">
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: oklch(0.42 0.01 250)">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: oklch(0.99 0.002 250); background: oklch(0.28 0.012 250); padding: 3px 7px">2h</span>
+        <span style="font-weight: 600; color: oklch(0.28 0.012 250)">Diagram in the rendered pane</span>
+        <span>mermaid block, happy path only</span>
+      </div>
+      <div style="width: 720px; height: 480px; display: flex; flex-direction: column; background: oklch(0.99 0.002 250); border: 1px solid oklch(0.78 0.008 250); color: oklch(0.28 0.012 250); overflow: hidden">
+        <div style="flex: 0 0 auto; display: flex; align-items: stretch; height: 38px; background: oklch(0.925 0.005 250); border-bottom: 1px solid oklch(0.855 0.006 250)">
+          <div style="display: flex; align-items: center; gap: 9px; padding: 0 12px; background: oklch(0.99 0.002 250); border-top: 2px solid oklch(0.78 0.008 250); border-right: 1px solid oklch(0.855 0.006 250); margin-bottom: -1px; color: oklch(0.36 0.012 250)">
+            <span style="font-size: 13px; font-weight: 500">deploy-runbook.md</span>
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">rendered</span>
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: oklch(0.635 0.01 250)">×</span>
+          </div>
+          <div style="flex: 1 1 auto"></div>
+        </div>
+        <div style="flex: 1 1 auto; padding: 22px 28px; display: flex; flex-direction: column; gap: 16px; min-height: 0">
+          <div style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em">Release path</div>
+          <div style="font-size: 14.5px; line-height: 1.6; color: oklch(0.32 0.012 250); max-width: 520px">Every step is reversible up to the tag; after that, roll forward.</div>
+          <div style="border: 1px solid oklch(0.93 0.004 250); background: oklch(0.975 0.003 250); padding: 24px 20px">
+            <div style="display: flex; align-items: center; gap: 0">
+              <div style="display: flex; align-items: center; justify-content: center; padding: 10px 14px; background: oklch(0.99 0.002 250); border: 1px solid oklch(0.50 0.01 250); font-family: 'Source Code Pro', monospace; font-size: 12px">branch</div>
+              <div style="flex: 1 1 auto; display: flex; align-items: center; height: 1px; background: oklch(0.50 0.01 250)"></div>
+              <div style="width: 0; height: 0; border-left: 5px solid oklch(0.50 0.01 250); border-top: 4px solid transparent; border-bottom: 4px solid transparent"></div>
+              <div style="display: flex; align-items: center; justify-content: center; padding: 10px 14px; background: oklch(0.99 0.002 250); border: 1px solid oklch(0.50 0.01 250); font-family: 'Source Code Pro', monospace; font-size: 12px">checks</div>
+              <div style="flex: 1 1 auto; display: flex; align-items: center; height: 1px; background: oklch(0.50 0.01 250)"></div>
+              <div style="width: 0; height: 0; border-left: 5px solid oklch(0.50 0.01 250); border-top: 4px solid transparent; border-bottom: 4px solid transparent"></div>
+              <div style="display: flex; align-items: center; justify-content: center; padding: 10px 14px; background: oklch(0.99 0.002 250); border: 1px solid oklch(0.60 0.13 75); font-family: 'Source Code Pro', monospace; font-size: 12px">tag</div>
+              <div style="flex: 1 1 auto; display: flex; align-items: center; height: 1px; background: oklch(0.50 0.01 250)"></div>
+              <div style="width: 0; height: 0; border-left: 5px solid oklch(0.50 0.01 250); border-top: 4px solid transparent; border-bottom: 4px solid transparent"></div>
+              <div style="display: flex; align-items: center; justify-content: center; padding: 10px 14px; background: oklch(0.99 0.002 250); border: 1px solid oklch(0.50 0.01 250); font-family: 'Source Code Pro', monospace; font-size: 12px">deploy</div>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid oklch(0.93 0.004 250); font-family: 'Source Code Pro', monospace; font-size: 11px; color: oklch(0.635 0.01 250)">
+              <span>mermaid</span><span>flowchart LR</span><span style="margin-left: auto">4 nodes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: oklch(0.50 0.01 250); text-wrap: pretty">Diagram blocks sit in a bordered frame with a footer naming the block type and node count, so a rendered diagram is distinguishable from prose at a glance. Excalidraw embeds reuse the same frame.</div>
+    </div>
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  state = { sw: null };
+
+  startResize = (e) => {
+    e.preventDefault();
+    const start = e.clientX;
+    const base = this.state.sw != null ? parseInt(this.state.sw, 10) : 248;
+    const move = (ev) => {
+      const w = Math.max(180, Math.min(460, base + (ev.clientX - start)));
+      this.setState({ sw: w + "px" });
+    };
+    const up = () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  };
+
+  renderVals() {
+    return { sidebarWidth: this.state.sw, startResize: this.startResize };
+  }
+}
+
+</script>
+</body>
+</html>

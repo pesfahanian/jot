@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html { background: #1B1B1E; }
+  body { margin: 0; min-height: 100%; background: #1B1B1E; font-family: "Public Sans", Helvetica, sans-serif; color: #F2F1EC; font-feature-settings: "calt" 1, "kern" 1, "liga" 1, "ss03" 1, "zero" 1; }
+  a { color: #F2F1EC; }
+  a:hover { color: #F2823B; }
+  * { box-sizing: border-box; }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 18px; padding: 40px">
+
+  <div style="display: flex; align-items: baseline; gap: 12px; font-size: 12px; color: #A9A49B">
+    <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: #09090B; background: #F2F1EC; padding: 3px 7px; border-radius: 4px">6a</span>
+    <span style="font-weight: 600; color: #F2F1EC">Export menu</span>
+    <span>three formats, click downloads, no dialog</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+    <div style="flex: 0 0 900px; width: 900px; height: 300px; position: relative; display: flex; flex-direction: column; background: #09090B; border: 1px solid #2A2A2E; border-radius: 12px; overflow: hidden">
+      <div style="display: flex; align-items: stretch; height: 38px; background: #111113; border-bottom: 1px solid #1F1F22">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 0 14px; background: #09090B; border-bottom: 2px solid #F2823B; border-right: 1px solid #1F1F22; margin-bottom: -1px; border-radius: 6px 6px 0 0">
+          <span style="width: 7px; height: 7px; border-radius: 2px; background: #B6A461"></span>
+          <span style="font-size: 13px; font-weight: 500">platform-migration</span>
+          <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: #7E7A71">×</span>
+        </div>
+        <div style="flex: 1 1 auto"></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 10px; border-left: 1px solid #1F1F22">
+          <span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid #2A2A2E; background: #18181B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: #A9A49B">render</span>
+          <span style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 7px; border: 1px solid #2A2A2E; background: #1E1E21; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: #F2F1EC">export <span style="color: #A9A49B">▴</span></span>
+          <span style="display: flex; align-items: center; height: 22px; padding: 0 10px; background: #F2823B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: #270E01">review style</span>
+        </div>
+      </div>
+      <div style="flex: 1 1 auto; padding: 18px 0 0 68px; font-family: 'Source Code Pro', monospace; font-size: 13.5px; line-height: 1.7; color: #5A5854; white-space: pre">
+<div>### 3. Rollout</div>
+<div style="min-height: 1.7em"></div>
+<div>- Migrate each service in turn, starting with</div>
+<div>  the queue workers, the scheduler, and CI.</div>
+      </div>
+      <div style="position: absolute; right: 108px; top: 34px; width: 232px; display: flex; flex-direction: column; padding: 4px; background: #18181B; border: 1px solid #2A2A2E; border-radius: 12px">
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 10px; background: #1E1E21; border-radius: 6px">
+          <span style="flex: 1 1 auto; font-size: 12.5px; color: #F2F1EC">Markdown</span>
+          <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #7E7A71">.md</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 10px; border-radius: 6px">
+          <span style="flex: 1 1 auto; font-size: 12.5px; color: #A9A49B">Plain text</span>
+          <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #7E7A71">.txt</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 10px; border-radius: 6px">
+          <span style="flex: 1 1 auto; font-size: 12.5px; color: #A9A49B">PDF</span>
+          <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #7E7A71">.pdf</span>
+        </div>
+        <div style="margin: 4px -4px -4px; padding: 7px 14px 8px; border-top: 1px solid #161618; font-family: 'Source Code Pro', monospace; font-size: 11px; color: #7E7A71">saves as platform-migration.*</div>
+      </div>
+    </div>
+    <div style="flex: 0 1 380px; display: flex; flex-direction: column; gap: 10px; font-size: 12.5px; line-height: 1.6; color: #A9A49B; text-wrap: pretty">
+      <div>Extension on the right because it's the part that differs; the footer names the file once so each row doesn't repeat it. Click downloads and closes the menu. No toast — the browser's own download UI already confirms it, and there's nothing to undo.</div>
+      <div><span style="color: #F2F1EC; font-weight: 500">Caught by drawing:</span> PDF is the only option that goes through the renderer. A document with a mermaid block exports a diagram as PDF and a fenced code block as .md or .txt. That's correct, but it means "export" silently means two different pipelines — worth knowing when Plain text gets decided.</div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 30px; font-size: 12px; color: #A9A49B">
+    <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: #09090B; background: #F2F1EC; padding: 3px 7px; border-radius: 4px">6b</span>
+    <span style="font-weight: 600; color: #F2F1EC">Review log, open</span>
+    <span>spec §8 — third pane, document order; CLS-007 clicked, both panes scrolled, bubble open on the right</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px">
+    <div style="flex: 0 0 1400px; width: 1400px; height: 820px; display: flex; flex-direction: column; background: #09090B; border: 1px solid #2A2A2E; border-radius: 12px; overflow: hidden">
+      <div style="display: flex; align-items: stretch; height: 38px; background: #111113; border-bottom: 1px solid #1F1F22">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 0 14px; background: #09090B; border-bottom: 2px solid #F2823B; border-right: 1px solid #1F1F22; margin-bottom: -1px; border-radius: 6px 6px 0 0">
+          <span style="width: 7px; height: 7px; border-radius: 2px; background: #B6A461"></span>
+          <span style="font-size: 13px; font-weight: 500">platform-migration</span>
+          <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #7E7A71">review</span>
+          <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: #7E7A71">×</span>
+        </div>
+        <div style="flex: 1 1 auto"></div>
+      </div>
+      <div style="display: flex; align-items: stretch; height: 34px; background: #111113; border-bottom: 1px solid #1F1F22; font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+        <div style="display: flex; align-items: center; padding: 0 12px; border-right: 1px solid #161618; color: #A9A49B">~/notes/platform-migration.md</div>
+        <div style="display: flex; align-items: center; gap: 7px; padding: 0 12px; border-right: 1px solid #161618"><span style="color: #7E7A71">ruleset</span><span>house-prose</span><span style="color: #7E7A71">v4</span></div>
+        <div style="flex: 1 1 auto"></div>
+        <div style="display: flex; align-items: center; gap: 14px; padding: 0 12px; border-left: 1px solid #161618">
+          <span style="display: flex; gap: 6px"><span style="color: #7E7A71">proposed</span><span style="font-weight: 500">9</span></span>
+          <span style="display: flex; gap: 6px"><span style="color: #7E7A71">decided</span><span style="font-weight: 500">5</span></span>
+          <span style="display: flex; width: 68px; height: 3px; background: #1F1F22; border-radius: 9999px"><span style="width: 56%; background: #7E7A71; border-radius: 9999px"></span></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 10px 0 6px">
+          <span style="display: flex; align-items: center; height: 22px; padding: 0 8px; border: 1px solid #2A2A2E; background: #1E1E21; border-radius: 6px; color: #F2F1EC">review log</span>
+          <span style="display: flex; align-items: center; height: 22px; padding: 0 9px; border: 1px dashed #2A2A2E; border-radius: 6px; color: #5A5854">apply 5 of 9</span>
+        </div>
+      </div>
+      <div style="flex: 1 1 auto; display: flex; min-height: 0">
+
+        <div style="flex: 1 1 0; display: flex; flex-direction: column; min-width: 0">
+          <div style="display: flex; align-items: center; gap: 9px; height: 30px; padding: 0 14px; background: #111113; border-bottom: 1px solid #1F1F22; font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+            <span style="font-weight: 500">original</span><span style="color: #7E7A71">locked</span>
+          </div>
+          <div style="flex: 1 1 auto; padding: 22px 22px; overflow: hidden; display: flex; flex-direction: column; gap: 14px; font-family: 'Source Code Pro', monospace; font-size: 13px; line-height: 1.85; color: #F2F1EC">
+            <div style="font-weight: 600">### 3. Rollout</div>
+            <div style="text-wrap: pretty">We will <span style="background: #161616; text-decoration: line-through; color: #7E7A71">leverage</span> the new pipeline to <span style="background: #161616">seamlessly</span> migrate each service in turn, starting with the queue workers, the scheduler<span style="background: #161616; color: #7E7A71">^</span> and CI.</div>
+            <div style="text-wrap: pretty">Each service gets a full dry run before cutover <span style="background: #161616; text-decoration: line-through; color: #7E7A71">— this ensures</span> we can roll back without a window of downtime.</div>
+            <div style="text-wrap: pretty">The team will own the rollback path <span style="background: #313131; text-decoration: line-through; text-decoration-color: #C4C4C4; outline: 2px solid #F2823B; border-radius: 2px">moving forward</span>, and we should <span style="border-bottom: 2px solid #E4E4E4; padding-bottom: 1px">have a robust and scalable solution</span> by the end of Q3.</div>
+            <div style="text-wrap: pretty">Owners will <span style="background: #161616; text-decoration: line-through; color: #7E7A71">recieve</span> a checklist the week before their slot<span style="text-decoration: underline wavy #E7BF4A; text-decoration-thickness: 1.5px; text-underline-offset: 4px">,,</span> and each one <span style="text-decoration: underline wavy #60AAF3; text-decoration-thickness: 1.5px; text-underline-offset: 4px">have</span> a named backup.</div>
+          </div>
+        </div>
+
+        <div style="flex: 0 0 1px; background: #1F1F22"></div>
+
+        <div style="flex: 1 1 0; position: relative; display: flex; flex-direction: column; min-width: 0">
+          <div style="display: flex; align-items: center; gap: 9px; height: 30px; padding: 0 14px; background: #111113; border-bottom: 2px solid #F2823B; font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+            <span style="font-weight: 500">result — preview</span><span style="color: #7E7A71">click a span to decide</span>
+          </div>
+          <div style="flex: 1 1 auto; padding: 22px 22px; overflow: hidden; display: flex; flex-direction: column; gap: 14px; font-family: 'Source Code Pro', monospace; font-size: 13px; line-height: 1.85; color: #F2F1EC">
+            <div style="font-weight: 600">### 3. Rollout</div>
+            <div style="text-wrap: pretty">We will use the new pipeline to seamlessly migrate each service in turn, starting with the queue workers, the scheduler, and CI.</div>
+            <div style="text-wrap: pretty">Each service gets a full dry run before cutover, so rollback never needs a downtime window.</div>
+            <div style="text-wrap: pretty">The team will own the rollback path<span title="deletion point" style="display: inline-block; width: 9px; height: 14px; margin: 0 2px; vertical-align: -2px; background: #313131; border-radius: 2px; outline: 2px solid #F2823B"></span>, and we should <span style="border-bottom: 2px solid #E4E4E4; padding-bottom: 1px">have a robust and scalable solution</span> by the end of Q3.</div>
+            <div style="text-wrap: pretty">Owners will receive a checklist the week before their slot<span style="text-decoration: underline wavy #E7BF4A; text-decoration-thickness: 1.5px; text-underline-offset: 4px">,</span> and each one <span style="text-decoration: underline wavy #60AAF3; text-decoration-thickness: 1.5px; text-underline-offset: 4px">has</span> a named backup.</div>
+          </div>
+          <div style="position: absolute; left: 22px; top: 236px; width: 400px; background: #18181B; border: 1px solid #2A2A2E; border-radius: 12px; box-shadow: inset 0 1px 0 0 #2D2E30, 0 0 0 1px #242426, inset 0 -3px 0 0 #0A0A0C; overflow: hidden">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 9px 10px 9px 12px; border-bottom: 1px solid #1F1F22">
+              <span style="width: 10px; height: 10px; border-radius: 2px; background: #313131; border: 1px solid #C4C4C4"></span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 12px; font-weight: 600">CLS-007</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #A9A49B">tier 1b</span>
+              <span style="display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border: 1px solid #2A2A2E; border-radius: 4px; font-family: 'Source Code Pro', monospace; font-size: 10.5px; color: #A9A49B">?</span>
+              <span style="flex: 1 1 auto"></span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: #7E7A71">×</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-bottom: 1px solid #1F1F22; font-family: 'Source Code Pro', monospace; font-size: 12.5px; line-height: 1.6">
+              <div style="display: flex; gap: 10px"><span style="flex: 0 0 44px; font-size: 11px; color: #7E7A71">before</span><span style="color: #7E7A71; text-decoration: line-through">rollback path moving forward, and</span></div>
+              <div style="display: flex; gap: 10px"><span style="flex: 0 0 44px; font-size: 11px; color: #7E7A71">after</span><span>rollback path, and</span></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; padding: 9px 12px">
+              <span style="display: flex; align-items: center; height: 24px; padding: 0 11px; border: 1px solid #7E7A71; background: #1E1E21; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: #F2F1EC">accept</span>
+              <span style="display: flex; align-items: center; height: 24px; padding: 0 11px; border: 1px solid #2A2A2E; background: #18181B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: #A9A49B">reject</span>
+              <span style="display: flex; align-items: center; height: 24px; padding: 0 11px; border: 1px solid #2A2A2E; background: #18181B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: #A9A49B">write my own</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex: 0 0 1px; background: #1F1F22"></div>
+
+        <div style="flex: 0 0 380px; display: flex; flex-direction: column; min-width: 0; background: #111113">
+          <div style="display: flex; align-items: center; gap: 9px; height: 30px; padding: 0 14px; border-bottom: 1px solid #1F1F22; font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+            <span style="font-weight: 500">review log</span><span style="color: #7E7A71">document order</span><span style="flex: 1 1 auto"></span><span style="color: #7E7A71">×</span>
+          </div>
+          <div style="flex: 1 1 auto; overflow: hidden; display: flex; flex-direction: column">
+            <div style="display: flex; flex-direction: column; gap: 3px; padding: 8px 14px 9px 12px; border-left: 2px solid transparent; border-bottom: 1px solid #161618">
+              <div style="display: flex; align-items: center; gap: 8px; font-family: 'Source Code Pro', monospace; font-size: 11.5px"><span style="width: 9px; height: 9px; border-radius: 2px; background: #202020; border: 1px solid #A4A4A4"></span><span style="font-weight: 600; color: #A9A49B">VOC-014</span><span style="color: #7E7A71">tier 1</span><span style="flex: 1 1 auto"></span><span style="color: #7E7A71">accepted</span></div>
+              <div style="padding-left: 17px; font-family: 'Source Code Pro', monospace; font-size: 12px; color: #7E7A71">leverage → use</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px; padding: 8px 14px 9px 12px; border-left: 2px solid transparent; border-bottom: 1px solid #161618">
+              <div style="display: flex; align-items: center; gap: 8px; font-family: 'Source Code Pro', monospace; font-size: 11.5px"><span style="width: 9px; height: 9px; border-radius: 2px; background: #202020; border: 1px solid #A4A4A4"></span><span style="font-weight: 600; color: #A9A49B">INT-003</span><span style="color: #7E7A71">tier 1</span><span style="flex: 1 1 auto"></span><span style="color: #7E7A71">rejected</span></div>
+              <div style="padding-left: 17px; font-family: 'Source Code Pro', monospace; font-size: 12px; color: #7E7A71">seamlessly → (deleted)</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px; padding: 8px 14px 9px 12px; border-left: 2px solid transparent; border-bottom: 1px solid #161618">
+              <div style="display: flex; align-items: center; gap: 8px; font-family: 'Source Code Pro', monospace; font-size: 11.5px"><span style="width: 9px; height: 9px; border-radius: 2px; background: #202020; border: 1px solid #A4A4A4"></span><span style="font-weight: 600; color: #A9A49B">PUN-001</span><span style="color: #7E7A71">tier 1</span><span style="flex: 1 1 auto"></span><span style="color: #7E7A71">accepted</span></div>
+              <div style="padding-left: 17px; font-family: 'Source Code Pro', monospace; font-size: 12px; color: #7E7A71">scheduler → scheduler,</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px; padding: 8px 14px 9px 12px; border-left: 2px solid transparent; border-bottom: 1px solid #161618">
+              <div style="display: flex; align-items: center; gap: 8px; font-family: 'Source Code Pro', monospace; font-size: 11.5px"><span style="width: 9px; height: 9px; border-radius: 2px; background: #313131; border: 1px solid #C4C4C4"></span><span style="font-weight: 600; color: #A9A49B">STR-021</span><span style="color: #7E7A71">tier 1b</span><span style="flex: 1 1 auto"></span><span style="color: #7E7A71">edited</span></div>
+              <div style="padding-left: 17px; font-family: 'Source Code Pro', monospace; font-size: 12px; color: #7E7A71; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">— this ensures → , so rollback never…</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px; padding: 8px 14px 9px 12px; background: #18181B; border-left: 2px solid #F2823B; border-bottom: 1px solid #161618">
+              <div style="display: flex; align-items: center; gap: 8px; font-family: 'Source Code Pro', monospace; font-size: 11.5px"><span style="width: 9px; height: 9px; border-radius: 2px; background: #313131; border: 1px solid #C4C4C4"></span><span style="font-weight: 600">CLS-007</span><span style="color: #A9A49B">tier 1b</span><span style="flex: 1 1 auto"></span><span style="font-weight: 500">pending</span></div>
+              <div style="padding-left: 17px; font-family: 'Source Code Pro', monospace; font-size: 12px; color: #F2F1EC">moving forward → (deleted)</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px; padding: 8px 14px 9px 12px; border-left: 2px solid transparent; border-bottom: 1px solid #161618">
+              <div style="display: flex; align-items: center; gap: 8px; font-family: 'Source Code Pro', monospace; font-size: 11.5px"><span style="width: 9px; height: 9px; border-radius: 2px; background: #484848; border: 1px solid #E4E4E4"></span><span style="font-weight: 600">ABS-002</span><span style="color: #A9A49B">tier 2</span><span style="flex: 1 1 auto"></span><span style="font-weight: 500">pending</span></div>
+              <div style="padding-left: 17px; font-family: 'Source Code Pro', monospace; font-size: 12px; color: #A9A49B">"a robust and scalable solution"</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px; padding: 8px 14px 9px 12px; border-left: 2px solid transparent; border-bottom: 1px solid #161618">
+              <div style="display: flex; align-items: center; gap: 8px; font-family: 'Source Code Pro', monospace; font-size: 11.5px"><span style="width: 9px; height: 0; border-bottom: 2px solid #F0434E"></span><span style="font-weight: 600; color: #A9A49B">SPL-031</span><span style="color: #7E7A71">spelling</span><span style="flex: 1 1 auto"></span><span style="color: #7E7A71">accepted</span></div>
+              <div style="padding-left: 17px; font-family: 'Source Code Pro', monospace; font-size: 12px; color: #7E7A71">recieve → receive</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px; padding: 8px 14px 9px 12px; border-left: 2px solid transparent; border-bottom: 1px solid #161618">
+              <div style="display: flex; align-items: center; gap: 8px; font-family: 'Source Code Pro', monospace; font-size: 11.5px"><span style="width: 9px; height: 0; border-bottom: 2px solid #E7BF4A"></span><span style="font-weight: 600">PNC-014</span><span style="color: #A9A49B">punctuation</span><span style="flex: 1 1 auto"></span><span style="font-weight: 500">pending</span></div>
+              <div style="padding-left: 17px; font-family: 'Source Code Pro', monospace; font-size: 12px; color: #A9A49B">,, → ,</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px; padding: 8px 14px 9px 12px; border-left: 2px solid transparent">
+              <div style="display: flex; align-items: center; gap: 8px; font-family: 'Source Code Pro', monospace; font-size: 11.5px"><span style="width: 9px; height: 0; border-bottom: 2px solid #60AAF3"></span><span style="font-weight: 600">GRM-022</span><span style="color: #A9A49B">grammar</span><span style="flex: 1 1 auto"></span><span style="font-weight: 500">pending</span></div>
+              <div style="padding-left: 17px; font-family: 'Source Code Pro', monospace; font-size: 12px; color: #A9A49B">have → has</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 14px; height: 26px; align-items: center; padding: 0 14px; border-top: 1px solid #1F1F22; font-family: 'Source Code Pro', monospace; font-size: 11px">
+            <span style="display: flex; gap: 6px"><span style="color: #7E7A71">decided</span><span>5</span></span>
+            <span style="display: flex; gap: 6px"><span style="color: #7E7A71">pending</span><span>4</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="flex: 0 1 1400px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px 28px; font-size: 12.5px; line-height: 1.6; color: #A9A49B">
+      <div style="text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">Decided rows recede, pending rows stay at full ink.</span> Status is a word, not an icon — six terminal states (accepted, rejected, edited, ignored, dismissed) plus pending can't be told apart by glyph. The log is the only place all six are visible at once.</div>
+      <div style="text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">Caught: a deletion has no span in the preview.</span> CLS-007 removes text, so there is nothing on the right to click or ring. It needs a mark — drawn here as a small tier-colored stub at the deletion point, which carries the ring when focused.</div>
+      <div style="text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">Caught: spec §10's accept-vs-reject question answers itself.</span> Strikethrough already means "this text leaves the document". Accepted <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px">leverage</span> is struck on a resolved ground; rejected <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px">seamlessly</span> sits on the same ground unstruck. Different, with no new token.</div>
+      <div style="text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">Caught: grammar blue collides with link blue.</span> Dark grammar <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px">#60AAF3</span> and syntax link <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px">#63B9FE</span> are nearly identical. Review panes therefore render without syntax hues — headings stay bold, nothing else is colored except proofing marks. Proofing marks are now wavy, per spec §2B; light 4a–4c still use straight lines.</div>
+      <div style="text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">Two corrections to 5b.</span> Bubble <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px">accept</span> is now strong-neutral rather than accent: apply is this view's one primary action, and the ring already spends the accent on "which flag is open". And 5b's A/R keycaps contradict spec §6 (keyboard deferred for v1); they're gone until a keyboard model exists.</div>
+      <div style="text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">This is the first real three-pane layout.</span> At 1400 the two document panes get about 500px each at the 13px split size, and it holds. The log is fixed at 380 because its rows are short and a wider log only steals from the text.</div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 30px; font-size: 12px; color: #A9A49B">
+    <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: #09090B; background: #F2F1EC; padding: 3px 7px; border-radius: 4px">6c</span>
+    <span style="font-weight: 600; color: #F2F1EC">Apply</span>
+    <span>disabled → enabled → written and closed, with an undo toast</span>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 14px; width: 1400px">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #7E7A71">8 of 9 decided</div>
+      <div style="display: flex; align-items: stretch; height: 34px; background: #111113; border: 1px solid #2A2A2E; border-radius: 6px; overflow: hidden; font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+        <div style="display: flex; align-items: center; padding: 0 12px; border-right: 1px solid #161618; color: #A9A49B">~/notes/platform-migration.md</div>
+        <div style="flex: 1 1 auto"></div>
+        <div style="display: flex; align-items: center; gap: 14px; padding: 0 12px; border-left: 1px solid #161618">
+          <span style="display: flex; gap: 6px"><span style="color: #7E7A71">proposed</span><span style="font-weight: 500">9</span></span>
+          <span style="display: flex; gap: 6px"><span style="color: #7E7A71">decided</span><span style="font-weight: 500">8</span></span>
+          <span style="display: flex; width: 68px; height: 3px; background: #1F1F22; border-radius: 9999px"><span style="width: 89%; background: #7E7A71; border-radius: 9999px"></span></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 10px 0 6px">
+          <span style="display: flex; align-items: center; height: 22px; padding: 0 8px; border: 1px solid #2A2A2E; background: #18181B; border-radius: 6px; color: #A9A49B">review log</span>
+          <span style="display: flex; align-items: center; height: 22px; padding: 0 9px; border: 1px dashed #2A2A2E; border-radius: 6px; color: #5A5854">apply 8 of 9</span>
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #7E7A71">9 of 9 decided — the moment it enables</div>
+      <div style="display: flex; align-items: stretch; height: 34px; background: #111113; border: 1px solid #2A2A2E; border-radius: 6px; overflow: hidden; font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+        <div style="display: flex; align-items: center; padding: 0 12px; border-right: 1px solid #161618; color: #A9A49B">~/notes/platform-migration.md</div>
+        <div style="flex: 1 1 auto"></div>
+        <div style="display: flex; align-items: center; gap: 14px; padding: 0 12px; border-left: 1px solid #161618">
+          <span style="display: flex; gap: 6px"><span style="color: #7E7A71">decided</span><span style="font-weight: 500">9 / 9</span></span>
+          <span style="display: flex; gap: 6px"><span style="color: #7E7A71">changes</span><span style="font-weight: 500">6</span></span>
+          <span style="display: flex; width: 68px; height: 3px; background: #F2823B; border-radius: 9999px"></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 10px 0 6px">
+          <span style="display: flex; align-items: center; height: 22px; padding: 0 8px; border: 1px solid #2A2A2E; background: #18181B; border-radius: 6px; color: #A9A49B">review log</span>
+          <span style="display: flex; align-items: center; height: 22px; padding: 0 11px; background: #F2823B; border-radius: 6px; font-weight: 600; color: #270E01">apply 9 decisions</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; margin-top: 6px">
+    <div style="flex: 0 0 900px; width: 900px; height: 360px; position: relative; display: flex; flex-direction: column; background: #09090B; border: 1px solid #2A2A2E; border-radius: 12px; overflow: hidden">
+      <div style="display: flex; align-items: stretch; height: 38px; background: #111113; border-bottom: 1px solid #1F1F22">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 0 14px; background: #09090B; border-bottom: 2px solid #F2823B; border-right: 1px solid #1F1F22; margin-bottom: -1px; border-radius: 6px 6px 0 0">
+          <span style="width: 7px; height: 7px; border-radius: 2px; background: #B6A461"></span>
+          <span style="font-size: 13px; font-weight: 500">platform-migration</span>
+          <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: #7E7A71">×</span>
+        </div>
+      </div>
+      <div style="flex: 1 1 auto; display: flex; min-height: 0">
+        <div style="flex: 0 0 46px; padding: 16px 10px 0 0; text-align: right; font-family: 'Source Code Pro', monospace; font-size: 13.5px; line-height: 1.7; color: #44423F; border-right: 1px solid #161618">
+          <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div>
+        </div>
+        <div style="flex: 1 1 auto; padding: 16px 0 0 20px; font-family: 'Source Code Pro', monospace; font-size: 13.5px; line-height: 1.7; white-space: pre; color: #F2F1EC">
+<div><span style="color: #FD8A8F">### </span><span style="color: #FD8A8F; font-weight: 600">3. Rollout</span></div>
+<div style="min-height: 1.7em"></div>
+<div>We will use the new pipeline to seamlessly migrate</div>
+<div>each service in turn, starting with the queue workers,</div>
+<div>the scheduler, and CI.</div>
+        </div>
+      </div>
+      <div style="position: absolute; left: 60px; bottom: 40px; width: 360px; display: flex; flex-direction: column; background: #F2F1EC; color: #09090B; border-radius: 6px; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px 9px 12px; font-family: 'Source Code Pro', monospace; font-size: 12px">
+          <span style="flex: 1 1 auto">6 changes applied <span style="color: #5A5854">3 kept</span></span>
+          <span style="padding: 2px 8px; border: 1px solid #7E7A71; border-radius: 4px">undo</span>
+          <span style="color: #7E7A71">×</span>
+        </div>
+        <div style="height: 2px; background: #D6D3CB"><div style="width: 58%; height: 2px; background: #F2823B"></div></div>
+      </div>
+      <div style="display: flex; align-items: stretch; height: 26px; background: #111113; border-top: 1px solid #1F1F22; font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+        <div style="display: flex; align-items: center; padding: 0 8px; border-right: 1px solid #161618"><span style="display: flex; align-items: center; gap: 6px; height: 18px; padding: 0 7px; border: 1px solid #2A2A2E; border-radius: 6px"><span style="width: 5px; height: 5px; border-radius: 2px; background: #F2823B"></span>review style</span></div>
+        <div style="flex: 1 1 auto"></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid #161618"><span style="color: #7E7A71">words</span><span>305</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 12px 0 11px; border-left: 1px solid #161618"><span style="color: #7E7A71">cursor</span><span>1:1</span></div>
+      </div>
+    </div>
+    <div style="flex: 0 1 440px; display: flex; flex-direction: column; gap: 10px; font-size: 12.5px; line-height: 1.6; color: #A9A49B; text-wrap: pretty">
+      <div><span style="color: #F2F1EC; font-weight: 500">It visibly changes, and it's the only change in the bar that uses color.</span> While incomplete, the button is dashed and dim and the progress bar is neutral gray. At 9/9 both turn accent in the same frame: the bar fills amber, the button fills solid. Accent stays off the bar until there's something to do.</div>
+      <div><span style="color: #F2F1EC; font-weight: 500">Working assumption confirmed:</span> writes and closes directly, no dialog. <span style="color: #F2F1EC; font-weight: 500">Corrected on one point:</span> it does need a toast, and an undo. Unlike delete, the change it makes is invisible once the review view is gone — the toast is the only confirmation of how much text moved.</div>
+      <div><span style="color: #F2F1EC; font-weight: 500">Caught: "apply 9 decisions" overstates.</span> Rejections, ignores and dismissals are decisions that change nothing. The enabled bar adds <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px">changes 6</span>, and the toast reports both numbers. If every flag was rejected, it reads <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px">0 changes applied</span> — still worth clicking, since it's how you leave the view.</div>
+      <div>Undo restores the pre-apply text as one editor step. It does not reopen the review — that ties into spec §10's unresolved exit question and shouldn't be decided by a toast.</div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 30px; font-size: 12px; color: #A9A49B">
+    <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: #09090B; background: #F2F1EC; padding: 3px 7px; border-radius: 4px">6d</span>
+    <span style="font-weight: 600; color: #F2F1EC">Empty states</span>
+    <span>first run, no search results, no filter matches, empty document</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+
+    <div style="display: flex; flex-direction: column; gap: 10px; width: 900px">
+      <div style="width: 900px; height: 460px; display: flex; flex-direction: column; background: #09090B; border: 1px solid #2A2A2E; border-radius: 12px; overflow: hidden">
+        <div style="flex: 1 1 auto; display: flex; min-height: 0">
+          <div style="flex: 0 0 248px; display: flex; flex-direction: column; background: #111113; border-right: 1px solid #1F1F22">
+            <div style="display: flex; align-items: center; gap: 5px; height: 38px; padding: 0 8px 0 14px; border-bottom: 1px solid #1F1F22">
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 13.5px; font-weight: 600; letter-spacing: -0.025em; color: #F2823B; flex: 1 1 auto">jot</span>
+              <span title="new document" style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid #2A2A2E; background: #18181B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 14px; line-height: 1; color: #F2F1EC">+</span>
+              <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid #161618; border-radius: 6px"><span style="display: flex; flex-direction: column; gap: 2px"><span style="width: 9px; height: 1.5px; background: #44423F"></span><span style="width: 6px; height: 1.5px; background: #44423F"></span><span style="width: 3px; height: 1.5px; background: #44423F"></span></span></span>
+              <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid #161618; border-radius: 6px"><span style="display: grid; grid-template-columns: 5px 5px; grid-template-rows: 5px 5px; gap: 1.5px"><span style="background: #44423F"></span><span style="background: #44423F"></span><span style="background: #44423F"></span><span style="background: #44423F"></span></span></span>
+              <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid #161618; border-radius: 6px"><span style="display: block; width: 8px; height: 8px; border: 1.5px solid #44423F; border-radius: 50%"></span></span>
+            </div>
+          </div>
+          <div style="flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0">
+            <div style="height: 38px; background: #111113; border-bottom: 1px solid #1F1F22"></div>
+            <div style="flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; gap: 16px; padding: 0 72px 40px">
+              <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.025em">No documents yet</div>
+              <div style="display: flex; align-items: center; gap: 14px">
+                <span style="display: flex; align-items: center; height: 28px; padding: 0 13px; background: #F2823B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 12px; font-weight: 600; color: #270E01">new document</span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: #7E7A71">or drop .md files anywhere</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: stretch; height: 26px; background: #111113; border-top: 1px solid #1F1F22; font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+          <div style="flex: 1 1 auto"></div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 0 12px 0 11px; border-left: 1px solid #161618"><span style="color: #7E7A71">theme</span><span>system</span><span style="color: #7E7A71">dark</span></div>
+        </div>
+      </div>
+      <div style="font-size: 12.5px; line-height: 1.6; color: #A9A49B; text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">First run.</span> One headline, one action, no illustration. Sort, filter and search draw at mute because they have nothing to act on; the status bar drops every counter since there's no document to count. <span style="color: #F2F1EC; font-weight: 500">Caught:</span> there was never a new-document control anywhere in the shell. This forced one — a <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px">+</span> icon button leading the sidebar header, which applies to the normal shell too (an unambiguous glyph, so it passes the icon rule). File drop is an assumption; confirm or cut.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px; width: 300px">
+      <div style="width: 300px; height: 300px; display: flex; flex-direction: column; background: #111113; border: 1px solid #2A2A2E; border-radius: 12px; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 6px; height: 38px; padding: 0 8px; border-bottom: 1px solid #1F1F22">
+          <span style="display: flex; align-items: center; flex: 1 1 auto; height: 24px; padding: 0 8px; background: #09090B; border: 1px solid #F2823B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 12px">kubernetes<span style="display: inline-block; width: 2px; height: 13px; background: #F2823B; margin-left: 1px"></span></span>
+          <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #7E7A71; padding: 0 4px">esc</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; padding: 18px 14px">
+          <div style="font-size: 13px; line-height: 1.5">Nothing matches <span style="font-family: 'Source Code Pro', monospace; font-size: 12.5px">kubernetes</span></div>
+          <div style="font-family: 'Source Code Pro', monospace; font-size: 11px; line-height: 1.6; color: #7E7A71">searched 17 titles and their full text</div>
+          <span style="align-self: flex-start; display: flex; align-items: center; height: 24px; padding: 0 9px; border: 1px solid #2A2A2E; background: #18181B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: #A9A49B">new document "kubernetes"</span>
+        </div>
+      </div>
+      <div style="font-size: 12.5px; line-height: 1.6; color: #A9A49B; text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">No search results.</span> States the scope searched, so "nothing" is trustworthy. Offers to create a document with the query as its title — a notes tool's most likely next step after not finding something.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px; width: 300px">
+      <div style="width: 300px; height: 300px; display: flex; flex-direction: column; background: #111113; border: 1px solid #2A2A2E; border-radius: 12px; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 5px; height: 38px; padding: 0 8px 0 14px; border-bottom: 1px solid #1F1F22">
+          <span style="font-family: 'Source Code Pro', monospace; font-size: 13.5px; font-weight: 600; letter-spacing: -0.025em; color: #F2823B; flex: 1 1 auto">jot</span>
+          <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid #2A2A2E; background: #18181B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 14px; line-height: 1; color: #A9A49B">+</span>
+          <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid #F2F1EC; background: #1E1E21; border-radius: 6px"><span style="width: 8px; height: 8px; border-radius: 2px; background: #BE92C8"></span></span>
+          <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid #1F1F22; background: #18181B; border-radius: 6px"><span style="display: block; width: 8px; height: 8px; border: 1.5px solid #A9A49B; border-radius: 50%"></span></span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; padding: 18px 14px">
+          <div style="display: flex; align-items: center; gap: 7px; font-size: 13px">No <span style="width: 9px; height: 9px; border-radius: 2px; background: #BE92C8"></span> documents</div>
+          <div style="font-family: 'Source Code Pro', monospace; font-size: 11px; line-height: 1.6; color: #7E7A71">the last one was recolored</div>
+          <span style="align-self: flex-start; display: flex; align-items: center; height: 24px; padding: 0 9px; border: 1px solid #2A2A2E; background: #18181B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: #A9A49B">clear filter</span>
+        </div>
+      </div>
+      <div style="font-size: 12.5px; line-height: 1.6; color: #A9A49B; text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">No filter matches.</span> The filter button shows the active color in its face while filtering. <span style="color: #F2F1EC; font-weight: 500">Caught twice:</span> a 0-count swatch shouldn't be selectable, so this state only arises when the last matching file is recolored or deleted mid-filter. And "pinned stays on top regardless of filter" was ambiguous — if pins bypassed the filter, this state could never appear. Decided: pins are filtered like anything else; pinning sets position, not membership.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px; width: 700px">
+      <div style="width: 700px; height: 300px; display: flex; flex-direction: column; background: #09090B; border: 1px solid #2A2A2E; border-radius: 12px; overflow: hidden">
+        <div style="display: flex; align-items: stretch; height: 38px; background: #111113; border-bottom: 1px solid #1F1F22">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 0 14px; background: #09090B; border-bottom: 2px solid #F2823B; border-right: 1px solid #1F1F22; margin-bottom: -1px; border-radius: 6px 6px 0 0">
+            <span style="width: 7px; height: 7px"></span>
+            <span style="font-size: 13px; font-weight: 500">standup-notes</span>
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: #7E7A71">×</span>
+          </div>
+        </div>
+        <div style="flex: 1 1 auto; display: flex; min-height: 0">
+          <div style="flex: 0 0 46px; padding: 16px 10px 0 0; text-align: right; font-family: 'Source Code Pro', monospace; font-size: 13.5px; line-height: 1.7; color: #F2F1EC; font-weight: 500; border-right: 1px solid #161618">1</div>
+          <div style="flex: 1 1 auto; padding: 16px 0 0 20px; font-family: 'Source Code Pro', monospace; font-size: 13.5px; line-height: 1.7"><span style="display: inline-block; width: 2px; height: 17px; background: #F2823B; vertical-align: -4px"></span></div>
+        </div>
+        <div style="display: flex; align-items: stretch; height: 26px; background: #111113; border-top: 1px solid #1F1F22; font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+          <div style="display: flex; align-items: center; padding: 0 8px; border-right: 1px solid #161618"><span style="display: flex; align-items: center; gap: 6px; height: 18px; padding: 0 7px; border: 1px dashed #1F1F22; border-radius: 6px; color: #5A5854"><span style="width: 5px; height: 5px; border-radius: 2px; background: #44423F"></span>review style</span></div>
+          <div style="flex: 1 1 auto"></div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid #161618"><span style="color: #7E7A71">bytes</span><span>0</span></div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid #161618"><span style="color: #7E7A71">words</span><span>0</span></div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid #161618"><span style="color: #7E7A71">lines</span><span>1</span></div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 0 12px 0 11px; border-left: 1px solid #161618"><span style="color: #7E7A71">cursor</span><span>1:1</span></div>
+        </div>
+      </div>
+      <div style="font-size: 12.5px; line-height: 1.6; color: #A9A49B; text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">Empty document: genuinely blank, decided on purpose.</span> Line 1, a caret, nothing else. Placeholder text would be the only words in the editor the person didn't write, and the status bar already says everything a placeholder could — <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px">bytes 0</span>, and review drawn in its disabled state because there's nothing to review. The empty document is where the disabled review state from 2f actually appears.</div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 30px; font-size: 12px; color: #A9A49B">
+    <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: #09090B; background: #F2F1EC; padding: 3px 7px; border-radius: 4px">6e</span>
+    <span style="font-weight: 600; color: #F2F1EC">Interaction states</span>
+    <span>reference sheet — default / hover / keyboard focus / pressed / selected</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+    <div style="flex: 0 0 1040px; width: 1040px; display: flex; flex-direction: column; background: #111113; border: 1px solid #2A2A2E; border-radius: 12px; overflow: hidden">
+      <div style="display: grid; grid-template-columns: 140px repeat(5, 1fr); align-items: center; height: 32px; padding: 0 16px; border-bottom: 1px solid #1F1F22; font-family: 'Source Code Pro', monospace; font-size: 11px; color: #7E7A71">
+        <span></span><span>default</span><span>hover</span><span>focus-visible</span><span>pressed</span><span>selected</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 140px repeat(5, 1fr); align-items: center; height: 64px; padding: 0 16px; border-bottom: 1px solid #161618">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: #A9A49B">button</span>
+        <span><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border: 1px solid #2A2A2E; background: #18181B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: #A9A49B">export</span></span>
+        <span><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border: 1px solid #2A2A2E; background: #1E1E21; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: #F2F1EC">export</span></span>
+        <span><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border: 1px solid #2A2A2E; background: #18181B; border-radius: 6px; outline: 2px solid #F2823B; outline-offset: 2px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: #F2F1EC">export</span></span>
+        <span><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border: 1px solid #2A2A2E; background: #141416; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: #F2F1EC">export</span></span>
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #5A5854">open = hover, held</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 140px repeat(5, 1fr); align-items: center; height: 64px; padding: 0 16px; border-bottom: 1px solid #161618">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: #A9A49B">primary</span>
+        <span><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; background: #F2823B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: #270E01">apply</span></span>
+        <span><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; background: #FF9858; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: #270E01">apply</span></span>
+        <span><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; background: #F2823B; border-radius: 6px; outline: 2px solid #F2823B; outline-offset: 2px; font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: #270E01">apply</span></span>
+        <span><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; background: #D97230; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: #270E01">apply</span></span>
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #5A5854">—</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 140px repeat(5, 1fr); align-items: end; height: 64px; padding: 0 16px; border-bottom: 1px solid #161618">
+        <span style="align-self: center; font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: #A9A49B">tab</span>
+        <span style="display: flex"><span style="display: inline-flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 6px 6px 0 0; font-size: 12.5px; color: #A9A49B">jot-spec</span></span>
+        <span style="display: flex"><span style="display: inline-flex; align-items: center; height: 34px; padding: 0 12px; background: #141416; border-radius: 6px 6px 0 0; font-size: 12.5px; color: #F2F1EC">jot-spec</span></span>
+        <span style="display: flex"><span style="display: inline-flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 6px 6px 0 0; outline: 2px solid #F2823B; outline-offset: -2px; font-size: 12.5px; color: #F2F1EC">jot-spec</span></span>
+        <span style="display: flex"><span style="display: inline-flex; align-items: center; height: 34px; padding: 0 12px; background: #18181B; border-radius: 6px 6px 0 0; font-size: 12.5px; color: #F2F1EC">jot-spec</span></span>
+        <span style="display: flex"><span style="display: inline-flex; align-items: center; height: 34px; padding: 0 12px; background: #09090B; border-bottom: 2px solid #F2823B; border-radius: 6px 6px 0 0; font-size: 12.5px; font-weight: 500; color: #F2F1EC">jot-spec</span></span>
+      </div>
+      <div style="display: grid; grid-template-columns: 140px repeat(5, 1fr); align-items: center; height: 64px; padding: 0 16px; border-bottom: 1px solid #161618">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: #A9A49B">sidebar row</span>
+        <span style="padding-right: 12px"><span style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-left: 2px solid transparent; font-size: 12.5px; color: #A9A49B"><span style="width: 8px; height: 8px; border-radius: 2px; background: #57B6B6"></span>jot-spec</span></span>
+        <span style="padding-right: 12px"><span style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-left: 2px solid transparent; background: #141416; font-size: 12.5px; color: #F2F1EC"><span style="width: 8px; height: 8px; border-radius: 2px; background: #57B6B6"></span>jot-spec</span></span>
+        <span style="padding-right: 12px"><span style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-left: 2px solid transparent; outline: 2px solid #F2823B; outline-offset: -2px; font-size: 12.5px; color: #F2F1EC"><span style="width: 8px; height: 8px; border-radius: 2px; background: #57B6B6"></span>jot-spec</span></span>
+        <span style="padding-right: 12px"><span style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-left: 2px solid transparent; background: #18181B; font-size: 12.5px; color: #F2F1EC"><span style="width: 8px; height: 8px; border-radius: 2px; background: #57B6B6"></span>jot-spec</span></span>
+        <span style="padding-right: 12px"><span style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-left: 2px solid #F2823B; background: #18181B; font-size: 12.5px; font-weight: 500; color: #F2F1EC"><span style="width: 8px; height: 8px; border-radius: 2px; background: #57B6B6"></span>jot-spec</span></span>
+      </div>
+      <div style="display: grid; grid-template-columns: 140px repeat(5, 1fr); align-items: center; height: 64px; padding: 0 16px; border-bottom: 1px solid #161618">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: #A9A49B">menu item</span>
+        <span style="padding-right: 12px"><span style="display: flex; align-items: center; height: 40px; padding: 5px; background: #18181B; border-radius: 8px"><span style="flex: 1 1 auto; display: flex; align-items: center; height: 30px; padding: 0 9px; border-radius: 6px; font-size: 12.5px; color: #A9A49B">Plain text</span></span></span>
+        <span style="padding-right: 12px"><span style="display: flex; align-items: center; height: 40px; padding: 5px; background: #18181B; border-radius: 8px"><span style="flex: 1 1 auto; display: flex; align-items: center; height: 30px; padding: 0 9px; background: #1E1E21; border-radius: 6px; font-size: 12.5px; color: #F2F1EC">Plain text</span></span></span>
+        <span style="padding-right: 12px"><span style="display: flex; align-items: center; height: 40px; padding: 5px; background: #18181B; border-radius: 8px"><span style="flex: 1 1 auto; display: flex; align-items: center; height: 30px; padding: 0 9px; border-radius: 6px; outline: 2px solid #F2823B; outline-offset: -2px; font-size: 12.5px; color: #F2F1EC">Plain text</span></span></span>
+        <span style="padding-right: 12px"><span style="display: flex; align-items: center; height: 40px; padding: 5px; background: #18181B; border-radius: 8px"><span style="flex: 1 1 auto; display: flex; align-items: center; height: 30px; padding: 0 9px; background: #141416; border-radius: 6px; font-size: 12.5px; color: #F2F1EC">Plain text</span></span></span>
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #5A5854">—</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 140px repeat(5, 1fr); align-items: center; height: 64px; padding: 0 16px">
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: #A9A49B">input</span>
+        <span style="padding-right: 12px"><span style="display: flex; align-items: center; height: 26px; padding: 0 8px; background: #09090B; border: 1px solid #1F1F22; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 12px; color: #5A5854">search</span></span>
+        <span style="padding-right: 12px"><span style="display: flex; align-items: center; height: 26px; padding: 0 8px; background: #09090B; border: 1px solid #2A2A2E; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 12px; color: #5A5854">search</span></span>
+        <span style="padding-right: 12px"><span style="display: flex; align-items: center; height: 26px; padding: 0 8px; background: #09090B; border: 1px solid #F2823B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 12px; color: #F2F1EC">deploy<span style="display: inline-block; width: 2px; height: 13px; background: #F2823B; margin-left: 1px"></span></span></span>
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #5A5854">= focus</span>
+        <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #5A5854">—</span>
+      </div>
+    </div>
+    <div style="flex: 0 1 320px; display: flex; flex-direction: column; gap: 10px; font-size: 12.5px; line-height: 1.6; color: #A9A49B; text-wrap: pretty">
+      <div><span style="color: #F2F1EC; font-weight: 500">Hover lifts one step, pressed drops one.</span> Hover is always less than selected — the same row-hover rule from the light theme — so a hovered row never reads as the open file.</div>
+      <div><span style="color: #F2F1EC; font-weight: 500">The ring is <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px">--ring</span>: 2px accent, keyboard focus only.</span> Free-standing controls get it outside with 2px offset; flush controls (tabs, rows, menu items) get it inset, because an outside ring would be clipped by their neighbours. The offset gap is what keeps it visible around the accent-filled primary button.</div>
+      <div><span style="color: #F2F1EC; font-weight: 500">Inputs don't get a second ring.</span> Their focus is the accent border already used by search; stacking a ring on top would put accent on one element twice.</div>
+      <div><span style="color: #F2F1EC; font-weight: 500">Caught:</span> keyboard focus and the review view's "open flag" ring are the same token. That's fine only because review keyboard navigation is deferred (spec §6). If it ever ships, one of the two has to change.</div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 30px; font-size: 12px; color: #A9A49B">
+    <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: #09090B; background: #F2F1EC; padding: 3px 7px; border-radius: 4px">6f</span>
+    <span style="font-weight: 600; color: #F2F1EC">Three panes</span>
+    <span>sidebar open at 248, three editors at about 379px each</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px">
+    <div style="flex: 0 0 1400px; width: 1400px; height: 640px; display: flex; flex-direction: column; background: #09090B; border: 1px solid #2A2A2E; border-radius: 12px; overflow: hidden">
+      <div style="flex: 1 1 auto; display: flex; min-height: 0">
+        <div style="flex: 0 0 248px; display: flex; flex-direction: column; background: #111113">
+          <div style="display: flex; align-items: center; gap: 5px; height: 38px; padding: 0 8px 0 14px; border-bottom: 1px solid #1F1F22">
+            <span style="font-family: 'Source Code Pro', monospace; font-size: 13.5px; font-weight: 600; letter-spacing: -0.025em; color: #F2823B; flex: 1 1 auto">jot</span>
+            <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid #1F1F22; background: #18181B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 14px; line-height: 1; color: #A9A49B">+</span>
+            <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid #1F1F22; background: #18181B; border-radius: 6px"><span style="display: flex; flex-direction: column; gap: 2px"><span style="width: 9px; height: 1.5px; background: #A9A49B"></span><span style="width: 6px; height: 1.5px; background: #A9A49B"></span><span style="width: 3px; height: 1.5px; background: #A9A49B"></span></span></span>
+            <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid #1F1F22; background: #18181B; border-radius: 6px"><span style="display: grid; grid-template-columns: 5px 5px; grid-template-rows: 5px 5px; gap: 1.5px"><span style="border-radius: 1px; background: #D78E88"></span><span style="border-radius: 1px; background: #B6A461"></span><span style="border-radius: 1px; background: #57B6B6"></span><span style="border-radius: 1px; background: #84A6DD"></span></span></span>
+            <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid #1F1F22; background: #18181B; border-radius: 6px"><span style="display: block; width: 8px; height: 8px; border: 1.5px solid #A9A49B; border-radius: 50%"></span></span>
+          </div>
+          <div style="display: flex; flex-direction: column; padding: 6px 0">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 6px 12px 6px 10px; background: #18181B; border-left: 2px solid #F2823B"><span style="width: 8px; height: 8px; border-radius: 2px; background: #B6A461"></span><span style="font-size: 13px; font-weight: 500; flex: 1 1 auto">platform-migration</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #7E7A71">2m</span></div>
+            <div style="display: flex; align-items: center; gap: 9px; padding: 6px 12px 6px 10px; border-left: 2px solid transparent"><span style="width: 8px; height: 8px; border-radius: 2px; background: #57B6B6"></span><span style="font-size: 13px; color: #A9A49B; flex: 1 1 auto">jot-spec</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #7E7A71">21d</span></div>
+            <div style="display: flex; align-items: center; gap: 9px; padding: 6px 12px 6px 10px; border-left: 2px solid transparent"><span style="width: 8px; height: 8px"></span><span style="font-size: 13px; color: #A9A49B; flex: 1 1 auto">scratch</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: #7E7A71">3h</span></div>
+          </div>
+        </div>
+        <div style="flex: 0 0 5px; background: #1F1F22; background-clip: content-box; border-left: 2px solid transparent; border-right: 2px solid transparent"></div>
+
+        <div style="flex: 1 1 0; display: flex; flex-direction: column; min-width: 0">
+          <div style="display: flex; align-items: stretch; height: 38px; background: #111113; border-bottom: 1px solid #1F1F22">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #09090B; border-bottom: 2px solid #5A5854; border-right: 1px solid #1F1F22; margin-bottom: -1px; border-radius: 6px 6px 0 0; color: #A9A49B"><span style="width: 7px; height: 7px; border-radius: 2px; background: #57B6B6"></span><span style="font-size: 13px; font-weight: 500">jot-spec</span><span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: #5A5854">×</span></div>
+          </div>
+          <div style="flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden">
+            <div style="flex: 0 0 34px; padding: 14px 7px 0 0; text-align: right; font-family: 'Source Code Pro', monospace; font-size: 13px; line-height: 1.7; color: #44423F; border-right: 1px solid #161618">
+              <div>1</div><div>2</div><div>3</div><div style="min-height: 1.7em"></div><div style="min-height: 1.7em"></div><div>4</div><div>5</div><div style="min-height: 1.7em"></div><div>6</div><div>7</div><div>8</div>
+            </div>
+            <div style="flex: 1 1 auto; min-width: 0; padding: 14px 0 0 12px; font-family: 'Source Code Pro', monospace; font-size: 13px; line-height: 1.7; white-space: pre; overflow: hidden; color: #F2F1EC">
+<div><span style="color: #FD8A8F">## </span><span style="color: #FD8A8F; font-weight: 600">Panes</span></div>
+<div style="min-height: 1.7em"></div>
+<div>Up to three editors side by side. Each</div>
+<div>keeps its own tab strip; one is focused</div>
+<div>at a time.</div>
+<div style="min-height: 1.7em"></div>
+<div><span style="color: #B7B0A3">- </span>Split opens the current doc to the</div>
+<div>  right.</div>
+<div><span style="color: #B7B0A3">- </span>Closing the last tab closes the pane.</div>
+<div style="min-height: 1.7em"></div>
+<div><span style="color: #B7B0A3">- [ ] </span>decide tab overflow behavior</div>
+            </div>
+          </div>
+        </div>
+        <div style="flex: 0 0 5px; background: #1F1F22; background-clip: content-box; border-left: 2px solid transparent; border-right: 2px solid transparent"></div>
+
+        <div style="flex: 1 1 0; display: flex; flex-direction: column; min-width: 0">
+          <div style="display: flex; align-items: stretch; height: 38px; background: #111113; border-bottom: 1px solid #1F1F22">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #09090B; border-bottom: 2px solid #F2823B; border-right: 1px solid #1F1F22; margin-bottom: -1px; border-radius: 6px 6px 0 0; min-width: 0"><span style="width: 7px; height: 7px; border-radius: 2px; background: #B6A461; flex: 0 0 auto"></span><span style="font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">platform-migration</span><span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: #7E7A71">×</span></div>
+            <div style="flex: 1 1 auto"></div>
+            <div style="display: flex; align-items: center; gap: 5px; padding: 0 8px; border-left: 1px solid #1F1F22">
+              <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 20px; border: 1px solid #2A2A2E; background: #18181B; border-radius: 6px"><span style="display: flex; width: 11px; height: 9px; border: 1px solid #A9A49B; border-radius: 2px"><span style="flex: 1 1 auto; border-right: 1px solid #A9A49B"></span><span style="flex: 1 1 auto"></span></span></span>
+              <span style="display: flex; align-items: center; justify-content: center; gap: 2px; width: 24px; height: 20px; border: 1px solid #2A2A2E; background: #18181B; border-radius: 6px"><span style="width: 2.5px; height: 2.5px; background: #A9A49B"></span><span style="width: 2.5px; height: 2.5px; background: #A9A49B"></span><span style="width: 2.5px; height: 2.5px; background: #A9A49B"></span></span>
+              <span style="display: flex; align-items: center; height: 20px; padding: 0 8px; background: #F2823B; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 600; color: #270E01">review</span>
+            </div>
+          </div>
+          <div style="flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden">
+            <div style="flex: 0 0 34px; padding: 14px 7px 0 0; text-align: right; font-family: 'Source Code Pro', monospace; font-size: 13px; line-height: 1.7; color: #44423F; border-right: 1px solid #161618">
+              <div>1</div><div>2</div><div>3</div><div style="min-height: 1.7em"></div><div style="min-height: 1.7em"></div><div>4</div><div style="min-height: 1.7em"></div><div>5</div><div>6</div><div style="min-height: 1.7em"></div><div style="min-height: 1.7em"></div><div>7</div><div>8</div><div>9</div><div>10</div><div style="color: #F2F1EC; font-weight: 500">11</div><div style="min-height: 1.7em"></div>
+            </div>
+            <div style="flex: 1 1 auto; min-width: 0; padding: 14px 0 0 12px; font-family: 'Source Code Pro', monospace; font-size: 13px; line-height: 1.7; white-space: pre; overflow: hidden; color: #F2F1EC">
+<div><span style="color: #FD8A8F">### </span><span style="color: #FD8A8F; font-weight: 600">3. Rollout</span></div>
+<div style="min-height: 1.7em"></div>
+<div><span style="color: #B7B0A3">- </span>Migrate each service in turn,</div>
+<div>  starting with the queue workers,</div>
+<div>  the scheduler, and CI.</div>
+<div><span style="color: #B7B0A3">- </span>Every service gets a dry run</div>
+<div>  before cutover.</div>
+<div style="min-height: 1.7em"></div>
+<div>Owners <span style="color: #C9B04F; font-weight: 600">must</span> confirm their slot in</div>
+<div><span style="color: #B7B0A3">[</span><span style="color: #63B9FE; text-decoration: underline; text-underline-offset: 3px">the shared tracker</span><span style="color: #B7B0A3">](./notes/</span></div>
+<div><span style="color: #B7B0A3">tracker.md)</span> before Friday.</div>
+<div style="min-height: 1.7em"></div>
+<div style="display: flex; background: #111113; margin-left: -12px; padding-left: 12px"><span style="flex: 1 1 auto; overflow: hidden; color: #74C692">  pnpm migrate --service queue --dry-run</span><span style="flex: 0 0 auto; padding: 0 6px; color: #7E7A71; background: #111113">›</span></div>
+<div style="display: flex; background: #111113; margin-left: -12px; padding-left: 12px"><span style="flex: 1 1 auto; overflow: hidden; color: #74C692">  pnpm migrate --service queue --cutover</span><span style="flex: 0 0 auto; padding: 0 6px; color: #7E7A71; background: #111113">›</span></div>
+<div style="min-height: 1.7em"></div>
+<div>Rollback stays live for <span style="color: #74C692; background: #18181B">48h</span> after<span style="display: inline-block; width: 2px; height: 16px; background: #F2823B; vertical-align: -4px"></span></div>
+<div>each cutover.</div>
+            </div>
+          </div>
+        </div>
+        <div style="flex: 0 0 5px; background: #1F1F22; background-clip: content-box; border-left: 2px solid transparent; border-right: 2px solid transparent"></div>
+
+        <div style="flex: 1 1 0; display: flex; flex-direction: column; min-width: 0">
+          <div style="display: flex; align-items: stretch; height: 38px; background: #111113; border-bottom: 1px solid #1F1F22">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #09090B; border-bottom: 2px solid #5A5854; border-right: 1px solid #1F1F22; margin-bottom: -1px; border-radius: 6px 6px 0 0; color: #A9A49B"><span style="width: 7px; height: 7px"></span><span style="font-size: 13px; font-weight: 500">scratch</span><span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: #5A5854">×</span></div>
+          </div>
+          <div style="flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden">
+            <div style="flex: 0 0 34px; padding: 14px 7px 0 0; text-align: right; font-family: 'Source Code Pro', monospace; font-size: 13px; line-height: 1.7; color: #44423F; border-right: 1px solid #161618">
+              <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div style="min-height: 1.7em"></div><div>6</div><div>7</div>
+            </div>
+            <div style="flex: 1 1 auto; min-width: 0; padding: 14px 0 0 12px; font-family: 'Source Code Pro', monospace; font-size: 13px; line-height: 1.7; white-space: pre; overflow: hidden; color: #F2F1EC">
+<div><span style="color: #FD8A8F"># </span><span style="color: #FD8A8F; font-weight: 600">scratch</span></div>
+<div style="min-height: 1.7em"></div>
+<div><span style="color: #B7B0A3">- [x] </span><span style="color: #7E7A71; text-decoration: line-through">three panes at 1400</span></div>
+<div><span style="color: #B7B0A3">- [ ] </span>gutter 40 → 34 at three</div>
+<div><span style="color: #B7B0A3">- [ ] </span>code lines clip, never</div>
+<div>      wrap</div>
+<div style="min-height: 1.7em"></div>
+<div>41 columns is enough for prose.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: stretch; height: 26px; background: #111113; border-top: 1px solid #1F1F22; font-family: 'Source Code Pro', monospace; font-size: 11.5px">
+        <div style="flex: 1 1 auto"></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid #161618"><span style="color: #7E7A71">words</span><span>312</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 11px; border-left: 1px solid #161618"><span style="color: #7E7A71">lines</span><span>11</span></div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 0 12px 0 11px; border-left: 1px solid #161618"><span style="color: #7E7A71">cursor</span><span>11:31</span></div>
+      </div>
+    </div>
+    <div style="flex: 0 1 1400px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px 28px; font-size: 12.5px; line-height: 1.6; color: #A9A49B">
+      <div style="text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">Text holds, with one adjustment.</span> At the 13px split size each pane gets about 41 columns once the gutter shrinks from 40 to 34 and the text inset from 16 to 12. That's enough for prose with soft-wrap — continuation lines take no line number. Font size stays at 13; going smaller to buy columns would be the wrong trade.</div>
+      <div style="text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">Code doesn't wrap, it clips.</span> Wrapping a shell command breaks copy-paste and hides where the line ends, so fenced lines run past the pane edge with a <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px">›</span> marker and scroll horizontally on their own.</div>
+      <div style="text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">Caught: each tab strip fits one tab.</span> At 379px there's room for one full filename and nothing else, so tab overflow is no longer a hypothetical gap — it's the next thing to design. Unfocused panes mark their active tab gray; only the focused pane's is amber.</div>
+      <div style="text-wrap: pretty"><span style="color: #F2F1EC; font-weight: 500">Caught: the controls don't fit.</span> They sit on the focused pane only, and at this width render and export fold into a <span style="font-family: 'Source Code Pro', monospace; font-size: 11.5px">⋯</span> menu; split stays as its icon and review shortens to one word. The sidebar is not auto-collapsed — its width belongs to the person — but at 1400 three panes are tight, and they relax at about 1600.</div>
+    </div>
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}"></script>
+</body>
+</html>
