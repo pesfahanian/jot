@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { UNDO_WINDOW_MS, undoDelete } from '@/state/actions'
+import { undoApply } from '@/state/reviewActions'
 import { useWorkspace } from '@/state/workspace'
 
 // The one inverted surface per theme, which is what makes it read as
@@ -26,11 +27,19 @@ export function Toast() {
     >
       <div className="flex items-center gap-2.5 py-[9px] pr-2.5 pl-3 font-mono text-[12px]">
         <span className="min-w-0 flex-auto truncate">
-          deleted <span className="text-toast-muted">{toast.entry.doc.title}</span>
+          {toast.kind === 'deleted' ? (
+            <>
+              deleted <span className="text-toast-muted">{toast.entry.doc.title}</span>
+            </>
+          ) : (
+            <>
+              {toast.changed} {toast.changed === 1 ? 'change' : 'changes'} applied <span className="text-toast-muted">{toast.kept} kept</span>
+            </>
+          )}
         </span>
         <button
           type="button"
-          onClick={() => void undoDelete(toast.id)}
+          onClick={() => (toast.kind === 'deleted' ? void undoDelete(toast.id) : undoApply(toast.documentId))}
           className="rounded-sm border border-(--toast-line) px-2 py-0.5 hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           undo

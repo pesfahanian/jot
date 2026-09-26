@@ -76,3 +76,9 @@ export function getSession(documentId: string, initialContent: string): Document
 export function openContent(documentId: string): string | undefined {
   return sessions.get(documentId)?.content
 }
+
+// The views showing a document — Apply writes through one of them so the
+// change is a real editor transaction (one undo step) that syncs to peers.
+export function viewsOf(documentId: string): EditorView[] {
+  return [...(sessions.get(documentId)?.views ?? [])]
+}

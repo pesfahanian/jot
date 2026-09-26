@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { importFiles, newDocument } from '@/state/actions'
 import type { ThemeState } from '@/state/theme'
 import { useWorkspace } from '@/state/workspace'
+import { KeyPanel } from '@/components/review/KeyPanel'
 import { EditorPane, PaneEmpty } from './EditorPane'
 import { Sidebar } from './Sidebar'
 import { StatusBar } from './StatusBar'
@@ -106,7 +107,10 @@ export function Shell({ docs, theme }: { docs: JotDocument[]; theme: ThemeState 
           <Toast />
         </div>
       </div>
-      <StatusBar docsById={docsById} theme={theme} />
+      <div className="relative flex-none">
+        <KeyPanel />
+        <StatusBar docsById={docsById} theme={theme} />
+      </div>
     </div>
   )
 }

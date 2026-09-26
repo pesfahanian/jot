@@ -267,3 +267,10 @@
   from { transform: scaleX(1); }
   to { transform: scaleX(0); }
 }
+
+/* The review control's running bar (2f) and the key cell's testing bar. */
+@keyframes jot-running {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(220%); }
+}
+.jot-running-bar { animation: jot-running 1.1s ease-in-out infinite; }

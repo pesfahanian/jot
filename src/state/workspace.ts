@@ -25,6 +25,8 @@ export interface DeletedEntry {
 
 export type Toast =
   | { kind: 'deleted'; id: number; entry: DeletedEntry }
+  // After Apply (6c): how much text moved, with undo as one editor step.
+  | { kind: 'applied'; id: number; documentId: string; changed: number; kept: number }
 
 interface WorkspaceState {
   loaded: boolean

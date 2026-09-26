@@ -28,13 +28,18 @@ export type FlagKind = 'replace' | 'delete' | 'insert' | 'flag'
 export type FlagStatus = 'pending' | 'accepted' | 'rejected' | 'ignored' | 'dismissed' | 'edited'
 
 export interface ReviewFlag {
+  // Unique per record: aggregate rules emit several flags sharing one rule id.
+  key: string
+  // Rule id (T1-01…T1-12, T1b-01…T1b-06, T2-01…T2-08) or proofing id (SPL-/GRM-/PNC-).
   id: string
   family: FlagFamily
   kind: FlagKind
-  spanStart: number
-  spanEnd: number
+  // Anchors into the review's source text. Both null for a comment-only
+  // note: a model quote that didn't match the document.
+  spanStart: number | null
+  spanEnd: number | null
   before: string
-  after: string
+  after: string | null
   rationale: string
   status: FlagStatus
   userText?: string
@@ -43,6 +48,12 @@ export interface ReviewFlag {
 export interface ReviewSession {
   documentId: string
   rulesetVersion: string
+  model: string
+  // The document text the flags anchor into. Editing is locked while the
+  // review is open; a resumed review whose document changed since is
+  // re-anchored against the new text.
+  source: string
+  createdAt: number
   flags: ReviewFlag[]
 }
 

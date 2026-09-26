@@ -18,3 +18,11 @@ Decisions the docs don't settle. Each has a working choice already in the code s
 | 12 | Undo-toast window length | 8 seconds | Phase 3 |
 | 13 | Tab overflow | Strip scrolls sideways + "+N ▾" list of every tab | Phase 3 |
 | 14 | Row "⋯" menu button (3e, an alternative to right-click) | Not built; right-click only | Phase 3 |
+| 15 | "Comment-only note" for model quotes that don't match the document — the addendum calls it an existing mechanism; no spec defines it | Note flag: no span, listed in the review log, bubble explains, decided by Dismiss | Phase 5 |
+| 16 | Overlapping flags (e.g. a banned word inside a sentence the model rewrote) | Wider span wins its stretch in preview/apply; the narrower flag still needs its own decision | Phase 5 |
+| 17 | banned-vocabulary.md entries whose "replacement" is guidance ("state the failure mode it survives") | Routed to the shared call as a generative fix; "(cut)" entries cut mechanically | Phase 5 |
+| 18 | Resuming a review after the document was edited | Flags re-anchored by their original text near their old position; lost ones become notes | Phase 5 |
+| 19 | Proofing source (see #5) | Rides the same shared call — keeps "one call per document" | Phase 5 |
+| 20 | Review control while a session exists | Reads "resume review" (fixed-width slot, widened to 200px to fit the error state) | Phase 5 |
+| 21 | T1-09 "section" before modes exist | Markdown heading sections (T1-09 is mode-independent, so it can't wait for the model's sections) | Phase 5 |
+| 22 | Whether a stored key that re-tests as rejected is kept | Kept, marked rejected; "clear" removes it (a new rejected key is never stored) | Phase 5 |

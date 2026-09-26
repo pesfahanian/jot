@@ -6,12 +6,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { ReviewView } from '@/components/review/ReviewView'
 import { Editor } from '@/editor/Editor'
 import { openContent } from '@/editor/sessions'
 import type { JotDocument, PaneLayout } from '@/lib/db'
 import { exportMarkdown, exportPdf, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
 import { newDocument } from '@/state/actions'
+import { useReview } from '@/state/review'
 import { MAX_PANES, useWorkspace } from '@/state/workspace'
 import { DocumentMenu } from './DocumentMenu'
 import { SplitIcon } from './icons'
@@ -117,6 +119,7 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
 }
 
 function Tab({ doc, active, focused, paneId }: { doc: JotDocument; active: boolean; focused: boolean; paneId: string }) {
+  const inReview = useReview((s) => s.openIn[paneId] === doc.id)
   const activateTab = useWorkspace((s) => s.activateTab)
   const closeTab = useWorkspace((s) => s.closeTab)
   return (
@@ -138,6 +141,7 @@ function Tab({ doc, active, focused, paneId }: { doc: JotDocument; active: boole
       >
         <TagMark color={doc.color} className="size-[7px]" />
         <span className={cn('truncate text-[13px]', active && 'font-medium')}>{doc.title}</span>
+        {inReview && <span className="font-mono text-[11px] text-muted-foreground">review</span>}
         <button
           type="button"
           aria-label={`close ${doc.title}`}
@@ -247,6 +251,8 @@ export function EditorPane({ pane, docsById, paneCount }: { pane: PaneLayout; do
 
   const tabs = pane.tabs.map((id) => docsById.get(id)).filter((d): d is JotDocument => !!d)
   const doc = pane.active ? docsById.get(pane.active) : undefined
+  const reviewHere = useReview((s) => !!doc && s.openIn[pane.id] === doc.id)
+  const session = useReview((s) => (doc ? s.sessions[doc.id] : undefined))
 
   return (
     <section
@@ -265,7 +271,14 @@ export function EditorPane({ pane, docsById, paneCount }: { pane: PaneLayout; do
         )}
       </div>
       {doc ? (
-        <Editor key={doc.id} documentId={doc.id} initialContent={doc.content} paneId={pane.id} focused={focused} />
+        <>
+          {session && reviewHere && <ReviewView doc={doc} session={session} paneId={pane.id} />}
+          {/* The editor stays mounted under an open review: Apply writes
+              through it as one transaction, so undo can reverse it. */}
+          <div className={cn('flex min-h-0 flex-auto flex-col', session && reviewHere && 'hidden')}>
+            <Editor key={doc.id} documentId={doc.id} initialContent={doc.content} paneId={pane.id} focused={focused && !(session && reviewHere)} />
+          </div>
+        </>
       ) : (
         // A pane with nothing open — only possible for the last pane, since
         // closing the last tab of any other pane closes that pane.

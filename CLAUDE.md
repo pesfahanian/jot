@@ -8,7 +8,7 @@ Jot — a personal, minimal markdown/writing editor. Single user, zero backend, 
 2. `jot-adrs.md` — why each architectural decision was made and what alternative was rejected. Consult before second-guessing any stack or storage choice.
 3. `jot-tickets.md` — the phased build plan. Work through phases in order; each ticket carries its own acceptance criteria — verify against them directly before marking a ticket done, not just when the phase ends.
 
-Two more documents exist for deep detail on specific features, referenced from the tickets as needed: the AI Style Review interaction spec, and the final design system (tokens, both themes, floating-panel shell).
+Two more documents exist for deep detail on specific features, referenced from the tickets as needed: the AI Style Review interaction spec (`docs/jot-ai-style-review-interaction-spec.md`), and the final design system (`docs/design/Jot Design System v3.dc.html`). Open design decisions are banked in `docs/open-decisions.md` for the end of the build.
 
 ## Standing rules — apply everywhere, not just where a ticket happens to mention them
 
@@ -43,7 +43,8 @@ Scaffolded in T0.1. Package manager is pnpm (pinned via `packageManager` in `pac
 - `src/state/` — `workspace.ts` (zustand: panes/tabs/focus/sidebar/toast; layout persisted to the `workspace` table), `actions.ts` (new/rename/color/pin/delete-with-undo/import), `theme.ts` (light/dark/system preference), `hooks.ts` (live document list).
 - `src/editor/sessions.ts` — one shared session per open document, so the same document in two panes stays in step and has one autosave.
 - `src/lib/docList.ts` — pure sort / OR color filter / search logic (T6.2 unit-test target); `src/lib/export.ts` — md / plain-text / PDF export; `src/lib/counts.ts` — status-bar counts.
-- `src/components/review/` — AI Style Review UI (Phase 5). `Keycap.tsx`: the one elevation exception, ground fixed to panel.
+- `src/review/` — Style Review flag production: `ruleset.ts` (bundled rule files, parsed tables), `passA.ts` (client rules), `sharedCall.ts` + `openrouter.ts` (the one OpenRouter call), `passB.ts` (mode arithmetic), `assemble.ts` (→ ReviewFlag), `model.ts` (decision state machine, preview/apply — T6.2 unit-test target), `pipeline.ts`.
+- `src/components/review/` — review UI: `ReviewView.tsx` (toolbar, locked original, preview, log), `Bubble.tsx`, `spans.tsx`, `KeyPanel.tsx`, `Keycap.tsx` (the one elevation exception, ground fixed to panel). `src/state/review.ts` — runs, sessions (persisted, resumable), lock, key panel.
 - `src/dev/` — dev-only design specimens, e.g. `/?specimen=keycap`; excluded from production builds.
 - `docs/design/` — design canvases from the Claude Design project (open via the dev server, e.g. `/docs/design/Jot%20Missing%20Flows.dc.html`).
 - `scripts/keymap-collisions.mjs` — `pnpm check:keymap`; run after any keymap change (T2.2).
