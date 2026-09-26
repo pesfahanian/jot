@@ -6,9 +6,18 @@ import { defaultSettings, updateSettings } from '@/lib/settings'
 export type ThemePreference = Settings['theme']
 
 const media = window.matchMedia('(prefers-color-scheme: dark)')
+// The media query's change event is the live path. Browsers only deliver it
+// while the page is being rendered, so a tab that was in the background when
+// the OS flipped also re-reads on focus and on becoming visible.
 const subscribeOs = (fn: () => void) => {
   media.addEventListener('change', fn)
-  return () => media.removeEventListener('change', fn)
+  window.addEventListener('focus', fn)
+  document.addEventListener('visibilitychange', fn)
+  return () => {
+    media.removeEventListener('change', fn)
+    window.removeEventListener('focus', fn)
+    document.removeEventListener('visibilitychange', fn)
+  }
 }
 
 // The saved preference (default system, 3f) and what it resolves to right
