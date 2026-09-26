@@ -225,6 +225,8 @@
     --toast-muted: #A7ABB0;
     --toast-line: #868B91;
     --toast-track: #5F6469;
+    /* the small-key variant of --keycap, as 3g draws it on light */
+    --keycap-key: inset 0 1px 0 #FFFFFF, inset 0 -2px 0 oklch(.87 .006 250);
 }
 
 .dark {
@@ -245,6 +247,8 @@
     --toast-muted: #5A5854;
     --toast-line: #7E7A71;
     --toast-track: #D6D3CB;
+    /* dark small key: --keycap's highlight and base, sized down like light's */
+    --keycap-key: inset 0 1px 0 #2D2E30, inset 0 -2px 0 #0A0A0C;
 }
 
 @layer base {

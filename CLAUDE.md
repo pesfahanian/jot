@@ -43,6 +43,8 @@ Scaffolded in T0.1. Package manager is pnpm (pinned via `packageManager` in `pac
 - `src/state/` — `workspace.ts` (zustand: panes/tabs/focus/sidebar/toast; layout persisted to the `workspace` table), `actions.ts` (new/rename/color/pin/delete-with-undo/import), `theme.ts` (light/dark/system preference), `hooks.ts` (live document list).
 - `src/editor/sessions.ts` — one shared session per open document, so the same document in two panes stays in step and has one autosave.
 - `src/lib/docList.ts` — pure sort / OR color filter / search logic (T6.2 unit-test target); `src/lib/export.ts` — md / plain-text / PDF export; `src/lib/counts.ts` — status-bar counts.
+- `src/components/review/` — AI Style Review UI (Phase 5). `Keycap.tsx`: the one elevation exception, ground fixed to panel.
+- `src/dev/` — dev-only design specimens, e.g. `/?specimen=keycap`; excluded from production builds.
 - `docs/design/` — design canvases from the Claude Design project (open via the dev server, e.g. `/docs/design/Jot%20Missing%20Flows.dc.html`).
 - `scripts/keymap-collisions.mjs` — `pnpm check:keymap`; run after any keymap change (T2.2).
 - `src/review/ruleset/` — the Style Review rule set (bundled at build time, T5.8). `checks.md` and `output-schema.md` are authoritative for Phase 5 flag production.
