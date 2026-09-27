@@ -1,6 +1,5 @@
 import { markdownLanguage } from '@codemirror/lang-markdown'
 import type { SyntaxNode } from '@lezer/common'
-import { Marked } from 'marked'
 
 // Export (T3.6, 6a): three formats, triggered straight from the menu — no
 // intermediate dialog of Jot's own.
@@ -139,17 +138,21 @@ export function toPlainText(md: string): string {
 // PDF goes through the renderer (6a's note): markdown → HTML, set in the
 // rendered-pane typography (§1.8), then the browser's own print-to-PDF.
 // Raw HTML in the document is shown as text, never executed.
-const renderer = new Marked({ gfm: true })
-renderer.use({
-  renderer: {
-    html({ text }) {
-      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    },
-  },
-})
-
-export function renderHtml(md: string): string {
-  return renderer.parse(md, { async: false })
+// marked loads on the first PDF export only.
+let renderer: Promise<(md: string) => string> | undefined
+export function renderHtml(md: string): Promise<string> {
+  renderer ??= import('marked').then(({ Marked }) => {
+    const m = new Marked({ gfm: true })
+    m.use({
+      renderer: {
+        html({ text }) {
+          return text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        },
+      },
+    })
+    return (src: string) => m.parse(src, { async: false })
+  })
+  return renderer.then((render) => render(md))
 }
 
 const printCss = `
@@ -170,7 +173,8 @@ const printCss = `
   img { max-width: 100%; }
 `
 
-export function exportPdf(title: string, content: string) {
+export async function exportPdf(title: string, content: string) {
+  const body = await renderHtml(content)
   const frame = document.createElement('iframe')
   frame.style.cssText = 'position:fixed;width:0;height:0;border:0;visibility:hidden'
   document.body.appendChild(frame)
@@ -180,7 +184,7 @@ export function exportPdf(title: string, content: string) {
   // printCss after them resets everything that matters for the page.
   const fonts = [...document.querySelectorAll('style, link[rel="stylesheet"]')].map((n) => n.outerHTML).join('')
   doc.open()
-  doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>${safeTitle}</title>${fonts}<style>${printCss}</style></head><body>${renderHtml(content)}</body></html>`)
+  doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>${safeTitle}</title>${fonts}<style>${printCss}</style></head><body>${body}</body></html>`)
   doc.close()
   const win = frame.contentWindow!
   const cleanup = () => setTimeout(() => frame.remove(), 500)

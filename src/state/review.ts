@@ -5,7 +5,7 @@ import { getDocument } from '@/lib/documents'
 import { getSettings } from '@/lib/settings'
 import { decide as decideFlag, reopen as reopenFlag, type Decision } from '@/review/model'
 import { ReviewRequestError } from '@/review/openrouter'
-import { produceReview, reanchor } from '@/review/pipeline'
+import { reanchor } from '@/review/reanchor'
 import { useWorkspace } from './workspace'
 
 // AI Style Review state: which documents are being reviewed or failed,
@@ -91,6 +91,8 @@ export const useReview = create<ReviewState>()((set, get) => ({
     set({ runs: { ...get().runs, [documentId]: { state: 'running', startedAt: Date.now() } } })
     try {
       const text = await liveText(documentId)
+      // The pipeline (rule set, Pass A/B, prompt) loads on first use only.
+      const { produceReview } = await import('@/review/pipeline')
       const session = await produceReview(documentId, text, settings.openRouterApiKey, ctrl.signal)
       // The document may have been edited while the call ran; anchor the
       // flags to what it says now.

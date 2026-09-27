@@ -1,6 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "jot-dev", "runtimeExecutable": "pnpm", "runtimeArgs": ["dev"], "port": 5173 }
+    { "name": "jot-dev", "runtimeExecutable": "pnpm", "runtimeArgs": ["dev"], "port": 5173 },
+    { "name": "jot-preview", "runtimeExecutable": "pnpm", "runtimeArgs": ["preview", "--port", "4173", "--strictPort"], "port": 4173 }
   ]
 }

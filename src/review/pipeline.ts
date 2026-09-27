@@ -1,5 +1,4 @@
-import type { ReviewFlag, ReviewSession } from '@/lib/db'
-import { anchorQuote, type Range } from './anchor'
+import type { ReviewSession } from '@/lib/db'
 import { assembleFlags } from './assemble'
 import { REVIEW_MODEL } from './openrouter'
 import { runPassA } from './passA'
@@ -16,21 +15,4 @@ export async function produceReview(documentId: string, text: string, key: strin
   const b = runPassB(text, a, response, sections)
   const flags = assembleFlags(text, a, response, b)
   return { documentId, rulesetVersion: RULESET_VERSION, model: REVIEW_MODEL, source: text, createdAt: Date.now(), flags }
-}
-
-// Resuming a review whose document changed after it was closed: every flag
-// is re-anchored by its original text near its old position, the same
-// verbatim mechanism as first anchoring. A flag whose text is gone becomes
-// a comment-only note.
-export function reanchor(session: ReviewSession, text: string): ReviewSession {
-  if (session.source === text) return session
-  const claimed: Range[] = []
-  const flags: ReviewFlag[] = session.flags.map((f) => {
-    if (f.spanStart === null) return f
-    const r = anchorQuote(text, f.before, claimed, f.spanStart)
-    if (!r) return { ...f, spanStart: null, spanEnd: null }
-    claimed.push(r)
-    return { ...f, spanStart: r.start, spanEnd: r.end }
-  })
-  return { ...session, source: text, flags }
 }

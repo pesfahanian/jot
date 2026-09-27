@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -6,7 +6,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ReviewView } from '@/components/review/ReviewView'
 import { Editor } from '@/editor/Editor'
 import { openContent } from '@/editor/sessions'
 import type { JotDocument, PaneLayout } from '@/lib/db'
@@ -19,6 +18,9 @@ import { DocumentMenu } from './DocumentMenu'
 import { SplitIcon } from './icons'
 import { QuietButton } from './Sidebar'
 import { TagMark } from './TagMark'
+
+// The review view loads the first time a review opens.
+const ReviewView = lazy(() => import('@/components/review/ReviewView').then((m) => ({ default: m.ReviewView })))
 
 // Below this pane width, render and export fold into the ⋯ menu and split
 // drops its label (6f). Two panes at 1400 keep the full set (2g); three fold.
@@ -48,7 +50,7 @@ function ExportItems({ doc }: { doc: JotDocument }) {
         <span className="flex-auto">Plain text</span>
         <span className="font-mono text-[11px] text-muted-foreground">.txt</span>
       </DropdownMenuItem>
-      <DropdownMenuItem onSelect={() => exportPdf(doc.title, liveText(doc))}>
+      <DropdownMenuItem onSelect={() => void exportPdf(doc.title, liveText(doc))}>
         <span className="flex-auto">PDF</span>
         <span className="font-mono text-[11px] text-muted-foreground">.pdf</span>
       </DropdownMenuItem>
@@ -272,7 +274,11 @@ export function EditorPane({ pane, docsById, paneCount }: { pane: PaneLayout; do
       </div>
       {doc ? (
         <>
-          {session && reviewHere && <ReviewView doc={doc} session={session} paneId={pane.id} />}
+          {session && reviewHere && (
+            <Suspense fallback={<div className="flex-auto" />}>
+              <ReviewView doc={doc} session={session} paneId={pane.id} />
+            </Suspense>
+          )}
           {/* The editor stays mounted under an open review: Apply writes
               through it as one transaction, so undo can reverse it. */}
           <div className={cn('flex min-h-0 flex-auto flex-col', session && reviewHere && 'hidden')}>
