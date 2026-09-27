@@ -31,7 +31,7 @@ Broad UI test coverage is not a goal — this is a single-user personal tool. Th
 
 ## Project structure
 
-Scaffolded in T0.1. Package manager is pnpm (pinned via `packageManager` in `package.json`); `pnpm dev` / `pnpm build` / `pnpm lint` (oxlint).
+Scaffolded in T0.1. Package manager is pnpm (pinned via `packageManager` in `package.json`); `pnpm dev` / `pnpm build` / `pnpm lint` (oxlint) / `pnpm test` (vitest — the review state machine, Pass B arithmetic and the tag OR-filter, per T6.2).
 
 - `docs/` — PRD/TRD, ADRs, tickets.
 - `src/main.tsx`, `src/App.tsx` — entry and root component.

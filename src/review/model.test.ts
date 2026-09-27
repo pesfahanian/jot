@@ -1,0 +1,192 @@
+import { describe, expect, it } from 'vitest'
+import type { FlagFamily, ReviewFlag } from '@/lib/db'
+import { kindFor } from './assemble'
+import { allowedDecisions, appliedSet, applyPlan, canApply, composeText, counts, decide, reopen, showsArrow, type Decision } from './model'
+
+// T6.2 — the review state machine (ADR-009, interaction spec §7).
+
+const SOURCE = 'We will leverage the pipeline moving forward, and have a robust solution. Owners will recieve it.'
+
+let seq = 0
+function flag(family: FlagFamily, before: string, after: string | null, extra: Partial<ReviewFlag> = {}): ReviewFlag {
+  const start = SOURCE.indexOf(before)
+  if (start === -1) throw new Error(`fixture: "${before}" not in source`)
+  return {
+    key: `k${++seq}`,
+    id: extra.id ?? 'X',
+    family,
+    kind: kindFor(after),
+    spanStart: start,
+    spanEnd: start + before.length,
+    before,
+    after,
+    rationale: '',
+    status: 'pending',
+    ...extra,
+  }
+}
+
+const note = (): ReviewFlag => ({ ...flag('tier2', 'robust', null), spanStart: null, spanEnd: null, before: 'not in the document' })
+
+describe('decision transitions', () => {
+  it('offers exactly the actions the spec gives each flag type', () => {
+    expect(allowedDecisions(flag('tier1', 'leverage', 'use'))).toEqual(['accept', 'reject'])
+    expect(allowedDecisions(flag('tier1b', 'moving forward', ''))).toEqual(['accept', 'reject', 'edit'])
+    expect(allowedDecisions(flag('tier2', 'a robust solution', null))).toEqual(['edit', 'dismiss'])
+    expect(allowedDecisions(flag('spelling', 'recieve', 'receive'))).toEqual(['accept', 'ignore'])
+    expect(allowedDecisions(note())).toEqual(['dismiss'])
+  })
+
+  it.each<[FlagFamily, string, string | null, Decision, ReviewFlag['status']]>([
+    ['tier1', 'leverage', 'use', 'accept', 'accepted'],
+    ['tier1', 'leverage', 'use', 'reject', 'rejected'],
+    ['tier1b', 'moving forward', '', 'accept', 'accepted'],
+    ['tier1b', 'moving forward', '', 'reject', 'rejected'],
+    ['tier2', 'a robust solution', null, 'dismiss', 'dismissed'],
+    ['spelling', 'recieve', 'receive', 'accept', 'accepted'],
+    ['grammar', 'have', 'has', 'ignore', 'ignored'],
+  ])('%s: %s → %s', (family, before, after, decision, status) => {
+    const f = flag(family, before, after)
+    expect(decide([f], f.key, decision)[0].status).toBe(status)
+  })
+
+  it('records an edit only with the person’s own text', () => {
+    const f = flag('tier2', 'a robust solution', null)
+    expect(decide([f], f.key, 'edit')[0].status).toBe('pending')
+    const edited = decide([f], f.key, 'edit', 'a failover under one second')[0]
+    expect(edited.status).toBe('edited')
+    expect(edited.userText).toBe('a failover under one second')
+  })
+
+  it('refuses actions a flag does not offer', () => {
+    const t1 = flag('tier1', 'leverage', 'use')
+    const proof = flag('spelling', 'recieve', 'receive')
+    expect(decide([t1], t1.key, 'edit', 'x')[0].status).toBe('pending')
+    expect(decide([t1], t1.key, 'dismiss')[0].status).toBe('pending')
+    expect(decide([proof], proof.key, 'reject')[0].status).toBe('pending')
+  })
+
+  it('lets a decision be revised or reopened before apply, dropping stale edit text', () => {
+    const f = flag('tier1b', 'moving forward', '')
+    let flags = decide([f], f.key, 'edit', 'from now on')
+    flags = decide(flags, f.key, 'reject')
+    expect(flags[0].status).toBe('rejected')
+    expect(flags[0].userText).toBeUndefined()
+    flags = reopen(flags, f.key)
+    expect(flags[0].status).toBe('pending')
+  })
+
+  it('only touches the flag it was given', () => {
+    const a = flag('tier1', 'leverage', 'use')
+    const b = flag('spelling', 'recieve', 'receive')
+    const out = decide([a, b], a.key, 'accept')
+    expect(out[1]).toBe(b)
+  })
+})
+
+describe('decided / pending counter and the apply gate', () => {
+  const fresh = () => [
+    flag('tier1', 'leverage', 'use'),
+    flag('tier1b', 'moving forward', ''),
+    flag('tier2', 'a robust solution', null),
+    flag('spelling', 'recieve', 'receive'),
+    note(),
+  ]
+
+  it('counts every flag once toward proposed, style and proofing alike', () => {
+    expect(counts(fresh())).toEqual({ proposed: 5, decided: 0, pending: 5 })
+  })
+
+  it('moves a flag to decided on any of the five terminal actions', () => {
+    let f = fresh()
+    f = decide(f, f[0].key, 'reject')
+    f = decide(f, f[1].key, 'edit', 'going forward')
+    f = decide(f, f[2].key, 'dismiss')
+    f = decide(f, f[3].key, 'ignore')
+    expect(counts(f)).toEqual({ proposed: 5, decided: 4, pending: 1 })
+    expect(canApply(f)).toBe(false)
+    f = decide(f, f[4].key, 'dismiss')
+    expect(counts(f)).toEqual({ proposed: 5, decided: 5, pending: 0 })
+    expect(canApply(f)).toBe(true)
+  })
+
+  it('keeps apply disabled until decided equals proposed, one flag short or not', () => {
+    const f = fresh()
+    const allButLast = f.slice(0, 4).reduce((acc, x) => decide(acc, x.key, allowedDecisions(x)[allowedDecisions(x).length - 1], 'x'), f)
+    expect(counts(allButLast).decided).toBe(4)
+    expect(canApply(allButLast)).toBe(false)
+  })
+
+  it('reopening a decision takes it back off the counter', () => {
+    let f = fresh()
+    f = decide(f, f[0].key, 'accept')
+    f = reopen(f, f[0].key)
+    expect(counts(f).decided).toBe(0)
+  })
+})
+
+describe('preview and apply', () => {
+  it('previews tier defaults — fixes shown, Tier 2 untouched — while final applies only decisions', () => {
+    const f = [flag('tier1', 'leverage', 'use'), flag('tier2', 'a robust solution', null), flag('spelling', 'recieve', 'receive')]
+    expect(composeText(SOURCE, appliedSet(f, 'preview'))).toBe('We will use the pipeline moving forward, and have a robust solution. Owners will receive it.')
+    expect(composeText(SOURCE, appliedSet(f, 'final'))).toBe(SOURCE)
+  })
+
+  it('reports changes separately from decisions that change nothing', () => {
+    let f = [flag('tier1', 'leverage', 'use'), flag('tier1b', 'moving forward', ''), flag('tier2', 'a robust solution', null), flag('spelling', 'recieve', 'receive')]
+    f = decide(f, f[0].key, 'accept')
+    f = decide(f, f[1].key, 'reject')
+    f = decide(f, f[2].key, 'dismiss')
+    f = decide(f, f[3].key, 'accept')
+    const plan = applyPlan(SOURCE, f)
+    expect(plan.changed).toBe(2)
+    expect(plan.kept).toBe(2)
+    expect(plan.text).toBe('We will use the pipeline moving forward, and have a robust solution. Owners will receive it.')
+  })
+
+  it('treats an edit identical to the original as a kept decision, not a change', () => {
+    let f = [flag('tier2', 'a robust solution', null)]
+    f = decide(f, f[0].key, 'edit', 'a robust solution')
+    expect(applyPlan(SOURCE, f).changed).toBe(0)
+  })
+
+  it('lets the wider of two overlapping flags win its stretch', () => {
+    const inner = flag('tier1', 'robust', 'resilient')
+    const outer = flag('tier1', 'have a robust solution', 'have a failover plan')
+    let f = [inner, outer]
+    f = decide(f, inner.key, 'accept')
+    f = decide(f, outer.key, 'accept')
+    expect(applyPlan(SOURCE, f).text).toContain('have a failover plan.')
+    // With the wide rewrite rejected, the narrow fix applies on its own.
+    f = decide(f, outer.key, 'reject')
+    expect(applyPlan(SOURCE, f).text).toContain('have a resilient solution.')
+  })
+
+  it('never applies a note — it has no span', () => {
+    let f = [note()]
+    f = decide(f, f[0].key, 'dismiss')
+    expect(applyPlan(SOURCE, f)).toMatchObject({ changed: 0, text: SOURCE })
+  })
+})
+
+describe('decoration rules — the CLS-007 arrow bug', () => {
+  it('maps after onto kind: null → flag, "" → delete, text → replace', () => {
+    expect(kindFor(null)).toBe('flag')
+    expect(kindFor('')).toBe('delete')
+    expect(kindFor('use')).toBe('replace')
+  })
+
+  it('gives a pure deletion bare strikethrough, never an arrow', () => {
+    expect(showsArrow(flag('tier1b', 'moving forward', '', { id: 'CLS-007' }))).toBe(false)
+  })
+
+  it('gives a replacement its arrow', () => {
+    expect(showsArrow(flag('tier1', 'leverage', 'use'))).toBe(true)
+  })
+
+  it('never arrows a Tier 2 flag, a proofing flag or a note', () => {
+    expect(showsArrow(flag('tier2', 'a robust solution', null))).toBe(false)
+    expect(showsArrow(flag('spelling', 'recieve', 'receive'))).toBe(false)
+    expect(showsArrow(note())).toBe(false)
+  })
+})

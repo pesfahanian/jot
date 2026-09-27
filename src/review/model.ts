@@ -152,6 +152,11 @@ export function applyPlan(source: string, flags: ReviewFlag[]) {
   }
 }
 
+// Left pane (spec §3): a trailing arrow marks a replacement — something takes
+// the struck text's place. A pure deletion gets bare strikethrough and never
+// an arrow (the CLS-007 bug); proofing flags use underlines, not arrows.
+export const showsArrow = (f: ReviewFlag) => !isNote(f) && f.kind === 'replace' && !isProofing(f.family)
+
 // Left-pane / log description of a flag's change (spec §8).
 export function describe(f: ReviewFlag): string {
   if (isNote(f)) return `"${f.before}" — quoted text not found in the document`

@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { ReviewFlag } from '@/lib/db'
 import { previewSegments, proofInk, tierGround, tierInk } from '@/review/decor'
-import { isNote, isProofing } from '@/review/model'
+import { isNote, isProofing, showsArrow } from '@/review/model'
 
 // Span decoration (interaction spec §3–§4, design system §1.6 and §1.11).
 // Tier colors carry no hue — intensity says how much judgment a flag needs;
@@ -106,7 +106,7 @@ export function OriginalText({ source, flags, activeKey }: { source: string; fla
     // Trailing arrow: this flag is a replacement — something takes the
     // struck text's place. A pure deletion ("") gets bare strikethrough and
     // never an arrow (the CLS-007 bug).
-    const endsHere = decos.filter((d) => d.end === seg.end && d.flag.kind === 'replace' && !isProofing(d.flag.family))
+    const endsHere = decos.filter((d) => d.end === seg.end && showsArrow(d.flag))
     for (const d of endsHere) {
       nodes.push(
         <span key={`arrow-${d.flag.key}`} data-arrow-for={d.flag.key} style={{ color: resolved(d.flag) ? 'var(--ink-dim)' : tierInk[d.flag.family] }}>
