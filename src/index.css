@@ -254,6 +254,10 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    /* Scrollbars (a gap the design inventory left open, §3 "long content"):
+       thin, in the edge color, on a clear track — both themes, no new token. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
   }
   html,
   body {

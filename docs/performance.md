@@ -28,7 +28,7 @@ What the main bundle is made of (unminified source): react-dom ~620 KB, CodeMirr
 |---|---|
 | First run, no documents | 5.5 MB |
 | 12 documents (~2.4 KB each), editor open | 10.5–12.5 MB |
-| Stress: see T6.4 below | — |
+| 162 documents (T6.4 stress), editor open | ~27 MB |
 
 Page parse to DOMContentLoaded: ~165 ms cold on first visit, ~50 ms warm. The editor is interactive within ~100 ms of script start on a warm load.
 
@@ -36,3 +36,17 @@ Page parse to DOMContentLoaded: ~165 ms cold on first visit, ~50 ms warm. The ed
 
 - Initial load fetches a single JS file; the review and PDF chunks are fetched only when used (checked in the resource timeline).
 - The lazy review path still works end to end (key test → run → review opens) on the production build.
+
+## Stress (T6.4)
+
+162 documents (150 imported at once by file drop, ~1–3 KB each), six of them with 110-character names.
+
+| Check | Result |
+|---|---|
+| Import of 150 dropped files | ~0.8 s |
+| Load with 162 documents | DOMContentLoaded ~60 ms, editor ready ~110 ms |
+| Typing 64 characters by hand | no long tasks (> 50 ms) |
+| Search across all 162 (2,729 matches) | ~50 ms to render, no long tasks |
+| Sort toggle over 162 rows | ~30 ms |
+| Long names | truncate with an ellipsis in sidebar rows, tabs (220 px cap) and the export footer (full name on hover); nothing overflows |
+| Scrollbars | thin, in the edge color on a clear track, every scroll area, both themes |
