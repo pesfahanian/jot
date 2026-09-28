@@ -59,6 +59,17 @@ export function Shell({ docs, theme }: { docs: JotDocument[]; theme: ThemeState 
   const docsById = useMemo(() => new Map(docs.map((d) => [d.id, d])), [docs])
   const [dropping, setDropping] = useState(false)
 
+  // Cmd/Ctrl+S does nothing: every edit already persists (ADR-008), and the
+  // browser's "Save as" dialog would only save the page. Captured before
+  // anything else sees it, wherever focus is.
+  useEffect(() => {
+    const save = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 's') e.preventDefault()
+    }
+    window.addEventListener('keydown', save, { capture: true })
+    return () => window.removeEventListener('keydown', save, { capture: true })
+  }, [])
+
   // Drop .md files anywhere to import them (6d).
   useEffect(() => {
     const hasFiles = (e: DragEvent) => e.dataTransfer?.types.includes('Files')
