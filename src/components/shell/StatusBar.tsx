@@ -14,25 +14,19 @@ import { useReview } from '@/state/review'
 import { setTheme, type ThemePreference, type ThemeState } from '@/state/theme'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 
-// Every cell reserves its width up front so the bar never reflows as values
-// change (§1.9, T3.9): counts up to six digits, cursor up to 9999:999.
-// Values sit in tabular figures inside that width.
-// The last cell is flush: its spare reserved room sits before the label,
-// so the text meets the bar's right edge as the theme icons meet its left.
-function Cell({ label, value, width, flush, className }: { label: string; value: string; width: string; flush?: boolean; className?: string }) {
-  if (flush)
-    return (
-      <div className={cn('flex items-center border-l border-border-subtle px-2', className)}>
-        <span className="text-right tabular-nums" style={{ minWidth: `calc(${width} + ${label.length + 1}ch)` }}>
-          <span className="font-normal text-muted-foreground">{label}</span> {value}
-        </span>
-      </div>
-    )
+// Counts hug their values and pack against the bar's right edge (§1.8:
+// every number is monospace, tabular). The cursor, which changes width on
+// almost every keystroke, leads the group and keeps its spare room on its
+// left, in the bar's empty stretch — so its changes never move anything,
+// and no gap shows. A count only nudges the cells left of it when it gains
+// a digit.
+function Cell({ label, value, reserve, className }: { label: string; value: string; reserve?: string; className?: string }) {
   return (
-    <div className={cn('flex items-center gap-1 border-l border-border-subtle px-2', className)}>
-      <span className="font-normal text-muted-foreground">{label}</span>
-      <span className="tabular-nums" style={{ minWidth: width }}>
-        {value}
+    // The leading (reserving) cell has no divider: it would stand in the
+    // empty stretch, apart from the text.
+    <div className={cn('flex items-center border-border-subtle px-2', !reserve && 'border-l', className)}>
+      <span className="text-right tabular-nums" style={reserve ? { minWidth: `calc(${reserve} + ${label.length + 1}ch)` } : undefined}>
+        <span className="font-normal text-muted-foreground">{label}</span> {value}
       </span>
     </div>
   )
@@ -239,12 +233,12 @@ export function StatusBar({ docsById, theme }: { docsById: Map<string, JotDocume
       <div className="flex-auto" />
       {doc && (
         <>
-          <Cell label="bytes" value={groupDigits(c.bytes)} width="7ch" />
-          <Cell label="chars" value={groupDigits(c.chars)} width="7ch" />
-          <Cell label="words" value={groupDigits(c.words)} width="6ch" />
-          <Cell label="lines" value={groupDigits(c.lines)} width="5ch" />
-          <Cell label="paras" value={groupDigits(c.paras)} width="4ch" />
-          <Cell label="cursor" value={`${cur.line}:${cur.col}`} width="9ch" flush className="pr-2.5 font-medium" />
+          <Cell label="cursor" value={`${cur.line}:${cur.col}`} reserve="7ch" className="font-medium" />
+          <Cell label="bytes" value={groupDigits(c.bytes)} />
+          <Cell label="chars" value={groupDigits(c.chars)} />
+          <Cell label="words" value={groupDigits(c.words)} />
+          <Cell label="lines" value={groupDigits(c.lines)} />
+          <Cell label="paras" value={groupDigits(c.paras)} className="pr-2.5" />
         </>
       )}
     </footer>
