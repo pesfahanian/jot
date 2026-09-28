@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { FlagFamily, ReviewFlag } from '@/lib/db'
 import { kindFor } from './assemble'
-import { allowedDecisions, appliedSet, applyPlan, canApply, composeText, counts, decide, reopen, showsArrow, type Decision } from './model'
+import { allowedDecisions, appliedSet, applyPlan, atStake, canApply, composeText, counts, decide, hasStake, reopen, showsArrow, standing, type Decision } from './model'
 
 // T6.2 — the review state machine (ADR-009, interaction spec §7).
 
@@ -188,5 +188,38 @@ describe('decoration rules — the CLS-007 arrow bug', () => {
     expect(showsArrow(flag('tier2', 'a robust solution', null))).toBe(false)
     expect(showsArrow(flag('spelling', 'recieve', 'receive'))).toBe(false)
     expect(showsArrow(note())).toBe(false)
+  })
+})
+
+describe('review standing against the current text', () => {
+  const edited = SOURCE + ' More text.'
+  it('is current while the text is exactly what was reviewed', () => {
+    expect(standing(SOURCE, [flag('tier1', 'leverage', 'use')], SOURCE)).toBe('current')
+    expect(standing(SOURCE, [], SOURCE)).toBe('current')
+  })
+
+  it('is stale after any change while something is undecided', () => {
+    expect(standing(SOURCE, [flag('tier1', 'leverage', 'use')], SOURCE + ' ')).toBe('stale')
+  })
+
+  it('is stale after a change while an accepted or edited decision would be lost', () => {
+    const f = flag('tier1', 'leverage', 'use')
+    expect(standing(SOURCE, decide([f], f.key, 'accept'), edited)).toBe('stale')
+    const t = flag('tier2', 'a robust solution', null)
+    expect(standing(SOURCE, decide([t], t.key, 'edit', 'a solution'), edited)).toBe('stale')
+  })
+
+  it('is spent after a change when nothing would be lost', () => {
+    const f = flag('tier1', 'leverage', 'use')
+    const s = flag('spelling', 'recieve', 'receive')
+    expect(standing(SOURCE, [], edited)).toBe('spent')
+    expect(standing(SOURCE, decide(decide([f, s], f.key, 'reject'), s.key, 'ignore'), edited)).toBe('spent')
+  })
+
+  it('counts what is at stake', () => {
+    const f = flag('tier1', 'leverage', 'use')
+    const g = flag('tier1', 'moving forward', '')
+    expect(atStake(decide([f, g, note()], f.key, 'accept'))).toEqual({ pending: 2, changes: 1 })
+    expect(hasStake(decide([f], f.key, 'reject'))).toBe(false)
   })
 })

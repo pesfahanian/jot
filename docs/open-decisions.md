@@ -21,8 +21,9 @@ Decisions the docs don't settle. Each has a working choice already in the code s
 | 15 | "Comment-only note" for model quotes that don't match the document — the addendum calls it an existing mechanism; no spec defines it | Note flag: no span, listed in the review log, bubble explains, decided by Dismiss | Phase 5 |
 | 16 | Overlapping flags (e.g. a banned word inside a sentence the model rewrote) | Wider span wins its stretch in preview/apply; the narrower flag still needs its own decision | Phase 5 |
 | 17 | banned-vocabulary.md entries whose "replacement" is guidance ("state the failure mode it survives") | Routed to the shared call as a generative fix; "(cut)" entries cut mechanically | Phase 5 |
-| 18 | Resuming a review after the document was edited | Flags re-anchored by their original text near their old position; lost ones become notes | Phase 5 |
+| 18 | Resuming a review after the document was edited | Flags re-anchored by their original text near their old position; lost ones become notes — now only when the owner picks "resume" (see #23) | Phase 5 |
 | 19 | Proofing source (see #5) | Rides the same shared call — keeps "one call per document" | Phase 5 |
-| 20 | Review control while a session exists | Reads "resume review" (fixed-width slot, widened to 200px to fit the error state) | Phase 5 |
+| 20 | Review control while a session exists | "resume review" while the text is unchanged; "review outdated" once it changed (see #23). Fixed-width 200px slot | Phase 5 |
 | 21 | T1-09 "section" before modes exist | Markdown heading sections (T1-09 is mode-independent, so it can't wait for the model's sections) | Phase 5 |
 | 22 | Whether a stored key that re-tests as rejected is kept | Kept, marked rejected; "clear" removes it (a new rejected key is never stored) | Phase 5 |
+| 23 | A review whose document changed since it ran | **Decided (owner):** strict — any change makes it stale. Unchanged → resume. Changed with nothing to lose (no undecided flags, no accepted/edited decisions) → a fresh review runs. Changed with something to lose → the control reads "review outdated" and asks: resume (re-anchor) or review again (discard). Closing a review with nothing to lose ends it | Testing |

@@ -1,8 +1,10 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ErrorDetail } from '@/components/review/ErrorDetail'
-import { useEffect } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { openContent } from '@/editor/sessions'
-import { db, type JotDocument } from '@/lib/db'
+import { db, type JotDocument, type ReviewFlag } from '@/lib/db'
+import { atStake, standing } from '@/review/model'
 import { countText, groupDigits } from '@/lib/counts'
 import { cn } from '@/lib/utils'
 import { useNow } from '@/state/hooks'
@@ -24,6 +26,51 @@ function Cell({ label, value, width, className }: { label: string; value: string
   )
 }
 
+// The text changed since this review, and the review still holds undecided
+// flags or accepted/edited decisions (open-decisions #23): never replaced
+// silently. Resume re-anchors the flags to the new text; review again
+// throws the old review away and runs on the text as it is now.
+function StalePrompt({ documentId, flags, children }: { documentId: string; flags: ReviewFlag[]; children: ReactNode }) {
+  const resume = useReview((s) => s.resumeReview)
+  const again = useReview((s) => s.reviewAgain)
+  const [open, setOpen] = useState(false)
+  const { pending, changes } = atStake(flags)
+  const lost = [pending && `${pending} undecided`, changes && `${changes} accepted`].filter(Boolean).join(' · ')
+  const choose = (fn: (id: string) => Promise<void>) => {
+    setOpen(false)
+    void fn(documentId)
+  }
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>{children}</PopoverTrigger>
+      <PopoverContent side="top" align="start" sideOffset={10} className="flex w-[300px] flex-col gap-2.5 p-3.5 font-mono text-[11.5px]">
+        <div className="font-sans text-[13px] leading-snug text-foreground">The text changed since this review.</div>
+        <div className="text-muted-foreground">{lost}</div>
+        <div className="flex items-center gap-1.5 pt-0.5">
+          <button
+            type="button"
+            autoFocus
+            onClick={() => choose(resume)}
+            className="flex h-6 items-center rounded-md border border-ink-tertiary bg-hover-lift px-[11px] text-foreground hover:border-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            resume
+          </button>
+          <button
+            type="button"
+            onClick={() => choose(again)}
+            className="flex h-6 items-center rounded-md border border-border-strong bg-popover px-[11px] text-secondary-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            review again
+          </button>
+        </div>
+        <div className="text-[11px] leading-relaxed text-muted-foreground">
+          Resume keeps the flags and finds them in the new text. Review again discards this review.
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 // Review control (2f): one fixed slot, left of everything else, holding one
 // width across all four states so the bar never reflows.
 //   idle      accent dot — a non-empty document and a usable key
@@ -38,7 +85,7 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
   const retry = useReview((s) => s.run)
   const dismiss = useReview((s) => s.dismissError)
   const settings = useLiveQuery(() => db.settings.get('settings'), [])
-  const hasKey = !!settings?.openRouterApiKey && settings.keyStatus !== 'invalid'
+  const hasKey = !!settings?.openRouterApiKey
   const empty = text.trim().length === 0
   const now = useNow(1000)
   // Look for a resumable session once per document.
@@ -75,25 +122,45 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
     )
   } else {
     const ready = hasKey && !empty
+    const verdict = session ? standing(session.source, session.flags, text) : null
+    // A spent review is replaced on the next click; until then the control
+    // reads as a plain "review style".
+    const live = verdict === 'current' || verdict === 'stale'
     const decided = session ? session.flags.filter((f) => f.status !== 'pending').length : 0
-    body = (
+    const button = (
       <button
         type="button"
         // An empty document has nothing to review: no click target. With no
         // key, the disabled register still opens the key panel.
-        disabled={empty && !session}
-        onClick={() => void requestReview(doc.id)}
-        title={session ? `resume review — ${decided} of ${session.flags.length} decided` : empty ? 'nothing to review' : hasKey ? 'review style' : 'add an OpenRouter key to review'}
+        disabled={empty && !live}
+        onClick={verdict === 'stale' ? undefined : () => void requestReview(doc.id)}
+        title={
+          verdict === 'current'
+            ? `resume review — ${decided} of ${session!.flags.length} decided`
+            : verdict === 'stale'
+              ? 'the text changed since this review'
+              : empty
+                ? 'nothing to review'
+                : hasKey
+                  ? 'review style'
+                  : 'add an OpenRouter key to review'
+        }
         className={cn(
           'flex h-[18px] items-center gap-1.5 rounded-sm border px-[7px]',
-          ready || session ? 'border-border-strong hover:bg-hover-lift' : 'border-dashed border-border-strong text-ink-dim',
+          ready || live ? 'border-border-strong hover:bg-hover-lift' : 'border-dashed border-border-strong text-ink-dim',
           !empty && !hasKey && 'hover:text-foreground',
         )}
       >
-        <span className={cn('size-[5px] rounded-[2px]', ready || session ? 'bg-primary' : 'bg-ink-mute')} />
-        {session ? 'resume review' : 'review style'}
+        <span
+          className={cn(
+            'size-[5px] rounded-[2px]',
+            verdict === 'stale' ? 'border border-primary' : ready || live ? 'bg-primary' : 'bg-ink-mute',
+          )}
+        />
+        {verdict === 'current' ? 'resume review' : verdict === 'stale' ? 'review outdated' : 'review style'}
       </button>
     )
+    body = verdict === 'stale' ? <StalePrompt documentId={doc.id} flags={session!.flags}>{button}</StalePrompt> : button
   }
   return <div className="flex w-[200px] flex-none items-center border-r border-border-subtle px-[5px] whitespace-nowrap">{body}</div>
 }

@@ -164,3 +164,30 @@ export function describe(f: ReviewFlag): string {
   if (f.status === 'edited') return `${f.before} → ${f.userText ?? ''}`
   return `${f.before} → ${f.after === '' ? '(deleted)' : f.after}`
 }
+
+// What closing or discarding a review would lose: undecided flags, and
+// decisions that change the text (accepted, edited). Rejections, ignores
+// and dismissals change nothing, so a review made only of those — or of no
+// flags at all — has nothing left to keep.
+export function atStake(flags: ReviewFlag[]) {
+  return {
+    pending: flags.filter((f) => f.status === 'pending').length,
+    changes: flags.filter((f) => f.status === 'accepted' || f.status === 'edited').length,
+  }
+}
+export const hasStake = (flags: ReviewFlag[]) => {
+  const s = atStake(flags)
+  return s.pending + s.changes > 0
+}
+
+// Where an existing review stands against the document's text now
+// (open-decisions #23). Strict: any change to the text makes it stale.
+//   current  the text is exactly what was reviewed — resume it
+//   stale    the text changed and the review still holds something — ask
+//            whether to resume it or review the new text
+//   spent    the text changed and nothing would be lost — review afresh
+export type Standing = 'current' | 'stale' | 'spent'
+export function standing(source: string, flags: ReviewFlag[], text: string): Standing {
+  if (source === text) return 'current'
+  return hasStake(flags) ? 'stale' : 'spent'
+}

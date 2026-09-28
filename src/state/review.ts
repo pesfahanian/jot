@@ -3,7 +3,7 @@ import { openContent } from '@/editor/sessions'
 import { db, type ReviewSession } from '@/lib/db'
 import { getDocument } from '@/lib/documents'
 import { getSettings } from '@/lib/settings'
-import { decide as decideFlag, reopen as reopenFlag, type Decision } from '@/review/model'
+import { decide as decideFlag, hasStake, reopen as reopenFlag, standing, type Decision } from '@/review/model'
 import { ReviewRequestError } from '@/review/openrouter'
 import { reanchor } from '@/review/reanchor'
 import { useWorkspace } from './workspace'
@@ -28,6 +28,8 @@ interface ReviewState {
 
   loadSession(documentId: string): Promise<ReviewSession | undefined>
   requestReview(documentId: string): Promise<void>
+  resumeReview(documentId: string): Promise<void>
+  reviewAgain(documentId: string): Promise<void>
   run(documentId: string): Promise<void>
   dismissError(documentId: string): void
   decide(documentId: string, key: string, decision: Decision, userText?: string): void
@@ -62,26 +64,44 @@ export const useReview = create<ReviewState>()((set, get) => ({
     return stored
   },
 
-  // The review control. An existing (undecided) session resumes — PRD §7:
-  // leaving a review never discards it. With no usable key, the key panel
-  // opens instead of a request (T5.2, 7b).
+  // The review control. A review of exactly the current text resumes —
+  // PRD §7: leaving a review never discards it. Once the text has changed
+  // (strict: any change), a review with nothing left to lose is replaced by
+  // a fresh one; one that still holds undecided flags or accepted/edited
+  // decisions is never replaced silently — the control asks first and calls
+  // resumeReview or reviewAgain (open-decisions #23). With no key, the key
+  // panel opens instead of a request (T5.2, 7b).
   async requestReview(documentId) {
     if (get().runs[documentId]?.state === 'running') return
     const existing = await get().loadSession(documentId)
     if (existing) {
-      const text = await liveText(documentId)
-      const session = reanchor(existing, text)
-      if (session !== existing) void db.reviewSessions.put(session)
-      set({ sessions: { ...get().sessions, [documentId]: session } })
-      openHere(documentId)
-      return
+      const verdict = standing(existing.source, existing.flags, await liveText(documentId))
+      if (verdict === 'current') return openHere(documentId)
+      if (verdict === 'stale') return
+      await get().discardSession(documentId)
     }
     const settings = await getSettings()
-    if (!settings.openRouterApiKey || settings.keyStatus === 'invalid') {
+    if (!settings.openRouterApiKey) {
       get().openKeyPanel('review', documentId)
       return
     }
     await get().run(documentId)
+  },
+
+  // Resume a review whose text has changed since: flags are re-anchored
+  // against the new text, and lost ones become notes (open-decisions #18).
+  async resumeReview(documentId) {
+    const existing = await get().loadSession(documentId)
+    if (!existing) return
+    const session = reanchor(existing, await liveText(documentId))
+    if (session !== existing) void db.reviewSessions.put(session)
+    set({ sessions: { ...get().sessions, [documentId]: session } })
+    openHere(documentId)
+  },
+
+  async reviewAgain(documentId) {
+    await get().discardSession(documentId)
+    await get().requestReview(documentId)
   },
 
   // Editing continues while a review runs; nothing blocks (2f).
@@ -139,11 +159,15 @@ export const useReview = create<ReviewState>()((set, get) => ({
     void db.reviewSessions.put(next)
   },
 
-  // Closing the view keeps the session: undecided flags survive for later.
+  // Closing the view keeps the session while it holds anything — undecided
+  // flags, or decisions that change the text. A review with nothing left
+  // (no flags, or only rejections, ignores and dismissals) ends here, so the
+  // next click reviews the text afresh.
   closeReview(paneId) {
-    const { [paneId]: _closed, ...openIn } = get().openIn
-    void _closed
+    const { [paneId]: documentId, ...openIn } = get().openIn
     set({ openIn, activeFlag: null })
+    const session = documentId ? get().sessions[documentId] : undefined
+    if (session && !hasStake(session.flags) && !Object.values(openIn).includes(documentId)) void get().discardSession(documentId)
   },
 
   async discardSession(documentId) {
