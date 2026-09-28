@@ -1,6 +1,8 @@
+import { useLiveQuery } from 'dexie-react-hooks'
+import { Check, KeyRound, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import type { JotDocument } from '@/lib/db'
+import { db, type JotDocument } from '@/lib/db'
 import {
   arrangeDocuments,
   colorCounts,
@@ -13,6 +15,7 @@ import {
 import { cn } from '@/lib/utils'
 import { newDocument, renameDocument } from '@/state/actions'
 import { useNow } from '@/state/hooks'
+import { useReview } from '@/state/review'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 import { DocumentMenu } from './DocumentMenu'
 import { FilterIcon, PinIcon, PlusIcon, SearchIcon, SortIcon } from './icons'
@@ -116,6 +119,37 @@ function FileRow({ doc, selected, now }: { doc: JotDocument; selected: boolean; 
         <span className="flex-none font-mono text-[11px] text-muted-foreground">{relativeTime(doc.updatedAt, now)}</span>
       </div>
     </DocumentMenu>
+  )
+}
+
+// The OpenRouter key's home (moved from the status bar, which holds only
+// per-document state): one row pinned to the sidebar's foot. Two states —
+// set (tick) or not set (cross); the panel it opens has the details.
+function KeyFooter() {
+  const key = useLiveQuery(() => db.settings.get('settings').then((s) => s?.openRouterApiKey ?? null), [])
+  const open = useReview((s) => s.keyPanel.open)
+  const openKeyPanel = useReview((s) => s.openKeyPanel)
+  const closeKeyPanel = useReview((s) => s.closeKeyPanel)
+  const set = !!key
+  return (
+    <button
+      type="button"
+      data-key-cell=""
+      title={set ? 'OpenRouter key set' : 'OpenRouter key not set'}
+      onClick={() => (open ? closeKeyPanel() : openKeyPanel('cell'))}
+      className={cn(
+        'flex h-[30px] flex-none items-center gap-2 border-t border-border pr-3 pl-3.5 font-mono text-[11.5px] text-secondary-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+        open && 'bg-popover text-foreground',
+      )}
+    >
+      <KeyRound size={13} strokeWidth={1.75} aria-hidden />
+      <span className="flex-auto text-left">OpenRouter key</span>
+      {set ? (
+        <Check size={13} strokeWidth={2.25} className="text-primary" aria-label="set" />
+      ) : (
+        <X size={13} strokeWidth={2} className="text-muted-foreground" aria-label="not set" />
+      )}
+    </button>
   )
 }
 
@@ -377,6 +411,7 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
         )}
       </header>
       <div className="flex min-h-0 flex-auto flex-col overflow-y-auto">{body}</div>
+      <KeyFooter />
     </aside>
   )
 }

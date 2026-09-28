@@ -42,7 +42,6 @@ export function useApplyTheme(resolved: 'light' | 'dark') {
   }, [resolved])
 }
 
-const order: ThemePreference[] = ['light', 'dark', 'system']
-export function cycleTheme(current: ThemePreference) {
-  return updateSettings({ theme: order[(order.indexOf(current) + 1) % order.length] })
+export function setTheme(theme: ThemePreference) {
+  return updateSettings({ theme })
 }

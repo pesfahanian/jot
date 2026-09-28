@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Monitor, Moon, Sun } from 'lucide-react'
 import { ErrorDetail } from '@/components/review/ErrorDetail'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -9,7 +10,7 @@ import { countText, groupDigits } from '@/lib/counts'
 import { cn } from '@/lib/utils'
 import { useNow } from '@/state/hooks'
 import { useReview } from '@/state/review'
-import { cycleTheme, type ThemePreference, type ThemeState } from '@/state/theme'
+import { setTheme, type ThemePreference, type ThemeState } from '@/state/theme'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 
 // Every cell reserves its width up front so the bar never reflows as values
@@ -165,67 +166,38 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
   return <div className="flex w-[200px] flex-none items-center border-r border-border-subtle px-[5px] whitespace-nowrap">{body}</div>
 }
 
-// Key cell (7c): same label-plus-value shape as the theme cell; a quiet,
-// persistent door to the key panel. No dot when valid — the ready dot on the
-// review control beside it already says so.
-function KeyCell() {
-  const settings = useLiveQuery(() => db.settings.get('settings'), [])
-  const testing = useReview((s) => s.keyTesting)
-  const open = useReview((s) => s.keyPanel.open)
-  const openKeyPanel = useReview((s) => s.openKeyPanel)
-  const closeKeyPanel = useReview((s) => s.closeKeyPanel)
-  const key = settings?.openRouterApiKey
-  let value
-  if (testing) {
-    value = (
-      <span className="flex items-center gap-1.5">
-        <span className="flex h-[3px] w-5 overflow-hidden rounded-full bg-ink-mute">
-          <span className="jot-running-bar w-[45%] rounded-full bg-primary" />
-        </span>
-        testing
-      </span>
-    )
-  } else if (!key) value = <span className="text-secondary-foreground">not set</span>
-  else if (settings.keyStatus === 'invalid') value = <span className="text-destructive">rejected</span>
-  else if (settings.keyStatus === 'offline')
-    value = (
-      <span>
-        set <span className="text-muted-foreground">unchecked</span>
-      </span>
-    )
-  else value = <span>set</span>
-  return (
-    <button
-      type="button"
-      data-key-cell=""
-      onClick={() => (open ? closeKeyPanel() : openKeyPanel('cell'))}
-      className={cn(
-        'flex items-center gap-1.5 border-r border-border-subtle px-[11px] hover:bg-hover-lift focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
-        open && 'bg-popover',
-      )}
-    >
-      <span className="text-muted-foreground">key</span>
-      <span className="min-w-[13ch] text-left">{value}</span>
-    </button>
-  )
-}
-
-// Theme switch (3f): text, not an icon, cycling light → dark → system; system
-// appends what the OS resolves to, so the cell never lies.
+// Theme switch (3f): three icons — light, dark, system — with the current
+// one lit, so every choice is one click and the state is always visible.
+// System's tooltip names what the OS resolves to, so the cell never lies.
+const themes: { value: ThemePreference; Icon: typeof Sun }[] = [
+  { value: 'light', Icon: Sun },
+  { value: 'dark', Icon: Moon },
+  { value: 'system', Icon: Monitor },
+]
 function ThemeCell({ preference, resolved }: { preference: ThemePreference; resolved: 'light' | 'dark' }) {
   return (
-    <button
-      type="button"
-      onClick={() => void cycleTheme(preference)}
-      title="switch theme"
-      className="flex items-center gap-1.5 border-l border-border-subtle pr-3 pl-[11px] hover:bg-hover-lift focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
-    >
-      <span className="text-muted-foreground">theme</span>
-      <span className="min-w-[14ch] text-left">
-        {preference}
-        {preference === 'system' && <span className="text-muted-foreground"> · {resolved}</span>}
-      </span>
-    </button>
+    <div role="radiogroup" aria-label="theme" className="flex items-center gap-0.5 border-l border-border-subtle px-[7px]">
+      {themes.map(({ value, Icon }) => {
+        const on = preference === value
+        return (
+          <button
+            key={value}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            aria-label={value}
+            title={value === 'system' ? `system (now ${resolved})` : value}
+            onClick={() => void setTheme(value)}
+            className={cn(
+              'flex h-[18px] w-[22px] items-center justify-center rounded-sm focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+              on ? 'bg-hover-lift text-foreground' : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <Icon size={13} strokeWidth={on ? 2 : 1.75} aria-hidden />
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
@@ -244,7 +216,6 @@ export function StatusBar({ docsById, theme }: { docsById: Map<string, JotDocume
       {doc && (
         <>
           <ReviewControl doc={doc} text={text} />
-          <KeyCell />
         </>
       )}
       <div className="flex-auto" />

@@ -7,9 +7,9 @@ import { testKey } from '@/review/openrouter'
 import { useNow } from '@/state/hooks'
 import { useReview } from '@/state/review'
 
-// The OpenRouter key panel (7a–7c): a single-purpose popover anchored to the
-// status bar, built as one titled section with its own footer. Two doors
-// open it — the key cell, and clicking review with no key.
+// The OpenRouter key panel (7a–7c): a single-purpose popover anchored beside
+// the sidebar's key row, built as one titled section with its own footer. Two doors
+// open it — the key row, and clicking review with no key.
 //
 // No separate save: a key is stored only once a test passes, so "test" is
 // the save. Rejected keys are never stored; a dropped connection never
@@ -174,7 +174,7 @@ function KeyPanelBody() {
       ref={self}
       role="dialog"
       aria-label="OpenRouter key"
-      className="absolute bottom-[calc(100%+var(--seam))] left-0 z-50 flex w-[380px] flex-col overflow-hidden rounded-(--radius-panel) border border-border-float bg-popover text-popover-foreground"
+      className="absolute bottom-0 left-[calc(100%+var(--seam))] z-50 flex w-[380px] flex-col overflow-hidden rounded-(--radius-panel) border border-border-float bg-popover text-popover-foreground"
     >
       <div className={cn('flex items-center gap-2.5 pt-3 pr-3 pl-4', stored ? 'pb-2.5' : 'pb-1.5')}>
         <span className="flex-auto text-[15px] font-semibold tracking-[-0.02em]">OpenRouter key</span>

@@ -107,7 +107,11 @@ export function Shell({ docs, theme }: { docs: JotDocument[]; theme: ThemeState 
       )}
     >
       <div className="flex min-h-0 flex-auto">
-        <Sidebar docs={docs} />
+        {/* The key panel opens beside the sidebar's key row, over the panes. */}
+        <div className="relative flex min-h-0">
+          <Sidebar docs={docs} />
+          <KeyPanel />
+        </div>
         <SidebarHandle />
         <div className="relative flex min-w-0 flex-auto gap-(--seam)">
           {docs.length === 0 ? (
@@ -119,7 +123,6 @@ export function Shell({ docs, theme }: { docs: JotDocument[]; theme: ThemeState 
         </div>
       </div>
       <div className="relative flex-none">
-        <KeyPanel />
         <StatusBar docsById={docsById} theme={theme} />
       </div>
     </div>
