@@ -124,12 +124,15 @@ const FAMILIES: Family[] = ['tier1', 'tier1b', 'tier2', 'spelling', 'grammar', '
 // Tolerant parse: the first JSON object in the reply, with every field
 // checked and anything malformed dropped rather than trusted.
 export function parseSharedResponse(raw: string): SharedResponse {
-  const start = raw.indexOf('{')
-  const end = raw.lastIndexOf('}')
+  // Reasoning models may prepend their thinking; its braces would confuse the
+  // object search, so it goes first. A ```json fence is fine as-is.
+  const body = raw.replace(/<think>[\s\S]*?<\/think>/gi, '')
+  const start = body.indexOf('{')
+  const end = body.lastIndexOf('}')
   if (start === -1 || end <= start) throw new ReviewRequestError('The model did not return JSON', 'parse', raw)
   let obj: Record<string, unknown>
   try {
-    obj = JSON.parse(raw.slice(start, end + 1))
+    obj = JSON.parse(body.slice(start, end + 1))
   } catch {
     throw new ReviewRequestError('The model returned malformed JSON', 'parse', raw)
   }

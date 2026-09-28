@@ -6,7 +6,13 @@ const BASE = 'https://openrouter.ai/api/v1'
 // The model for the shared review call. Owner's choice (open-decisions #6):
 // a free model for now. Free OpenRouter models are rate-limited, so a busy
 // period surfaces as the review control's "review failed 429 · retry".
-export const REVIEW_MODEL = 'google/gemma-4-26b-a4b-it:free'
+// (Both free Gemma 4 versions were rate-limited in Google AI Studio's shared
+// pool; model and provider choice is a to-do for later.)
+export const REVIEW_MODEL = 'nvidia/nemotron-3-ultra-550b-a55b:free'
+// Whether the model accepts response_format: json_object (OpenRouter's model
+// list says so per model). Without it, the prompt's "one JSON object and
+// nothing else" and the tolerant parser carry the format.
+const REVIEW_MODEL_JSON_MODE = false
 
 export type KeyTest = { ok: true } | { ok: false; reason: 'rejected' | 'offline'; status?: number }
 
@@ -65,7 +71,7 @@ export async function chat(key: string, messages: ChatMessage[], signal?: AbortS
         model: REVIEW_MODEL,
         messages,
         temperature: 0,
-        response_format: { type: 'json_object' },
+        ...(REVIEW_MODEL_JSON_MODE ? { response_format: { type: 'json_object' } } : {}),
       }),
     })
   } catch (e) {

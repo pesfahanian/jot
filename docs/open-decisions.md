@@ -9,7 +9,7 @@ Decisions the docs don't settle. Each has a working choice already in the code s
 | 3 | Active-tab marker edge — audit (drift #2) recommends top; final frames 8a/8b draw bottom | Bottom, as 8a/8b | Phase 3 |
 | 4 | List continuation on Enter (`- item` ⏎ → next bullet) — CM6's markdown keymap, excluded by the zero-collision rule | Off | Phase 2 |
 | 5 | Proofing flags (spelling / grammar / punctuation) — PRD and T5.4 expect them; the rule set never produces them | Undecided — needed before T5.4 | Addendum |
-| 6 | OpenRouter model for the shared review call — no setting, no spec | **Decided (owner):** free model for now — `google/gemma-4-26b-a4b-it:free` (the 31B free was rate-limited in Google AI Studio's shared pool); fallback plan to be discussed | Addendum |
+| 6 | OpenRouter model for the shared review call — no setting, no spec | **Decided (owner):** free model for now — `nvidia/nemotron-3-ultra-550b-a55b:free` (both free Gemma 4 versions were rate-limited in Google AI Studio's shared pool; Ultra has no JSON mode, so the prompt + tolerant parser carry the format). Model/provider choice and a fallback plan: to-do, to discuss | Addendum |
 | 7 | Verbatim `span` matching when the same text occurs more than once | First unclaimed occurrence in document order, unless the interaction spec says otherwise | Addendum |
 | 8 | T1-04 (markdown leakage) in a markdown editor | Conservative: only markup inside flowing prose | Addendum |
 | 9 | PRD §7 — undecided review flags persist and are resumable | Build as proposed (T5.6 requires it) | PRD |
