@@ -4,7 +4,7 @@ Decisions the docs don't settle. Each has a working choice already in the code s
 
 | # | Topic | Working choice in the code | Raised |
 |---|---|---|---|
-| 1 | Rendered-preview pane ("render", frames 2g/2h, mermaid) — drawn, never ticketed | **Built (owner: baseline = VSCode's default preview):** render opens a rendered pane beside the editor (2g), GFM, live as you type, scroll synced both ways by source line; shares its renderer and typography with PDF export; raw HTML shown as text. Later: mermaid (2h), math, RTL, code highlighting, paged PDF | Phase 3 |
+| 1 | Rendered-preview pane ("render", frames 2g/2h, mermaid) — drawn, never ticketed | **Built (owner: baseline = VSCode's default preview):** render opens a rendered pane beside the editor (2g), GFM, live as you type, scroll synced both ways by source line; shares its renderer and typography with PDF export; raw HTML shown as text. Text fills the pane (no 520px measure — owner), unlike the PDF. Later: mermaid (2h), math, RTL, code highlighting, paged PDF | Phase 3 |
 | 2 | PDF export — true one-click PDF needs a large library | Browser print dialog → "Save as PDF" | Phase 3 |
 | 3 | Active-tab marker edge — audit (drift #2) recommends top; final frames 8a/8b draw bottom | **Decided (owner):** bottom, as built | Phase 3 |
 | 4 | List continuation on Enter (`- item` ⏎ → next bullet) — CM6's markdown keymap, excluded by the zero-collision rule | **Decided (owner):** on, like stackedit — bullets, numbers (1. → 2.) and tasks continue; Enter on an empty item ends the list. A declared Enter binding ahead of the vscode keymap that acts only inside list items (not blockquotes, not code) | Phase 2 |

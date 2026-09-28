@@ -287,7 +287,8 @@
 
 /* ── Rendered pane (2g, §1.8) — the same typography PDF export prints in.
    Public Sans 14.5 / 1.58 body, 19/600 headings, Source Code Pro 12.5 code
-   on the inset ground; measure capped at 520px by the container. ───────── */
+   on the inset ground. The pane fills its width (owner: as VSCode's
+   preview); §1.8's 520px measure applies to the printed PDF only. ───────── */
 @layer components {
     .jot-rendered { font-family: var(--font-sans); font-size: 14.5px; line-height: 1.58; color: var(--foreground); overflow-wrap: anywhere; }
     .jot-rendered > div > :first-child { margin-top: 0; }

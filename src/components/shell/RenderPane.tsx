@@ -70,8 +70,9 @@ export function RenderPane({ pane, doc }: { pane: PaneLayout; doc: JotDocument }
           </button>
         </div>
       </div>
-      <div ref={scroller} className="relative min-h-0 flex-auto overflow-y-auto px-9 py-7">
-        <div className="jot-rendered mx-auto max-w-[520px]">
+      {/* Full pane width, as VSCode's preview (owner) — no measure cap. */}
+      <div ref={scroller} className="relative min-h-0 flex-auto overflow-y-auto px-7 py-6">
+        <div className="jot-rendered">
           {blocks?.map((b) => (
             <div key={`${b.line}:${b.html.length}`} data-line={b.line} dangerouslySetInnerHTML={{ __html: b.html }} />
           ))}
