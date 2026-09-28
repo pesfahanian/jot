@@ -32,7 +32,7 @@ export async function testKey(key: string): Promise<KeyTest> {
   }
 }
 
-export async function chat(key: string, messages: ChatMessage[], signal?: AbortSignal): Promise<string> {
+export async function chat(key: string, messages: ChatMessage[], signal?: AbortSignal): Promise<{ content: string; model: string }> {
   const res = await send(
     `${BASE}/chat/completions`,
     {
@@ -63,5 +63,5 @@ export async function chat(key: string, messages: ChatMessage[], signal?: AbortS
   }
   const content = body.choices?.[0]?.message?.content
   if (!content) throw new ReviewRequestError('Empty response from the model', 'parse', prettyBody(text))
-  return content
+  return { content, model: MODEL }
 }

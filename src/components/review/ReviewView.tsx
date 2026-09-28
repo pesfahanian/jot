@@ -218,6 +218,8 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
             type="button"
             onClick={toggleLog}
             aria-pressed={logOpen}
+            // Which model answered (Google fails over down a chain).
+            title={`reviewed by ${session.model}`}
             className={cn(
               'flex h-[22px] items-center rounded-md border px-[7px] text-[11px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
               logOpen ? 'border-border-strong bg-popover text-foreground' : 'border-border bg-control text-secondary-foreground hover:text-foreground',

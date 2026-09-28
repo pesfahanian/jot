@@ -15,7 +15,8 @@ export interface ProviderInfo {
   host: string
   placeholder: string
   testKey(key: string): Promise<KeyTest>
-  chat(key: string, messages: ChatMessage[], signal?: AbortSignal): Promise<string>
+  // The reply, and which model gave it (Google fails over down a chain).
+  chat(key: string, messages: ChatMessage[], signal?: AbortSignal): Promise<{ content: string; model: string }>
 }
 
 export const PROVIDERS: Record<Provider, ProviderInfo> = {

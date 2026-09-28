@@ -175,6 +175,6 @@ export function parseSharedResponse(raw: string): SharedResponse {
 
 export async function runSharedCall(provider: Provider, key: string, text: string, a: PassAResult, signal?: AbortSignal) {
   const request = buildSharedRequest(text, a)
-  const raw = await PROVIDERS[provider].chat(key, request.messages, signal)
-  return { request, response: parseSharedResponse(raw) }
+  const { content, model } = await PROVIDERS[provider].chat(key, request.messages, signal)
+  return { request, model, response: parseSharedResponse(content) }
 }
