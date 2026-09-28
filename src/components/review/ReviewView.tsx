@@ -1,12 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import type { JotDocument, ReviewFlag, ReviewSession } from '@/lib/db'
 import { cn } from '@/lib/utils'
-import { applyPlan, canApply, counts, describe, isNote, isProofing } from '@/review/model'
+import { applyPlan, canApply, counts, describe } from '@/review/model'
 import { RULESET_NAME, RULESET_VERSION } from '@/review/ruleset'
 import { useReview } from '@/state/review'
 import { applyReview } from '@/state/reviewActions'
-import { Bubble } from './Bubble'
-import { proofInk, tierGround, tierInk } from '@/review/decor'
+import { Bubble, KindMark, KindSample } from './Bubble'
+import { KIND_ORDER, kindCounts, kindInfo, KINDS, ruleName } from '@/review/kinds'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { OriginalText, PreviewText } from './spans'
 
 // The two-pane review (interaction spec §1–§8; frames 4a–4c, 6b, 6c).
@@ -31,11 +32,62 @@ function PaneHeader({ title, note, accent }: { title: string; note: string; acce
   )
 }
 
-const typeLabel = (f: ReviewFlag) => (isNote(f) ? 'note' : f.family === 'tier1' ? 'tier 1' : f.family === 'tier1b' ? 'tier 1b' : f.family === 'tier2' ? 'tier 2' : f.family)
+// The legend (owner, testing): always visible under the toolbar, so the
+// colors are learned while working. One entry per kind present — sample,
+// name, how many are still undecided of how many — with the kind's one-line
+// explanation on hover. "?" opens the fuller help.
+function Legend({ flags }: { flags: ReviewFlag[] }) {
+  const kinds = kindCounts(flags)
+  return (
+    <div className="flex h-[28px] flex-none items-center gap-4 overflow-hidden border-b border-border bg-card px-3.5 font-mono text-[11px] whitespace-nowrap">
+      {kinds.map(({ kind, total, pending }) => (
+        <span key={kind} title={KINDS[kind].help} className={cn('flex cursor-default items-center gap-1.5', pending === 0 && 'opacity-55')}>
+          <KindSample kind={kind} />
+          <span className="font-sans text-[12px] text-foreground">{KINDS[kind].name}</span>
+          <span className="text-muted-foreground tabular-nums">{pending === total ? total : `${pending}/${total}`}</span>
+        </span>
+      ))}
+      <span className="flex-auto" />
+      <ReviewHelp />
+    </div>
+  )
+}
 
-function LogMark({ f }: { f: ReviewFlag }) {
-  if (isProofing(f.family)) return <span className="mt-[7px] h-0 w-[9px] flex-none border-b-[1.5px]" style={{ borderColor: proofInk[f.family] }} />
-  return <span className="mt-[3px] size-[9px] flex-none rounded-[2px] border" style={{ background: tierGround[f.family] ?? 'var(--resolved-bg)', borderColor: tierInk[f.family] ?? 'var(--ink-dim)' }} />
+function ReviewHelp() {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label="how review works"
+          title="how review works"
+          className="flex size-[18px] flex-none items-center justify-center rounded-sm border border-border text-[11px] text-secondary-foreground hover:border-border-strong hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          ?
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="flex w-[380px] flex-col gap-3 p-4 text-[12.5px] leading-relaxed">
+        <div className="text-[14px] font-semibold">How review works</div>
+        <div className="text-secondary-foreground">
+          Click any marked text on the right to see the suggestion and decide. Nothing in your document changes until every flag is decided and you press{' '}
+          <span className="font-mono text-foreground">apply</span>.
+        </div>
+        <div className="flex flex-col gap-2">
+          {KIND_ORDER.map((kind) => (
+            <div key={kind} className="flex gap-2.5">
+              <span className="flex h-[20px] w-3 flex-none items-center justify-center">
+                <KindSample kind={kind} />
+              </span>
+              <span>
+                <span className="font-semibold">{KINDS[kind].name}</span> <span className="text-secondary-foreground">— {KINDS[kind].help}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="text-muted-foreground">Left: your original, with what would change struck through. Right: the result if you accept everything as suggested.</div>
+      </PopoverContent>
+    </Popover>
+  )
 }
 
 // Review log (spec §8, §1.11): third pane, fixed 380, panel ground, document
@@ -60,17 +112,18 @@ function ReviewLog({ flags, activeKey, onJump, onClose }: { flags: ReviewFlag[];
               key={f.key}
               type="button"
               data-log-key={f.key}
+              title={f.id}
               onClick={() => onJump(f.key)}
               className={cn(
                 'flex w-full gap-2.5 border-b border-l-2 border-b-border-subtle px-3.5 py-2 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
                 f.key === activeKey ? 'border-l-primary bg-popover' : 'border-l-transparent hover:bg-row-hover',
               )}
             >
-              <LogMark f={f} />
+              <KindMark f={f} className="mt-[4px]" />
               <span className="flex min-w-0 flex-auto flex-col gap-0.5 font-mono">
                 <span className="flex items-baseline gap-2">
-                  <span className={cn('text-[12px] font-semibold', decided ? 'text-ink-tertiary' : 'text-foreground')}>{f.id}</span>
-                  <span className="text-[11px] text-muted-foreground">{typeLabel(f)}</span>
+                  <span className={cn('flex-none font-sans text-[12px] font-semibold', decided ? 'text-ink-tertiary' : 'text-foreground')}>{kindInfo(f).name}</span>
+                  {ruleName(f) && <span className="min-w-0 truncate text-[11px] text-muted-foreground">{ruleName(f)}</span>}
                   <span className="flex-auto" />
                   <span className={cn('text-[11px]', decided ? 'text-muted-foreground' : 'text-foreground')}>{f.status}</span>
                 </span>
@@ -252,6 +305,7 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
         </div>
       </div>
 
+      <Legend flags={flags} />
       <div className="flex min-h-0 flex-auto">
         <section className="flex min-w-0 flex-1 flex-col bg-document" data-review-original="">
           <PaneHeader title="original" note="locked while review is open" />

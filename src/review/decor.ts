@@ -1,23 +1,5 @@
-import type { FlagFamily, ReviewFlag } from '@/lib/db'
+import type { ReviewFlag } from '@/lib/db'
 import { appliedSet, compose, isNote, type Applied } from './model'
-
-// Review colors (design system §1.6): tier grounds and inks on the neutral
-// ramp, proofing inks per error type.
-export const tierGround: Partial<Record<FlagFamily, string>> = {
-  tier1: 'var(--tier-1-bg)',
-  tier1b: 'var(--tier-1b-bg)',
-  tier2: 'var(--tier-2-bg)',
-}
-export const tierInk: Partial<Record<FlagFamily, string>> = {
-  tier1: 'var(--tier-1)',
-  tier1b: 'var(--tier-1b)',
-  tier2: 'var(--tier-2)',
-}
-export const proofInk: Partial<Record<FlagFamily, string>> = {
-  spelling: 'var(--proof-spelling)',
-  grammar: 'var(--proof-grammar)',
-  punctuation: 'var(--proof-punct)',
-}
 
 // Every flag's current state applied (tier defaults for pending), plus
 // identity entries for flags that change nothing right now (pending Tier 2,

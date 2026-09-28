@@ -47,12 +47,12 @@
     --color-tag-4: var(--tag-4);
     --color-tag-5: var(--tag-5);
     --color-tag-6: var(--tag-6);
-    --color-tier-1: var(--tier-1);
-    --color-tier-1-bg: var(--tier-1-bg);
-    --color-tier-1b: var(--tier-1b);
-    --color-tier-1b-bg: var(--tier-1b-bg);
-    --color-tier-2: var(--tier-2);
-    --color-tier-2-bg: var(--tier-2-bg);
+    --color-flag-quick: var(--flag-quick);
+    --color-flag-quick-bg: var(--flag-quick-bg);
+    --color-flag-check: var(--flag-check);
+    --color-flag-check-bg: var(--flag-check-bg);
+    --color-flag-call: var(--flag-call);
+    --color-flag-call-bg: var(--flag-call-bg);
     --color-resolved-bg: var(--resolved-bg);
     --color-proof-spelling: var(--proof-spelling);
     --color-proof-grammar: var(--proof-grammar);
@@ -147,13 +147,19 @@
     --tag-1: #AE615C; --tag-2: #B09E5B;
     --tag-3: #5D8F5E; --tag-4: #429599;
     --tag-5: #4E72AC; --tag-6: #896092;
-    --tier-1-bg: #EDEDED; --tier-1: #A4A4A4;
-    --tier-1b-bg: #DFDFDF; --tier-1b: #808080;
-    --tier-2-bg: #CFCFCF; --tier-2: #555555;
+    /* Review flag kinds (owner, testing — replaces the neutral tier ramp of
+       §1.6): one hue per kind, same lightness and chroma, so no kind is
+       louder than another. Ink for lines, a low-chroma ground for washes.
+       quick = teal 195 · check = amber 80 · your call = muted violet 305. */
+    --flag-quick: oklch(.53 .09 195); --flag-quick-bg: oklch(.94 .035 195);
+    --flag-check: oklch(.60 .12 75); --flag-check-bg: oklch(.94 .05 85);
+    --flag-call: oklch(.53 .09 305); --flag-call-bg: oklch(.94 .03 305);
     --resolved-bg: #F3F3F3;
+    /* Proofing squiggles (owner's experiment): spelling red, grammar
+       yellow, punctuation blue. */
     --proof-spelling: var(--destructive);
-    --proof-grammar: #116BB5;
-    --proof-punct: #BF9100;
+    --proof-grammar: oklch(.72 .15 95);
+    --proof-punct: #116BB5;
     --syn-heading: #A83442; --syn-emph: #7B6000;
     --syn-link: #0068B2; --syn-code: #0B7643;
     --syn-punct: #969084;
@@ -166,13 +172,13 @@
     --tag-1: #D78E88; --tag-2: #B6A461;
     --tag-3: #81B482; --tag-4: #57B6B6;
     --tag-5: #84A6DD; --tag-6: #BE92C8;
-    --tier-1-bg: #202020; --tier-1: #A4A4A4;
-    --tier-1b-bg: #313131; --tier-1b: #C4C4C4;
-    --tier-2-bg: #484848; --tier-2: #E4E4E4;
+    --flag-quick: oklch(.76 .09 195); --flag-quick-bg: oklch(.31 .05 195);
+    --flag-check: oklch(.80 .12 78); --flag-check-bg: oklch(.32 .06 75);
+    --flag-call: oklch(.76 .08 305); --flag-call-bg: oklch(.31 .045 305);
     --resolved-bg: #161616;
     --proof-spelling: var(--destructive);
-    --proof-grammar: #60AAF3;
-    --proof-punct: #E7BF4A;
+    --proof-grammar: oklch(.86 .14 95);
+    --proof-punct: #60AAF3;
     --syn-heading: #FD8A8F; --syn-emph: #C9B04F;
     --syn-link: #63B9FE; --syn-code: #74C692;
     --syn-punct: #B7B0A3;

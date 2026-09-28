@@ -113,3 +113,4 @@ export const nominalizations: NominalizationEntry[] = tableUnder('Nominalization
     verb: verb.split('/')[0].trim(),
   }
 })
+

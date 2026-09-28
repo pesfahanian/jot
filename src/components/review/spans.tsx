@@ -1,12 +1,13 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { ReviewFlag } from '@/lib/db'
-import { previewSegments, proofInk, tierGround, tierInk } from '@/review/decor'
+import { previewSegments } from '@/review/decor'
+import { kindInfo } from '@/review/kinds'
 import { isNote, isProofing, showsArrow } from '@/review/model'
 
-// Span decoration (interaction spec §3–§4, design system §1.6 and §1.11).
-// Tier colors carry no hue — intensity says how much judgment a flag needs;
-// hue is reserved for the three objective proofing errors; the 2px accent
-// ring says which flag is open. Three independent channels.
+// Span decoration (interaction spec §3–§4, design system §1.11). Each flag
+// kind has its own hue (kinds.ts): a wash for fixes, an underline for "your
+// call", a squiggle for proofing. The 2px accent ring says which flag is
+// open — color says what kind, the ring says which one.
 
 const ring: CSSProperties = { outline: '2px solid var(--primary)', outlineOffset: 0, borderRadius: 2 }
 const resolved = (f: ReviewFlag) => f.status !== 'pending'
@@ -28,14 +29,14 @@ function originalStyle(f: ReviewFlag, focused: boolean): CSSProperties {
     return s
   }
   if (isProofing(f.family)) {
-    Object.assign(s, { textDecoration: `underline wavy ${proofInk[f.family]}`, textDecorationThickness: '1.5px', textUnderlineOffset: '4px' })
+    Object.assign(s, { textDecoration: `underline wavy ${kindInfo(f).ink}`, textDecorationThickness: '1.5px', textUnderlineOffset: '4px' })
   } else if (f.kind === 'flag') {
     // Tier 2 (and T1b-04): underline only — nothing about the original
     // changes. Tier 2 is a 2px underline in its ink with no ground.
-    Object.assign(s, { borderBottom: `2px solid ${tierInk[f.family] ?? 'var(--tier-2)'}`, paddingBottom: 1 })
+    Object.assign(s, { borderBottom: `2px solid ${kindInfo(f).ink}`, paddingBottom: 1 })
   } else {
     // Tier ground + strikethrough in the tier ink for text that will leave.
-    Object.assign(s, { background: tierGround[f.family], textDecoration: 'line-through', textDecorationColor: tierInk[f.family] })
+    Object.assign(s, { background: kindInfo(f).ground, textDecoration: 'line-through', textDecorationColor: kindInfo(f).ink })
   }
   if (focused) Object.assign(s, ring)
   return s
@@ -109,7 +110,7 @@ export function OriginalText({ source, flags, activeKey }: { source: string; fla
     const endsHere = decos.filter((d) => d.end === seg.end && showsArrow(d.flag))
     for (const d of endsHere) {
       nodes.push(
-        <span key={`arrow-${d.flag.key}`} data-arrow-for={d.flag.key} style={{ color: resolved(d.flag) ? 'var(--ink-dim)' : tierInk[d.flag.family] }}>
+        <span key={`arrow-${d.flag.key}`} data-arrow-for={d.flag.key} style={{ color: resolved(d.flag) ? 'var(--ink-dim)' : kindInfo(d.flag).ink }}>
           →
         </span>,
       )
@@ -126,12 +127,12 @@ function previewStyle(f: ReviewFlag, focused: boolean): CSSProperties {
     if (isProofing(f.family)) {
       // The fix is shown, so the error is gone: a plain underline in the
       // type's color, never a squiggle.
-      Object.assign(s, { textDecoration: `underline ${proofInk[f.family]}`, textDecorationThickness: '1.5px', textUnderlineOffset: '4px' })
+      Object.assign(s, { textDecoration: `underline ${kindInfo(f).ink}`, textDecorationThickness: '1.5px', textUnderlineOffset: '4px' })
     } else if (f.kind === 'flag') {
       // Tier 2 keeps its underline until acted on — no rewrite to fall back on.
-      Object.assign(s, { borderBottom: `2px solid ${tierInk[f.family] ?? 'var(--tier-2)'}`, paddingBottom: 1 })
+      Object.assign(s, { borderBottom: `2px solid ${kindInfo(f).ink}`, paddingBottom: 1 })
     } else {
-      s.background = tierGround[f.family]
+      s.background = kindInfo(f).ground
     }
   }
   if (focused) Object.assign(s, ring)
@@ -170,7 +171,7 @@ export function PreviewText({
                 e.stopPropagation()
                 onOpen(f.key)
               }}
-              style={{ display: 'inline-block', width: 9, height: 14, verticalAlign: -2, borderRadius: 2, background: tierGround[f.family], cursor: 'pointer', ...(focused ? ring : {}) }}
+              style={{ display: 'inline-block', width: 9, height: 14, verticalAlign: -2, borderRadius: 2, background: kindInfo(f).ground, cursor: 'pointer', ...(focused ? ring : {}) }}
             />
           )
         }

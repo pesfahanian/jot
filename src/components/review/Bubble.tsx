@@ -3,7 +3,7 @@ import type { ReviewFlag } from '@/lib/db'
 import { cn } from '@/lib/utils'
 import { allowedDecisions, isNote, isProofing, type Decision } from '@/review/model'
 import { KeycapPanel } from './Keycap'
-import { proofInk, tierGround, tierInk } from '@/review/decor'
+import { kindInfo, kindOf, KINDS, ruleName, type Kind } from '@/review/kinds'
 
 // Bubbles (interaction spec §2, §5; design system §1.11): radius 12, float
 // border, keycap elevation on the panel ground. Actions 24px; accept is
@@ -14,15 +14,6 @@ const action = 'flex h-6 items-center rounded-md border px-2.5 font-mono text-[1
 const strongAction = cn(action, 'border-ink-tertiary bg-background text-foreground hover:border-foreground')
 const defaultAction = cn(action, 'border-border bg-background text-secondary-foreground hover:text-foreground')
 
-const label: Record<ReviewFlag['family'], string> = {
-  tier1: 'tier 1',
-  tier1b: 'tier 1b',
-  tier2: 'tier 2 — no fix proposed',
-  spelling: 'spelling',
-  grammar: 'grammar',
-  punctuation: 'punctuation',
-}
-
 const statusWord: Record<ReviewFlag['status'], string> = {
   pending: 'pending',
   accepted: 'accepted',
@@ -32,9 +23,21 @@ const statusWord: Record<ReviewFlag['status'], string> = {
   edited: 'edited',
 }
 
-function Mark({ f }: { f: ReviewFlag }) {
-  if (isProofing(f.family)) return <span className="h-0 w-[10px] border-b-[1.5px]" style={{ borderColor: proofInk[f.family] }} />
-  return <span className="size-2.5 rounded-sm border" style={{ background: tierGround[f.family] ?? 'var(--tier-2-bg)', borderColor: tierInk[f.family] ?? 'var(--tier-2)' }} />
+// The kind's sample, as the legend draws it.
+export function KindMark({ f, className }: { f: ReviewFlag; className?: string }) {
+  return <KindSample kind={kindOf(f)} className={className} />
+}
+
+export function KindSample({ kind, className }: { kind: Kind; className?: string }) {
+  const k = KINDS[kind]
+  if (k.mark === 'squiggle')
+    return (
+      <svg width="12" height="6" viewBox="0 0 12 6" className={cn('flex-none', className)} aria-hidden>
+        <path d="M0 4 Q1.5 1 3 4 T6 4 T9 4 T12 4" fill="none" stroke={k.ink} strokeWidth="1.5" />
+      </svg>
+    )
+  if (k.mark === 'none') return <span className={cn('size-2.5 flex-none rounded-sm border border-dashed border-ink-dim', className)} />
+  return <span className={cn('size-2.5 flex-none rounded-sm border', className)} style={{ background: k.ground, borderColor: k.ink }} />
 }
 
 export function Bubble({
@@ -94,7 +97,7 @@ export function Bubble({
     // the writing field is the work.
     body = (
       <div className="flex flex-col gap-2 border-b border-border px-3 py-[11px]">
-        <div className="border-l-2 pl-2.5 font-mono text-[12.5px] leading-relaxed text-foreground" style={{ borderColor: tierInk[flag.family] ?? 'var(--tier-2)' }}>
+        <div className="border-l-2 pl-2.5 font-mono text-[12.5px] leading-relaxed text-foreground" style={{ borderColor: kindInfo(flag).ink }}>
           {flag.before}
         </div>
         <div className="text-[12.5px] leading-relaxed text-foreground">{flag.rationale}</div>
@@ -187,9 +190,11 @@ export function Bubble({
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center gap-[9px] border-b border-border py-2 pr-2.5 pl-3">
-        <Mark f={flag} />
-        <span className="font-mono text-[12px] font-semibold">{flag.id}</span>
-        <span className="font-mono text-[11px] text-ink-tertiary">{isNote(flag) ? 'note' : label[flag.family]}</span>
+        <KindMark f={flag} />
+        <span className="flex-none text-[12.5px] font-semibold" style={{ color: kindInfo(flag).ink }} title={kindInfo(flag).help}>
+          {kindInfo(flag).name}
+        </span>
+        {ruleName(flag) && <span className="min-w-0 truncate font-mono text-[11px] text-ink-tertiary">{ruleName(flag)}</span>}
         {flag.family === 'tier1b' && !tier2 && (
           // Hover tooltip inside an already-open bubble — the one allowed
           // hover surface (spec §5).
