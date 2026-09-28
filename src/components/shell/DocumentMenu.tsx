@@ -33,7 +33,19 @@ export function DocumentMenu({ doc, children }: { doc: JotDocument; children: Re
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
-      <ContextMenuContent className="w-[196px]">
+      <ContextMenuContent
+        className="w-[196px]"
+        // Closing hands focus back to the row (the menu holds it until then,
+        // so the name field can't take it earlier). After "rename" it goes to
+        // the name field instead, whole name selected, so typing replaces it.
+        onCloseAutoFocus={(e) => {
+          if (useWorkspace.getState().renamingId !== doc.id) return
+          e.preventDefault()
+          const field = document.querySelector<HTMLInputElement>('input[data-rename-field]')
+          field?.focus()
+          field?.select()
+        }}
+      >
         <div className="flex items-center gap-[5px] px-1.5 pt-1 pb-1.5">
           {TAG_SLOTS.map(slot)}
           {slot(null)}

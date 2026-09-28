@@ -1,3 +1,4 @@
+import { ArrowDownAZ, ClockArrowDown, Plus, Search } from 'lucide-react'
 import type { TagColor } from '@/lib/db'
 import { cn } from '@/lib/utils'
 import { tagBg } from './tagClass'
@@ -5,23 +6,11 @@ import { tagBg } from './tagClass'
 // Glyphs drawn the way 8a/8b draw them: 1.5px strokes in currentColor,
 // sized to sit inside a 24×20 icon button (§1.9).
 
-// Sort icon, two modes (3d): newest first — bars run long to short, arrow
-// down; A to Z — bars run short to long, arrow up.
+// Sort icon (3d), from Lucide — shows the current order: clock with a
+// down arrow for newest first, A→Z for by name.
 export function SortIcon({ mode }: { mode: 'date' | 'name' }) {
-  const bars = mode === 'date' ? [9, 6, 3] : [3, 6, 9]
-  return (
-    <span className="flex items-center gap-[3px]">
-      <span className="flex flex-col items-start gap-[2px]">
-        {bars.map((w, i) => (
-          <span key={i} className="h-[1.5px] bg-current" style={{ width: w }} />
-        ))}
-      </span>
-      <span className={cn('relative block h-[10px] w-[1.5px] bg-current', mode === 'name' && 'rotate-180')}>
-        <span className="absolute bottom-0 -left-[2px] h-[1.5px] w-[5.5px] origin-bottom-left rotate-45 bg-current" />
-        <span className="absolute bottom-[1.5px] left-[1.5px] h-[1.5px] w-[5.5px] origin-bottom-left -rotate-45 bg-current" />
-      </span>
-    </span>
-  )
+  const Icon = mode === 'date' ? ClockArrowDown : ArrowDownAZ
+  return <Icon size={14} strokeWidth={1.75} aria-hidden />
 }
 
 // At rest the face is a 2×2 sample of the palette. While filtering it shows
@@ -34,22 +23,20 @@ export function FilterIcon({ active, muted }: { active: TagColor[]; muted?: bool
   return (
     <span className="grid grid-cols-[5px_5px] grid-rows-[5px_5px] gap-[1.5px]">
       {cells.map((c) => (
-        <span key={c} className={muted ? 'bg-ink-mute' : tagBg[c]} />
+        <span key={c} className={cn('rounded-[1.5px]', muted ? 'bg-ink-mute' : tagBg[c])} />
       ))}
     </span>
   )
 }
 
+// Search and new share the sort icon's Lucide set, so the sidebar header
+// reads as one row of icons.
 export function SearchIcon() {
-  return (
-    <span className="relative block size-[8px] rounded-full border-[1.5px] border-current">
-      <span className="absolute top-[6px] left-[6px] h-[1.5px] w-[5px] origin-left rotate-45 bg-current" />
-    </span>
-  )
+  return <Search size={14} strokeWidth={1.75} aria-hidden />
 }
 
 export function PlusIcon() {
-  return <span className="font-mono text-[14px] leading-none">+</span>
+  return <Plus size={15} strokeWidth={1.75} aria-hidden />
 }
 
 export function PinIcon() {

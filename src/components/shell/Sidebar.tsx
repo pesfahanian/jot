@@ -56,6 +56,7 @@ function RenameField({ doc }: { doc: JotDocument }) {
       ref={ref}
       value={value}
       aria-label="document name"
+      data-rename-field=""
       spellCheck={false}
       onChange={(e) => setValue(e.target.value)}
       onClick={(e) => e.stopPropagation()}
@@ -81,6 +82,7 @@ function RenameField({ doc }: { doc: JotDocument }) {
 function FileRow({ doc, selected, now }: { doc: JotDocument; selected: boolean; now: number }) {
   const renaming = useWorkspace((s) => s.renamingId === doc.id)
   const openDocument = useWorkspace((s) => s.openDocument)
+  const setRenaming = useWorkspace((s) => s.setRenaming)
   return (
     <DocumentMenu doc={doc}>
       <div
@@ -88,6 +90,9 @@ function FileRow({ doc, selected, now }: { doc: JotDocument; selected: boolean; 
         tabIndex={0}
         data-doc-id={doc.id}
         onClick={() => openDocument(doc.id)}
+        // Double-click anywhere on the row renames (the first click has
+        // already opened the document).
+        onDoubleClick={() => !renaming && setRenaming(doc.id)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
@@ -357,7 +362,7 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
             </button>
             <button
               type="button"
-              title={sort === 'date' ? 'sorted by date, newest first' : 'sorted by name, A to Z'}
+              title={sort === 'date' ? 'sorted newest first — click for A to Z' : 'sorted A to Z — click for newest first'}
               disabled={empty}
               className={iconButton}
               onClick={toggleSort}
