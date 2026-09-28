@@ -58,6 +58,8 @@ Prepared ahead of repo creation, for the local Claude Code implementation sessio
 
 **Consequences:** The API key sits in browser storage, unencrypted. Acceptable for a single-user personal tool; would need revisiting if Jot is ever shared or made multi-tenant.
 
+**Amendment (owner, during testing):** Google AI Studio is added as a second provider, called directly from the browser (the Gemini API accepts browser calls with the key in an `x-goog-api-key` header). Reason: the free models on OpenRouter kept failing with 429s from shared provider pools, while a personal AI Studio key has its own free quota. The settings surface grows from one field to a provider switch plus one key per provider, in the "AI Provider" panel. Still no backend; each key is sent only to its own provider's host.
+
 ---
 
 ## ADR-005: Vite + React + shadcn, not Next.js

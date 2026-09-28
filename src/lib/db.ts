@@ -15,11 +15,20 @@ export interface JotDocument {
   updatedAt: number
 }
 
+export type Provider = 'openrouter' | 'google'
+export type KeyStatus = 'untested' | 'valid' | 'invalid' | 'offline'
+
 export interface Settings {
   id: 'settings'
+  // The AI provider reviews run on (ADR-004 amendment). Each provider keeps
+  // its own key, so switching back and forth never loses one.
+  provider: Provider
   openRouterApiKey: string | null
-  keyStatus: 'untested' | 'valid' | 'invalid' | 'offline'
+  keyStatus: KeyStatus
   lastValidatedAt: number | null
+  googleApiKey: string | null
+  googleKeyStatus: KeyStatus
+  googleLastValidatedAt: number | null
   theme: 'light' | 'dark' | 'system'
 }
 

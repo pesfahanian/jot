@@ -1,8 +1,11 @@
-import { chat, ReviewRequestError, type ChatMessage } from './openrouter'
+import type { Provider } from '@/lib/db'
+import { PROVIDERS } from './providers'
+import { ReviewRequestError, type ChatMessage } from './request'
 import type { Family, PassAResult } from './passA'
 import { ruleset } from './ruleset'
 
-// T5.10 — the one shared call per document. Everything that needs judgment,
+// T5.10 — the one shared call per document (to whichever AI provider is
+// selected). Everything that needs judgment,
 // generation or classification rides in a single request: mode per section
 // (first), T1b-01/T1b-02, the gated T1b-05/T1b-06 follow-ups, all of Tier 2,
 // the proofing pass, and fixes for Tier 1 spans already confirmed
@@ -170,8 +173,8 @@ export function parseSharedResponse(raw: string): SharedResponse {
   return { sections, flags, fixes, dashes, semicolons, tricolons }
 }
 
-export async function runSharedCall(key: string, text: string, a: PassAResult, signal?: AbortSignal) {
+export async function runSharedCall(provider: Provider, key: string, text: string, a: PassAResult, signal?: AbortSignal) {
   const request = buildSharedRequest(text, a)
-  const raw = await chat(key, request.messages, signal)
+  const raw = await PROVIDERS[provider].chat(key, request.messages, signal)
   return { request, response: parseSharedResponse(raw) }
 }

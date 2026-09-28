@@ -1,3 +1,5 @@
+import { failure, prettyBody, ReviewRequestError, send, type ChatMessage, type KeyTest } from '../request'
+
 // Direct browser → OpenRouter calls with the person's own key (ADR-004).
 // No backend: OpenRouter is CORS-enabled and takes a plain Bearer header.
 
@@ -7,16 +9,14 @@ const BASE = 'https://openrouter.ai/api/v1'
 // free, and light while the feature is being proven — the only free Qwen.
 // Earlier free picks failed in testing (Gemma 4: shared-pool 429s;
 // Nemotron 3 Ultra: 4+ minutes). Model and provider choice is a to-do.
-export const REVIEW_MODEL = 'qwen/qwen3.8-27b:free'
+export const MODEL = 'qwen/qwen3.8-27b:free'
 // Whether the model accepts response_format: json_object (OpenRouter's model
 // list says so per model). Without it, the prompt's "one JSON object and
 // nothing else" and the tolerant parser carry the format.
-const REVIEW_MODEL_JSON_MODE = false
+const JSON_MODE = false
 // A thinking model: its reasoning is switched off so the answer starts
 // straight away and fits inside the review timeout.
-const REVIEW_MODEL_REASONING_OFF = true
-
-export type KeyTest = { ok: true } | { ok: false; reason: 'rejected' | 'offline'; status?: number }
+const REASONING_OFF = true
 
 // Test = the save (7a): a key is stored only after this passes. 401/403
 // means the key itself is wrong; anything network-level means it was never
@@ -32,36 +32,10 @@ export async function testKey(key: string): Promise<KeyTest> {
   }
 }
 
-export class ReviewRequestError extends Error {
-  readonly status: number | 'network' | 'parse'
-  // The full response (or failure) as received, for the error panel —
-  // OpenRouter puts the provider's own reason in error.metadata.
-  readonly raw: string
-  constructor(message: string, status: number | 'network' | 'parse', raw = '') {
-    super(message)
-    this.status = status
-    this.raw = raw
-  }
-}
-
-// Pretty-prints JSON bodies; anything else comes back as-is.
-function prettyBody(text: string): string {
-  try {
-    return JSON.stringify(JSON.parse(text), null, 2)
-  } catch {
-    return text
-  }
-}
-
-export interface ChatMessage {
-  role: 'system' | 'user'
-  content: string
-}
-
 export async function chat(key: string, messages: ChatMessage[], signal?: AbortSignal): Promise<string> {
-  let res: Response
-  try {
-    res = await fetch(`${BASE}/chat/completions`, {
+  const res = await send(
+    `${BASE}/chat/completions`,
+    {
       method: 'POST',
       signal,
       headers: {
@@ -70,27 +44,17 @@ export async function chat(key: string, messages: ChatMessage[], signal?: AbortS
         'X-Title': 'Jot',
       },
       body: JSON.stringify({
-        model: REVIEW_MODEL,
+        model: MODEL,
         messages,
         temperature: 0,
-        ...(REVIEW_MODEL_JSON_MODE ? { response_format: { type: 'json_object' } } : {}),
-        ...(REVIEW_MODEL_REASONING_OFF ? { reasoning: { enabled: false } } : {}),
+        ...(JSON_MODE ? { response_format: { type: 'json_object' } } : {}),
+        ...(REASONING_OFF ? { reasoning: { enabled: false } } : {}),
       }),
-    })
-  } catch (e) {
-    if ((e as Error).name === 'AbortError') throw e
-    throw new ReviewRequestError('Could not reach OpenRouter', 'network', String(e))
-  }
+    },
+    'OpenRouter',
+  )
   const text = await res.text()
-  if (!res.ok) {
-    let detail = ''
-    try {
-      detail = (JSON.parse(text) as { error?: { message?: string } }).error?.message ?? ''
-    } catch {
-      /* body wasn't JSON */
-    }
-    throw new ReviewRequestError(detail || `OpenRouter returned ${res.status}`, res.status, `HTTP ${res.status} ${res.statusText}\n\n${prettyBody(text)}`)
-  }
+  if (!res.ok) throw failure(res, text, 'OpenRouter')
   let body: { choices?: { message?: { content?: string } }[] }
   try {
     body = JSON.parse(text)

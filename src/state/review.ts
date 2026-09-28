@@ -2,9 +2,10 @@ import { create } from 'zustand'
 import { openContent } from '@/editor/sessions'
 import { db, type ReviewSession } from '@/lib/db'
 import { getDocument } from '@/lib/documents'
-import { getSettings } from '@/lib/settings'
+import { getSettings, providerKey } from '@/lib/settings'
 import { decide as decideFlag, hasStake, reopen as reopenFlag, standing, type Decision } from '@/review/model'
-import { ReviewRequestError } from '@/review/openrouter'
+import { ReviewRequestError } from '@/review/request'
+import { PROVIDERS } from '@/review/providers'
 import { reanchor } from '@/review/reanchor'
 import { useWorkspace } from './workspace'
 
@@ -86,7 +87,7 @@ export const useReview = create<ReviewState>()((set, get) => ({
       await get().discardSession(documentId)
     }
     const settings = await getSettings()
-    if (!settings.openRouterApiKey) {
+    if (!providerKey(settings).key) {
       get().openKeyPanel('review', documentId)
       return
     }
@@ -113,7 +114,8 @@ export const useReview = create<ReviewState>()((set, get) => ({
   // be cancelled, and gives up on its own after REVIEW_TIMEOUT_MS.
   async run(documentId) {
     const settings = await getSettings()
-    if (!settings.openRouterApiKey) return get().openKeyPanel('review', documentId)
+    const key = providerKey(settings).key
+    if (!key) return get().openKeyPanel('review', documentId)
     controllers[documentId]?.abort()
     const ctrl = new AbortController()
     controllers[documentId] = ctrl
@@ -127,7 +129,7 @@ export const useReview = create<ReviewState>()((set, get) => ({
       const text = await liveText(documentId)
       // The pipeline (rule set, Pass A/B, prompt) loads on first use only.
       const { produceReview } = await import('@/review/pipeline')
-      const session = await produceReview(documentId, text, settings.openRouterApiKey, ctrl.signal)
+      const session = await produceReview(documentId, text, settings.provider, key, ctrl.signal)
       // The document may have been edited while the call ran; anchor the
       // flags to what it says now.
       const now = reanchor(session, await liveText(documentId))
@@ -147,7 +149,7 @@ export const useReview = create<ReviewState>()((set, get) => ({
                 state: 'error',
                 code: 'timeout',
                 message: `No response within ${REVIEW_TIMEOUT_MS / 1000} seconds`,
-                detail: `The request to OpenRouter was abandoned after ${REVIEW_TIMEOUT_MS / 1000} s without an answer. The model or its provider may be queued or slow.`,
+                detail: `The request to ${PROVIDERS[settings.provider].label} was abandoned after ${REVIEW_TIMEOUT_MS / 1000} s without an answer. The model or its provider may be queued or slow.`,
               },
             },
           })

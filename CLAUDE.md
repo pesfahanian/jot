@@ -17,7 +17,7 @@ Two more documents exist for deep detail on specific features, referenced from t
 - Nothing in the AI Style Review feature auto-applies. Every flag needs an explicit terminal decision before the document changes. (ADR-009)
 - No "unsaved" state anywhere in the UI. Every edit persists continuously; there is no dirty/clean distinction to represent. (ADR-008)
 - Tags are six fixed colors, metadata-only, one per document. No folders, no free text, no parsing document content for tags. (ADR-007)
-- No backend, anywhere. AI calls go straight from the browser to OpenRouter using the user's own key. (ADR-004)
+- No backend, anywhere. AI calls go straight from the browser to the selected provider — OpenRouter or Google AI Studio — using the user's own key. (ADR-004 + amendment)
 - IndexedDB only. Don't reach for the File System Access API — it's Chromium-only and was explicitly rejected for that reason. (ADR-003)
 - Light and dark share identical shapes, spacing, and radii. Only color differs between them. (ADR-006)
 - CodeMirror 6, not Monaco. `@replit/codemirror-vscode-keymap` supplies VSCode keybinding parity. (ADR-002)
@@ -43,7 +43,7 @@ Scaffolded in T0.1. Package manager is pnpm (pinned via `packageManager` in `pac
 - `src/state/` — `workspace.ts` (zustand: panes/tabs/focus/sidebar/toast; layout persisted to the `workspace` table), `actions.ts` (new/rename/color/pin/delete-with-undo/import), `theme.ts` (light/dark/system preference), `hooks.ts` (live document list).
 - `src/editor/sessions.ts` — one shared session per open document, so the same document in two panes stays in step and has one autosave.
 - `src/lib/docList.ts` — pure sort / OR color filter / search logic (T6.2 unit-test target); `src/lib/export.ts` — md / plain-text / PDF export; `src/lib/counts.ts` — status-bar counts.
-- `src/review/` — Style Review flag production: `ruleset.ts` (bundled rule files, parsed tables), `passA.ts` (client rules), `sharedCall.ts` + `openrouter.ts` (the one OpenRouter call), `passB.ts` (mode arithmetic), `assemble.ts` (→ ReviewFlag), `model.ts` (decision state machine, preview/apply — T6.2 unit-test target), `pipeline.ts`.
+- `src/review/` — Style Review flag production: `ruleset.ts` (bundled rule files, parsed tables), `passA.ts` (client rules), `sharedCall.ts` (the one provider call) + `providers/` (OpenRouter, Google AI Studio; `request.ts` holds the shared error type), `passB.ts` (mode arithmetic), `assemble.ts` (→ ReviewFlag), `model.ts` (decision state machine, preview/apply — T6.2 unit-test target), `pipeline.ts`.
 - `src/components/review/` — review UI: `ReviewView.tsx` (toolbar, locked original, preview, log), `Bubble.tsx`, `spans.tsx`, `KeyPanel.tsx`, `Keycap.tsx` (the one elevation exception, ground fixed to panel). `src/state/review.ts` — runs, sessions (persisted, resumable), lock, key panel.
 - `src/dev/` — dev-only design specimens, e.g. `/?specimen=keycap`; excluded from production builds.
 - `docs/design/` — design canvases from the Claude Design project (open via the dev server, e.g. `/docs/design/Jot%20Missing%20Flows.dc.html`).

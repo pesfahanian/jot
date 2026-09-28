@@ -2,7 +2,9 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Check, KeyRound, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { db, type JotDocument } from '@/lib/db'
+import type { JotDocument } from '@/lib/db'
+import { getSettings, providerKey } from '@/lib/settings'
+import { PROVIDERS } from '@/review/providers'
 import {
   arrangeDocuments,
   colorCounts,
@@ -127,7 +129,9 @@ function FileRow({ doc, selected, now }: { doc: JotDocument; selected: boolean; 
 // provider role, not OpenRouter, since more providers are planned. Two
 // states — key set (tick) or not set (cross); the panel has the details.
 function KeyFooter() {
-  const key = useLiveQuery(() => db.settings.get('settings').then((s) => s?.openRouterApiKey ?? null), [])
+  const settings = useLiveQuery(() => getSettings(), [])
+  const provider = PROVIDERS[settings?.provider ?? 'openrouter']
+  const key = settings ? providerKey(settings).key : null
   const open = useReview((s) => s.keyPanel.open)
   const openKeyPanel = useReview((s) => s.openKeyPanel)
   const closeKeyPanel = useReview((s) => s.closeKeyPanel)
@@ -136,7 +140,7 @@ function KeyFooter() {
     <button
       type="button"
       data-key-cell=""
-      title={set ? 'AI provider: OpenRouter key set' : 'AI provider: no key set'}
+      title={`AI provider: ${provider.label} — ${set ? 'key set' : 'no key set'}`}
       onClick={() => (open ? closeKeyPanel() : openKeyPanel('cell'))}
       className={cn(
         'flex h-[30px] flex-none items-center gap-2 border-t border-border pr-3 pl-3.5 font-mono text-[11.5px] text-secondary-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',

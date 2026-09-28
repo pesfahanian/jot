@@ -4,9 +4,10 @@ import { ErrorDetail } from '@/components/review/ErrorDetail'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { openContent } from '@/editor/sessions'
-import { db, type JotDocument, type ReviewFlag } from '@/lib/db'
+import type { JotDocument, ReviewFlag } from '@/lib/db'
 import { atStake, standing } from '@/review/model'
 import { countText, groupDigits } from '@/lib/counts'
+import { getSettings, providerKey } from '@/lib/settings'
 import { cn } from '@/lib/utils'
 import { useNow } from '@/state/hooks'
 import { useReview } from '@/state/review'
@@ -87,8 +88,8 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
   const retry = useReview((s) => s.run)
   const dismiss = useReview((s) => s.dismissError)
   const cancel = useReview((s) => s.cancel)
-  const settings = useLiveQuery(() => db.settings.get('settings'), [])
-  const hasKey = !!settings?.openRouterApiKey
+  const settings = useLiveQuery(() => getSettings(), [])
+  const hasKey = !!settings && !!providerKey(settings).key
   const empty = text.trim().length === 0
   const now = useNow(1000)
   // Look for a resumable session once per document.
