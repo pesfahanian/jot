@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import type { JotDocument, ReviewFlag, ReviewSession } from '@/lib/db'
 import { cn } from '@/lib/utils'
 import { applyPlan, canApply, counts, describe } from '@/review/model'
@@ -185,19 +185,47 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
     }
   }, [])
 
-  // The bubble opens under its span on the right; a flag with nothing to
-  // point at there (a note, or a span superseded by a wider rewrite) opens
-  // at the top of the pane.
-  useLayoutEffect(() => {
+  // The bubble floats over the right pane in its own layer, so it never
+  // adds to the pane's scroll height (a taller right pane is what threw the
+  // two panes' scroll sync out, and pushed a last-line bubble off the
+  // bottom). It opens under its span, or above it when there's no room
+  // below, and follows the span as the pane scrolls. A flag with nothing to
+  // point at (a note, or a span superseded by a wider rewrite) opens at the
+  // top of the pane.
+  const overlay = useRef<HTMLDivElement>(null)
+  const place = useCallback(() => {
     const pane = right.current
-    if (!pane || !active) return setBubblePos(null)
-    const el = pane.querySelector<HTMLElement>(`[data-flag-key="${active.key}"]`)
-    if (!el) return setBubblePos({ left: 28, top: pane.scrollTop + 16 })
-    const p = pane.getBoundingClientRect()
-    const r = el.getBoundingClientRect()
-    const leftPx = Math.max(12, Math.min(r.left - p.left, p.width - 432))
-    setBubblePos({ left: leftPx, top: r.bottom - p.top + pane.scrollTop + 8 })
-  }, [active, flags, logOpen])
+    const layer = overlay.current
+    if (!pane || !layer || !activeKey) return setBubblePos(null)
+    const el = pane.querySelector<HTMLElement>(`[data-flag-key="${activeKey}"]`)
+    const next = (() => {
+      if (!el) return { left: 28, top: 16 }
+      const o = layer.getBoundingClientRect()
+      const r = el.getBoundingClientRect()
+      const h = layer.querySelector<HTMLElement>('[data-review-bubble]')?.offsetHeight ?? 180
+      const left = Math.round(Math.max(12, Math.min(r.left - o.left, o.width - 432)))
+      const below = r.bottom - o.top + 8
+      const above = r.top - o.top - 8 - h
+      return { left, top: Math.round(below + h > o.height - 8 && above >= 8 ? above : below) }
+    })()
+    setBubblePos((prev) => (prev && prev.left === next.left && prev.top === next.top ? prev : next))
+  }, [activeKey])
+  // Measure after every render (the bubble's own height decides above or
+  // below); the equality check stops it looping.
+  useLayoutEffect(() => place())
+  useEffect(() => {
+    const pane = right.current
+    pane?.addEventListener('scroll', place)
+    window.addEventListener('resize', place)
+    return () => {
+      pane?.removeEventListener('scroll', place)
+      window.removeEventListener('resize', place)
+    }
+  }, [place])
+  // Opening a flag brings its span into view, so the bubble has room.
+  useEffect(() => {
+    if (activeKey) right.current?.querySelector<HTMLElement>(`[data-flag-key="${activeKey}"]`)?.scrollIntoView({ block: 'nearest' })
+  }, [activeKey])
 
   // Click-outside closes the bubble (spec §5).
   useEffect(() => {
@@ -316,14 +344,25 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
         <div className="w-px flex-none bg-border" />
         <section className="flex min-w-0 flex-1 flex-col bg-document" data-review-preview="">
           <PaneHeader title="result — preview" note={c.decided ? `${c.decided} of ${c.proposed} decided` : 'click a span to decide'} accent />
-          <div ref={right} className={cn(textPane, 'relative')}>
-            <PreviewText source={session.source} flags={flags} activeKey={activeKey} onOpen={setActive} />
-            {c.proposed === 0 && (
-              <div className="mt-6 font-sans text-[13px] whitespace-normal text-muted-foreground">Nothing to flag — this document passes every rule.</div>
-            )}
-            {active && bubblePos && (
-              <Bubble key={active.key} flag={active} style={bubblePos} onClose={() => setActive(null)} onDecide={(d, text) => decide(doc.id, active.key, d, text)} />
-            )}
+          <div className="relative flex min-h-0 flex-auto flex-col">
+            <div ref={right} className={textPane}>
+              <PreviewText source={session.source} flags={flags} activeKey={activeKey} onOpen={setActive} />
+              {c.proposed === 0 && (
+                <div className="mt-6 font-sans text-[13px] whitespace-normal text-muted-foreground">Nothing to flag — this document passes every rule.</div>
+              )}
+            </div>
+            {/* The bubble's layer: over the text, never part of its scroll. */}
+            <div ref={overlay} className="pointer-events-none absolute inset-0 overflow-hidden">
+              {active && (
+                <Bubble
+                  key={active.key}
+                  flag={active}
+                  style={{ ...(bubblePos ?? { left: 0, top: 0, visibility: 'hidden' }), pointerEvents: 'auto' }}
+                  onClose={() => setActive(null)}
+                  onDecide={(d, text) => decide(doc.id, active.key, d, text)}
+                />
+              )}
+            </div>
           </div>
         </section>
         {logOpen && <ReviewLog flags={flags} activeKey={activeKey} onJump={jump} onClose={toggleLog} />}
