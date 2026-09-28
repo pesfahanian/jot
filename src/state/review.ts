@@ -11,7 +11,10 @@ import { useWorkspace } from './workspace'
 // AI Style Review state: which documents are being reviewed or failed,
 // which pane shows a review, the open flag, and the key panel.
 
-export type RunState = { state: 'running'; startedAt: number } | { state: 'error'; code: string; message: string }
+export type RunState =
+  | { state: 'running'; startedAt: number }
+  // detail: the full response as received, shown in the error panel.
+  | { state: 'error'; code: string; message: string; detail: string }
 
 interface ReviewState {
   runs: Record<string, RunState>
@@ -105,7 +108,8 @@ export const useReview = create<ReviewState>()((set, get) => ({
     } catch (e) {
       if ((e as Error).name === 'AbortError') return
       const code = e instanceof ReviewRequestError ? String(e.status === 'network' ? 'offline' : e.status) : 'error'
-      set({ runs: { ...get().runs, [documentId]: { state: 'error', code, message: (e as Error).message } } })
+      const detail = e instanceof ReviewRequestError && e.raw ? e.raw : String((e as Error).stack ?? e)
+      set({ runs: { ...get().runs, [documentId]: { state: 'error', code, message: (e as Error).message, detail } } })
     } finally {
       if (controllers[documentId] === ctrl) delete controllers[documentId]
     }

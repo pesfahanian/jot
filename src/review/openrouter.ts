@@ -26,9 +26,22 @@ export async function testKey(key: string): Promise<KeyTest> {
 
 export class ReviewRequestError extends Error {
   readonly status: number | 'network' | 'parse'
-  constructor(message: string, status: number | 'network' | 'parse') {
+  // The full response (or failure) as received, for the error panel —
+  // OpenRouter puts the provider's own reason in error.metadata.
+  readonly raw: string
+  constructor(message: string, status: number | 'network' | 'parse', raw = '') {
     super(message)
     this.status = status
+    this.raw = raw
+  }
+}
+
+// Pretty-prints JSON bodies; anything else comes back as-is.
+function prettyBody(text: string): string {
+  try {
+    return JSON.stringify(JSON.parse(text), null, 2)
+  } catch {
+    return text
   }
 }
 
@@ -57,19 +70,25 @@ export async function chat(key: string, messages: ChatMessage[], signal?: AbortS
     })
   } catch (e) {
     if ((e as Error).name === 'AbortError') throw e
-    throw new ReviewRequestError('Could not reach OpenRouter', 'network')
+    throw new ReviewRequestError('Could not reach OpenRouter', 'network', String(e))
   }
+  const text = await res.text()
   if (!res.ok) {
     let detail = ''
     try {
-      detail = ((await res.json()) as { error?: { message?: string } }).error?.message ?? ''
+      detail = (JSON.parse(text) as { error?: { message?: string } }).error?.message ?? ''
     } catch {
       /* body wasn't JSON */
     }
-    throw new ReviewRequestError(detail || `OpenRouter returned ${res.status}`, res.status)
+    throw new ReviewRequestError(detail || `OpenRouter returned ${res.status}`, res.status, `HTTP ${res.status} ${res.statusText}\n\n${prettyBody(text)}`)
   }
-  const body = (await res.json()) as { choices?: { message?: { content?: string } }[] }
+  let body: { choices?: { message?: { content?: string } }[] }
+  try {
+    body = JSON.parse(text)
+  } catch {
+    throw new ReviewRequestError('OpenRouter returned a response that is not JSON', 'parse', text)
+  }
   const content = body.choices?.[0]?.message?.content
-  if (!content) throw new ReviewRequestError('Empty response from the model', 'parse')
+  if (!content) throw new ReviewRequestError('Empty response from the model', 'parse', prettyBody(text))
   return content
 }

@@ -126,12 +126,12 @@ const FAMILIES: Family[] = ['tier1', 'tier1b', 'tier2', 'spelling', 'grammar', '
 export function parseSharedResponse(raw: string): SharedResponse {
   const start = raw.indexOf('{')
   const end = raw.lastIndexOf('}')
-  if (start === -1 || end <= start) throw new ReviewRequestError('The model did not return JSON', 'parse')
+  if (start === -1 || end <= start) throw new ReviewRequestError('The model did not return JSON', 'parse', raw)
   let obj: Record<string, unknown>
   try {
     obj = JSON.parse(raw.slice(start, end + 1))
   } catch {
-    throw new ReviewRequestError('The model returned malformed JSON', 'parse')
+    throw new ReviewRequestError('The model returned malformed JSON', 'parse', raw)
   }
   const arr = (v: unknown) => (Array.isArray(v) ? (v as Record<string, unknown>[]) : [])
   const str = (v: unknown) => (typeof v === 'string' ? v : null)

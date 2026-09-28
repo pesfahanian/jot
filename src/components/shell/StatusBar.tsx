@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { ErrorDetail } from '@/components/review/ErrorDetail'
 import { useEffect } from 'react'
 import { openContent } from '@/editor/sessions'
 import { db, type JotDocument } from '@/lib/db'
@@ -56,9 +57,14 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
     )
   } else if (run?.state === 'error') {
     body = (
-      <span title={run.message} className="flex h-[18px] items-center gap-1.5 rounded-sm border border-destructive/60 bg-destructive/10 pr-1 pl-[7px]">
-        <span className="text-destructive">review failed</span>
-        <span className="text-muted-foreground">{run.code}</span>
+      <span className="flex h-[18px] items-center gap-1.5 rounded-sm border border-destructive/60 bg-destructive/10 pr-1 pl-[7px]">
+        {/* Hover for the full response (debug). */}
+        <ErrorDetail message={run.message} detail={run.detail}>
+          <span className="flex cursor-help items-center gap-1.5" tabIndex={0}>
+            <span className="text-destructive">review failed</span>
+            <span className="text-muted-foreground">{run.code}</span>
+          </span>
+        </ErrorDetail>
         <button type="button" onClick={() => void retry(doc.id)} className="underline underline-offset-2 hover:text-foreground">
           retry
         </button>
