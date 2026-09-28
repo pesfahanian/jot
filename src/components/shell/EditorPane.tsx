@@ -64,16 +64,20 @@ function ExportItems({ doc }: { doc: JotDocument }) {
 
 function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: boolean }) {
   const splitRight = useWorkspace((s) => s.splitRight)
+  const toggleRender = useWorkspace((s) => s.toggleRender)
   const paneCount = useWorkspace((s) => s.panes.length)
+  const rendered = useWorkspace((s) => !!doc && s.panes.some((p) => p.render && p.active === doc.id))
   const canSplit = !!doc && paneCount < MAX_PANES
+  // Render toggles this document's rendered pane (2g); opening one needs a
+  // free pane slot.
+  const canRender = !!doc && (rendered || paneCount < MAX_PANES)
+  const renderTitle = rendered ? 'close the rendered view' : canRender ? 'show this document rendered, beside it' : 'close a pane to make room for the rendered view'
   const split = (
     <button type="button" className={control} disabled={!canSplit} onClick={splitRight} title="open this document in a new pane to the right">
       <SplitIcon />
       {!narrow && 'split'}
     </button>
   )
-  // "render" (2g) is drawn but not yet ticketed — present, inert.
-  const renderTitle = 'rendered view — not built yet'
   if (narrow) {
     return (
       <>
@@ -86,8 +90,8 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
           </DropdownMenuTrigger>
           {doc && (
             <DropdownMenuContent align="end" className="w-[232px]">
-              <DropdownMenuItem disabled title={renderTitle}>
-                render
+              <DropdownMenuItem disabled={!canRender} title={renderTitle} onSelect={toggleRender}>
+                {rendered ? 'close render' : 'render'}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">export</div>
@@ -101,7 +105,14 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
   return (
     <>
       {split}
-      <button type="button" className={control} disabled title={renderTitle}>
+      <button
+        type="button"
+        className={cn(control, rendered && 'border-foreground text-foreground')}
+        disabled={!canRender}
+        aria-pressed={rendered}
+        title={renderTitle}
+        onClick={toggleRender}
+      >
         render
       </button>
       <DropdownMenu>

@@ -21,6 +21,20 @@ export interface DocumentSession {
 
 const sessions = new Map<string, DocumentSession & { views: Set<EditorView>; autosave: Autosave }>()
 
+// Followers of a document's live text that don't own an editor (the
+// rendered pane). Keyed by document, so they outlive any one session.
+const followers = new Map<string, Set<Listener>>()
+
+export function followContent(documentId: string, fn: Listener): () => void {
+  const set = followers.get(documentId) ?? new Set<Listener>()
+  set.add(fn)
+  followers.set(documentId, set)
+  return () => {
+    set.delete(fn)
+    if (set.size === 0) followers.delete(documentId)
+  }
+}
+
 export function getSession(documentId: string, initialContent: string): DocumentSession {
   const existing = sessions.get(documentId)
   if (existing) return existing
@@ -62,6 +76,7 @@ export function getSession(documentId: string, initialContent: string): Document
       }
       autosave.write(session.content)
       for (const fn of listeners) fn(session.content)
+      for (const fn of followers.get(documentId) ?? []) fn(session.content)
     },
     subscribe(fn: Listener) {
       listeners.add(fn)

@@ -72,6 +72,8 @@ export interface PaneLayout {
   id: string
   tabs: string[]
   active: string | null
+  // A rendered pane (2g): shows its one document rendered, beside an editor.
+  render?: boolean
 }
 
 export interface Workspace {

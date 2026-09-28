@@ -6,6 +6,7 @@ import type { ThemeState } from '@/state/theme'
 import { useWorkspace } from '@/state/workspace'
 import { KeyPanel } from '@/components/review/KeyPanel'
 import { EditorPane, PaneEmpty } from './EditorPane'
+import { RenderPane } from './RenderPane'
 import { Sidebar } from './Sidebar'
 import { StatusBar } from './StatusBar'
 import { Toast } from './Toast'
@@ -117,7 +118,10 @@ export function Shell({ docs, theme }: { docs: JotDocument[]; theme: ThemeState 
           {docs.length === 0 ? (
             <FirstRun />
           ) : (
-            panes.map((p) => <EditorPane key={p.id} pane={p} docsById={docsById} paneCount={panes.length} />)
+            panes.map((p) => {
+              const doc = p.render && p.active ? docsById.get(p.active) : undefined
+              return doc ? <RenderPane key={p.id} pane={p} doc={doc} /> : <EditorPane key={p.id} pane={p} docsById={docsById} paneCount={panes.length} />
+            })
           )}
           <Toast />
         </div>

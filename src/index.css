@@ -284,3 +284,40 @@
   100% { transform: translateX(220%); }
 }
 .jot-running-bar { animation: jot-running 1.1s ease-in-out infinite; }
+
+/* ── Rendered pane (2g, §1.8) — the same typography PDF export prints in.
+   Public Sans 14.5 / 1.58 body, 19/600 headings, Source Code Pro 12.5 code
+   on the inset ground; measure capped at 520px by the container. ───────── */
+@layer components {
+    .jot-rendered { font-family: var(--font-sans); font-size: 14.5px; line-height: 1.58; color: var(--foreground); overflow-wrap: anywhere; }
+    .jot-rendered > div > :first-child { margin-top: 0; }
+    .jot-rendered h1, .jot-rendered h2, .jot-rendered h3, .jot-rendered h4, .jot-rendered h5, .jot-rendered h6 {
+        font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; margin: 1.4em 0 0.5em;
+    }
+    .jot-rendered h1 { font-size: 22px; }
+    .jot-rendered h2 { font-size: 19px; }
+    .jot-rendered h3 { font-size: 16px; }
+    .jot-rendered h4, .jot-rendered h5, .jot-rendered h6 { font-size: 14.5px; }
+    .jot-rendered p, .jot-rendered ul, .jot-rendered ol, .jot-rendered blockquote, .jot-rendered pre, .jot-rendered table { margin: 0 0 0.9em; }
+    .jot-rendered ul { list-style: disc; padding-left: 1.4em; }
+    .jot-rendered ol { list-style: decimal; padding-left: 1.6em; }
+    .jot-rendered ul ul { list-style: circle; }
+    .jot-rendered li > ul, .jot-rendered li > ol { margin: 0.2em 0 0; }
+    .jot-rendered li + li { margin-top: 0.2em; }
+    .jot-rendered li:has(> input[type="checkbox"]) { list-style: none; margin-left: -1.4em; }
+    .jot-rendered input[type="checkbox"] { margin: 0 0.5em 0 0; vertical-align: -1px; accent-color: var(--primary); }
+    .jot-rendered a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border-strong); }
+    .jot-rendered a:hover { text-decoration-color: currentColor; }
+    .jot-rendered strong { font-weight: 600; }
+    .jot-rendered del { color: var(--muted-foreground); }
+    .jot-rendered code, .jot-rendered pre { font-family: var(--font-mono); font-size: 12.5px; }
+    .jot-rendered code { background: var(--inset); padding: 1px 4px; border-radius: 3px; }
+    .jot-rendered pre { background: var(--inset); padding: 10px 12px; border-radius: 6px; overflow-x: auto; line-height: 1.55; }
+    .jot-rendered pre code { background: none; padding: 0; }
+    .jot-rendered blockquote { border-left: 2px solid var(--border-strong); padding-left: 12px; color: var(--secondary-foreground); }
+    .jot-rendered hr { border: 0; border-top: 1px solid var(--border); margin: 1.6em 0; }
+    .jot-rendered img { max-width: 100%; border-radius: 4px; }
+    .jot-rendered table { border-collapse: collapse; display: block; overflow-x: auto; max-width: 100%; font-size: 13.5px; }
+    .jot-rendered th, .jot-rendered td { border: 1px solid var(--border); padding: 5px 10px; text-align: left; }
+    .jot-rendered th { font-weight: 600; background: var(--inset); }
+}

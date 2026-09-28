@@ -229,7 +229,9 @@ export const useReview = create<ReviewState>()((set, get) => ({
 function openHere(documentId: string) {
   const ws = useWorkspace.getState()
   const focused = ws.panes.find((p) => p.id === ws.focusedPaneId)
-  const pane = focused?.active === documentId ? focused : (ws.panes.find((p) => p.active === documentId) ?? focused)
+  // Never a rendered pane: a review needs the editor underneath it.
+  const pane =
+    focused?.active === documentId && !focused.render ? focused : (ws.panes.find((p) => p.active === documentId && !p.render) ?? ws.panes.find((p) => !p.render))
   if (!pane) return
   if (pane.active !== documentId) ws.openDocument(documentId, { paneId: pane.id })
   const s = useReview.getState()

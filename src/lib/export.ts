@@ -1,5 +1,6 @@
 import { markdownLanguage } from '@codemirror/lang-markdown'
 import type { SyntaxNode } from '@lezer/common'
+import { renderHtml } from './render'
 
 // Export (T3.6, 6a): three formats, triggered straight from the menu — no
 // intermediate dialog of Jot's own.
@@ -135,25 +136,9 @@ export function toPlainText(md: string): string {
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n'
 }
 
-// PDF goes through the renderer (6a's note): markdown → HTML, set in the
-// rendered-pane typography (§1.8), then the browser's own print-to-PDF.
-// Raw HTML in the document is shown as text, never executed.
-// marked loads on the first PDF export only.
-let renderer: Promise<(md: string) => string> | undefined
-export function renderHtml(md: string): Promise<string> {
-  renderer ??= import('marked').then(({ Marked }) => {
-    const m = new Marked({ gfm: true })
-    m.use({
-      renderer: {
-        html({ text }) {
-          return text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        },
-      },
-    })
-    return (src: string) => m.parse(src, { async: false })
-  })
-  return renderer.then((render) => render(md))
-}
+// PDF goes through the renderer (6a's note, lib/render.ts — the same one
+// the rendered pane uses): markdown → HTML, set in the rendered-pane
+// typography (§1.8), then the browser's own print-to-PDF.
 
 const printCss = `
   @page { margin: 22mm 20mm; }
