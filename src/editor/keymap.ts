@@ -1,4 +1,7 @@
 import { simplifySelection } from '@codemirror/commands'
+import { insertNewlineContinueMarkupCommand } from '@codemirror/lang-markdown'
+import { syntaxTree } from '@codemirror/language'
+import type { StateCommand } from '@codemirror/state'
 import { findNext, findPrevious } from '@codemirror/search'
 import type { KeyBinding } from '@codemirror/view'
 import { vscodeKeymap } from '@replit/codemirror-vscode-keymap'
@@ -21,4 +24,23 @@ export const supplementKeymap: readonly KeyBinding[] = [
 
 export const escapeFallback: readonly KeyBinding[] = [{ key: 'Escape', run: simplifySelection }]
 
-export const editorKeymap: readonly KeyBinding[] = [...vscodeKeymap, ...supplementKeymap, ...escapeFallback]
+// List continuation (open-decisions #4, owner: "like stackedit"). Enter in a
+// list item starts the next one — "- " continues as "- ", "1." as "2.",
+// "- [ ]" as a fresh task — and Enter on an empty item ends the list.
+// It runs ahead of the vscode keymap's Enter but acts only when every
+// cursor sits in a list item; anywhere else it declines and plain Enter
+// runs untouched. (Blockquotes are left alone: lists only.)
+const continueList = insertNewlineContinueMarkupCommand({ nonTightLists: false })
+const inListItem: StateCommand = ({ state }) =>
+  state.selection.ranges.every((r) => {
+    for (let n: ReturnType<ReturnType<typeof syntaxTree>['resolveInner']> | null = syntaxTree(state).resolveInner(r.head, -1); n; n = n.parent) {
+      if (n.name === 'ListItem') return true
+      if (n.name === 'FencedCode' || n.name === 'CodeBlock' || n.name === 'Blockquote') return false
+    }
+    return false
+  })
+const listEnter: StateCommand = (target) => inListItem(target) && continueList(target)
+
+export const listContinuation: readonly KeyBinding[] = [{ key: 'Enter', run: listEnter }]
+
+export const editorKeymap: readonly KeyBinding[] = [...listContinuation, ...vscodeKeymap, ...supplementKeymap, ...escapeFallback]

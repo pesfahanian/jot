@@ -5,14 +5,16 @@
 //    default keymaps — this lists what layering them *would* collide on,
 //    as the evidence for that choice.
 // 2. Our own additions (src/editor/keymap.ts) must not land on any key the
-//    vscode keymap binds, except the declared Escape fallback.
+//    vscode keymap binds, except the declared Escape fallback and the
+//    declared list-continuation Enter (which only acts inside list items and
+//    otherwise falls through to the vscode keymap's Enter).
 import { vscodeKeymap } from '@replit/codemirror-vscode-keymap'
 import { defaultKeymap, historyKeymap } from '@codemirror/commands'
 import { searchKeymap } from '@codemirror/search'
 import { foldKeymap } from '@codemirror/language'
 import { completionKeymap, closeBracketsKeymap } from '@codemirror/autocomplete'
 import { lintKeymap } from '@codemirror/lint'
-import { supplementKeymap, escapeFallback } from '../src/editor/keymap.ts'
+import { supplementKeymap, escapeFallback, listContinuation } from '../src/editor/keymap.ts'
 
 const platforms = ['mac', 'win', 'linux']
 const norm = (k) => k.split(/-(?!$)/).map((p) => p.toLowerCase()).sort().join('-')
@@ -44,6 +46,12 @@ for (const platform of platforms) {
     if (k !== 'escape') {
       failures++
       console.log(`  COLLISION ${platform}: unexpected fallback key ${k}`)
+    }
+  }
+  for (const k of keySet(listContinuation, platform)) {
+    if (k !== 'enter') {
+      failures++
+      console.log(`  COLLISION ${platform}: unexpected list-continuation key ${k}`)
     }
   }
 }
