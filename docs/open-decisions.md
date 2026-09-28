@@ -9,12 +9,12 @@ Decisions the docs don't settle. Each has a working choice already in the code s
 | 3 | Active-tab marker edge — audit (drift #2) recommends top; final frames 8a/8b draw bottom | Bottom, as 8a/8b | Phase 3 |
 | 4 | List continuation on Enter (`- item` ⏎ → next bullet) — CM6's markdown keymap, excluded by the zero-collision rule | Off | Phase 2 |
 | 5 | Proofing flags (spelling / grammar / punctuation) — PRD and T5.4 expect them; the rule set never produces them | Undecided — needed before T5.4 | Addendum |
-| 6 | OpenRouter model for the shared review call — no setting, no spec | Undecided — needed before T5.10 | Addendum |
+| 6 | OpenRouter model for the shared review call — no setting, no spec | **Decided (owner):** free model for now — `google/gemma-4-31b-it:free` | Addendum |
 | 7 | Verbatim `span` matching when the same text occurs more than once | First unclaimed occurrence in document order, unless the interaction spec says otherwise | Addendum |
 | 8 | T1-04 (markdown leakage) in a markdown editor | Conservative: only markup inside flowing prose | Addendum |
 | 9 | PRD §7 — undecided review flags persist and are resumable | Build as proposed (T5.6 requires it) | PRD |
 | 10 | PRD §7 — plain-text export strips markdown | Built as proposed (T3.6) | PRD |
-| 11 | Deployment target (T0.3) | Deferred until development is complete | Phase 0 |
+| 11 | Deployment target (T0.3) | **Decided (owner):** discussed at the very end, after the owner has tested everything | Phase 0 |
 | 12 | Undo-toast window length | 8 seconds | Phase 3 |
 | 13 | Tab overflow | Strip scrolls sideways + "+N ▾" list of every tab | Phase 3 |
 | 14 | Row "⋯" menu button (3e, an alternative to right-click) | Not built; right-click only | Phase 3 |
