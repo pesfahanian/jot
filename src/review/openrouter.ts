@@ -4,15 +4,17 @@
 const BASE = 'https://openrouter.ai/api/v1'
 
 // The model for the shared review call. Owner's choice (open-decisions #6):
-// a light, fast model while the feature is being proven. Free models were
-// tried first — both Gemma 4 versions were rate-limited in Google AI
-// Studio's shared pool, and Nemotron 3 Ultra ran past four minutes. Model
-// and provider choice is a to-do for later.
-export const REVIEW_MODEL = 'google/gemini-3.5-flash-lite'
+// free, and light while the feature is being proven — the only free Qwen.
+// Earlier free picks failed in testing (Gemma 4: shared-pool 429s;
+// Nemotron 3 Ultra: 4+ minutes). Model and provider choice is a to-do.
+export const REVIEW_MODEL = 'qwen/qwen3.8-27b:free'
 // Whether the model accepts response_format: json_object (OpenRouter's model
 // list says so per model). Without it, the prompt's "one JSON object and
 // nothing else" and the tolerant parser carry the format.
-const REVIEW_MODEL_JSON_MODE = true
+const REVIEW_MODEL_JSON_MODE = false
+// A thinking model: its reasoning is switched off so the answer starts
+// straight away and fits inside the review timeout.
+const REVIEW_MODEL_REASONING_OFF = true
 
 export type KeyTest = { ok: true } | { ok: false; reason: 'rejected' | 'offline'; status?: number }
 
@@ -72,6 +74,7 @@ export async function chat(key: string, messages: ChatMessage[], signal?: AbortS
         messages,
         temperature: 0,
         ...(REVIEW_MODEL_JSON_MODE ? { response_format: { type: 'json_object' } } : {}),
+        ...(REVIEW_MODEL_REASONING_OFF ? { reasoning: { enabled: false } } : {}),
       }),
     })
   } catch (e) {
