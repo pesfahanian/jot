@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Monitor, Moon, Sun } from 'lucide-react'
+import { Monitor, Moon, Sparkles, Sun } from 'lucide-react'
 import { ErrorDetail } from '@/components/review/ErrorDetail'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -18,7 +18,7 @@ import { focusedPane, useWorkspace } from '@/state/workspace'
 // Values sit in tabular figures inside that width.
 function Cell({ label, value, width, className }: { label: string; value: string; width: string; className?: string }) {
   return (
-    <div className={cn('flex items-center gap-1.5 border-l border-border-subtle px-[11px]', className)}>
+    <div className={cn('flex items-center gap-1 border-l border-border-subtle px-2', className)}>
       <span className="font-normal text-muted-foreground">{label}</span>
       <span className="tabular-nums" style={{ minWidth: width }}>
         {value}
@@ -72,12 +72,13 @@ function StalePrompt({ documentId, flags, children }: { documentId: string; flag
   )
 }
 
-// Review control (2f): one fixed slot, left of everything else, holding one
-// width across all four states so the bar never reflows.
-//   idle      accent dot — a non-empty document and a usable key
-//   disabled  mute dot — no key (click opens the key panel, 7b) or nothing
+// Review control (2f): one slot filling the rest of the bar's left block,
+// holding one width across all its states so the bar never reflows.
+//   idle      accent icon — a non-empty document and a key
+//   disabled  mute icon — no key (click opens the key panel, 7b) or nothing
 //             to review (empty document: no click target at all)
-//   running   bar + elapsed seconds; editing continues, nothing blocks
+//   running   bar + elapsed seconds + cancel; editing continues, nothing
+//             blocks; gives up after a minute (timeout → error)
 //   error     destructive wash, the status code, retry and dismiss
 function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
   const run = useReview((s) => s.runs[doc.id])
@@ -85,6 +86,7 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
   const requestReview = useReview((s) => s.requestReview)
   const retry = useReview((s) => s.run)
   const dismiss = useReview((s) => s.dismissError)
+  const cancel = useReview((s) => s.cancel)
   const settings = useLiveQuery(() => db.settings.get('settings'), [])
   const hasKey = !!settings?.openRouterApiKey
   const empty = text.trim().length === 0
@@ -96,11 +98,14 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
   let body
   if (run?.state === 'running') {
     body = (
-      <span className="flex h-[18px] items-center gap-1.5 rounded-sm border border-border-strong px-[7px]">
+      <span className="flex h-[18px] items-center gap-1.5 rounded-sm border border-border-strong pr-1 pl-[7px]">
         <span className="flex h-[3px] w-5 overflow-hidden rounded-full bg-ink-mute">
           <span className="jot-running-bar w-[45%] rounded-full bg-primary" />
         </span>
-        reviewing <span className="text-muted-foreground tabular-nums">{Math.max(0, Math.floor((now - run.startedAt) / 1000))}s</span>
+        Reviewing <span className="text-muted-foreground tabular-nums">{Math.max(0, Math.floor((now - run.startedAt) / 1000))}s</span>
+        <button type="button" aria-label="cancel review" title="cancel review" onClick={() => cancel(doc.id)} className="px-0.5 text-muted-foreground hover:text-foreground">
+          ×
+        </button>
       </span>
     )
   } else if (run?.state === 'error') {
@@ -109,12 +114,12 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
         {/* Hover for the full response (debug). */}
         <ErrorDetail message={run.message} detail={run.detail}>
           <span className="flex cursor-help items-center gap-1.5" tabIndex={0}>
-            <span className="text-destructive">review failed</span>
-            <span className="text-muted-foreground">{run.code}</span>
+            <span className="text-destructive">{run.code === 'timeout' ? 'Timed out' : 'Failed'}</span>
+            {run.code !== 'timeout' && <span className="text-muted-foreground">{run.code}</span>}
           </span>
         </ErrorDetail>
         <button type="button" onClick={() => void retry(doc.id)} className="underline underline-offset-2 hover:text-foreground">
-          retry
+          Retry
         </button>
         <button type="button" aria-label="dismiss" onClick={() => dismiss(doc.id)} className="px-0.5 text-muted-foreground hover:text-foreground">
           ×
@@ -144,7 +149,7 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
                 ? 'nothing to review'
                 : hasKey
                   ? 'review style'
-                  : 'add an OpenRouter key to review'
+                  : 'add an AI provider key to review'
         }
         className={cn(
           'flex h-[18px] items-center gap-1.5 rounded-sm border px-[7px]',
@@ -152,18 +157,13 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
           !empty && !hasKey && 'hover:text-foreground',
         )}
       >
-        <span
-          className={cn(
-            'size-[5px] rounded-[2px]',
-            verdict === 'stale' ? 'border border-primary' : ready || live ? 'bg-primary' : 'bg-ink-mute',
-          )}
-        />
-        {verdict === 'current' ? 'resume review' : verdict === 'stale' ? 'review outdated' : 'review style'}
+        <Sparkles size={12} strokeWidth={1.75} className={cn('flex-none', ready || live ? 'text-primary' : 'text-ink-mute')} aria-hidden />
+        {verdict === 'current' ? 'Resume review' : verdict === 'stale' ? 'Review outdated' : 'Review style'}
       </button>
     )
     body = verdict === 'stale' ? <StalePrompt documentId={doc.id} flags={session!.flags}>{button}</StalePrompt> : button
   }
-  return <div className="flex w-[200px] flex-none items-center border-r border-border-subtle px-[5px] whitespace-nowrap">{body}</div>
+  return <div className="flex min-w-0 flex-auto items-center px-[5px] whitespace-nowrap">{body}</div>
 }
 
 // Theme switch (3f): three icons — light, dark, system — with the current
@@ -176,7 +176,7 @@ const themes: { value: ThemePreference; Icon: typeof Sun }[] = [
 ]
 function ThemeCell({ preference, resolved }: { preference: ThemePreference; resolved: 'light' | 'dark' }) {
   return (
-    <div role="radiogroup" aria-label="theme" className="flex items-center gap-0.5 border-l border-border-subtle px-[7px]">
+    <div role="radiogroup" aria-label="theme" className="flex flex-none items-center gap-px border-r border-border-subtle px-[5px]">
       {themes.map(({ value, Icon }) => {
         const on = preference === value
         return (
@@ -189,7 +189,7 @@ function ThemeCell({ preference, resolved }: { preference: ThemePreference; reso
             title={value === 'system' ? `system (now ${resolved})` : value}
             onClick={() => void setTheme(value)}
             className={cn(
-              'flex h-[18px] w-[22px] items-center justify-center rounded-sm focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+              'flex h-[18px] w-5 items-center justify-center rounded-sm focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
               on ? 'bg-hover-lift text-foreground' : 'text-muted-foreground hover:text-foreground',
             )}
           >
@@ -201,9 +201,14 @@ function ThemeCell({ preference, resolved }: { preference: ThemePreference; reso
   )
 }
 
+// The left block never shrinks below what the review control's widest state
+// ("Review outdated", the error chip) needs beside the theme icons.
+const LEFT_BLOCK_MIN = 236
+
 export function StatusBar({ docsById, theme }: { docsById: Map<string, JotDocument>; theme: ThemeState }) {
   const pane = useWorkspace(focusedPane)
   const cursor = useWorkspace((s) => s.cursor)
+  const sidebarWidth = useWorkspace((s) => s.sidebarWidth)
   const doc = pane?.active ? docsById.get(pane.active) : undefined
   const text = doc ? (openContent(doc.id) ?? doc.content) : ''
   const c = countText(text)
@@ -211,13 +216,15 @@ export function StatusBar({ docsById, theme }: { docsById: Map<string, JotDocume
 
   return (
     <footer className="flex h-7 flex-none items-stretch overflow-hidden rounded-(--radius-status) border border-border-strong bg-card font-mono text-[11.5px]">
-      {/* With no document there is nothing to review or count (6d): only
-          global state remains. */}
-      {doc && (
-        <>
-          <ReviewControl doc={doc} text={text} />
-        </>
-      )}
+      {/* Theme and review share the left block, as wide as the sidebar so
+          its edge lines up with the sidebar's (never narrower than the
+          review control's widest state needs). */}
+      <div className="flex flex-none items-stretch border-r border-border-subtle" style={{ width: Math.max(sidebarWidth - 1, LEFT_BLOCK_MIN) }}>
+        <ThemeCell preference={theme.preference} resolved={theme.resolved} />
+        {/* With no document there is nothing to review or count (6d): only
+            global state remains. */}
+        {doc && <ReviewControl doc={doc} text={text} />}
+      </div>
       <div className="flex-auto" />
       {doc && (
         <>
@@ -226,10 +233,9 @@ export function StatusBar({ docsById, theme }: { docsById: Map<string, JotDocume
           <Cell label="words" value={groupDigits(c.words)} width="6ch" />
           <Cell label="lines" value={groupDigits(c.lines)} width="5ch" />
           <Cell label="paras" value={groupDigits(c.paras)} width="4ch" />
-          <Cell label="cursor" value={`${cur.line}:${cur.col}`} width="9ch" className="font-medium" />
+          <Cell label="cursor" value={`${cur.line}:${cur.col}`} width="9ch" className="pr-2.5 font-medium" />
         </>
       )}
-      <ThemeCell preference={theme.preference} resolved={theme.resolved} />
     </footer>
   )
 }

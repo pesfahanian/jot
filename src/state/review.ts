@@ -31,6 +31,7 @@ interface ReviewState {
   resumeReview(documentId: string): Promise<void>
   reviewAgain(documentId: string): Promise<void>
   run(documentId: string): Promise<void>
+  cancel(documentId: string): void
   dismissError(documentId: string): void
   decide(documentId: string, key: string, decision: Decision, userText?: string): void
   reopen(documentId: string, key: string): void
@@ -46,6 +47,10 @@ interface ReviewState {
 const liveText = async (documentId: string) => openContent(documentId) ?? (await getDocument(documentId))?.content ?? ''
 
 let controllers: Record<string, AbortController> = {}
+
+// A review that hasn't answered in this long is abandoned and reported as
+// timed out (retry stays one click away).
+export const REVIEW_TIMEOUT_MS = 60_000
 
 export const useReview = create<ReviewState>()((set, get) => ({
   runs: {},
@@ -104,13 +109,19 @@ export const useReview = create<ReviewState>()((set, get) => ({
     await get().requestReview(documentId)
   },
 
-  // Editing continues while a review runs; nothing blocks (2f).
+  // Editing continues while a review runs; nothing blocks (2f). The run can
+  // be cancelled, and gives up on its own after REVIEW_TIMEOUT_MS.
   async run(documentId) {
     const settings = await getSettings()
     if (!settings.openRouterApiKey) return get().openKeyPanel('review', documentId)
     controllers[documentId]?.abort()
     const ctrl = new AbortController()
     controllers[documentId] = ctrl
+    let timedOut = false
+    const timer = setTimeout(() => {
+      timedOut = true
+      ctrl.abort()
+    }, REVIEW_TIMEOUT_MS)
     set({ runs: { ...get().runs, [documentId]: { state: 'running', startedAt: Date.now() } } })
     try {
       const text = await liveText(documentId)
@@ -126,13 +137,39 @@ export const useReview = create<ReviewState>()((set, get) => ({
       set({ runs, sessions: { ...get().sessions, [documentId]: now } })
       openHere(documentId)
     } catch (e) {
-      if ((e as Error).name === 'AbortError') return
+      if ((e as Error).name === 'AbortError') {
+        // A cancel has already cleared the run; only a timeout reports.
+        if (timedOut)
+          set({
+            runs: {
+              ...get().runs,
+              [documentId]: {
+                state: 'error',
+                code: 'timeout',
+                message: `No response within ${REVIEW_TIMEOUT_MS / 1000} seconds`,
+                detail: `The request to OpenRouter was abandoned after ${REVIEW_TIMEOUT_MS / 1000} s without an answer. The model or its provider may be queued or slow.`,
+              },
+            },
+          })
+        return
+      }
       const code = e instanceof ReviewRequestError ? String(e.status === 'network' ? 'offline' : e.status) : 'error'
       const detail = e instanceof ReviewRequestError && e.raw ? e.raw : String((e as Error).stack ?? e)
       set({ runs: { ...get().runs, [documentId]: { state: 'error', code, message: (e as Error).message, detail } } })
     } finally {
+      clearTimeout(timer)
       if (controllers[documentId] === ctrl) delete controllers[documentId]
     }
+  },
+
+  // Stops a running review: the request is dropped and the control returns
+  // to rest. Nothing from the run is kept.
+  cancel(documentId) {
+    controllers[documentId]?.abort()
+    delete controllers[documentId]
+    const { [documentId]: _gone, ...runs } = get().runs
+    void _gone
+    set({ runs })
   },
 
   dismissError(documentId) {

@@ -122,9 +122,10 @@ function FileRow({ doc, selected, now }: { doc: JotDocument; selected: boolean; 
   )
 }
 
-// The OpenRouter key's home (moved from the status bar, which holds only
-// per-document state): one row pinned to the sidebar's foot. Two states —
-// set (tick) or not set (cross); the panel it opens has the details.
+// The AI provider's home (moved from the status bar, which holds only
+// per-document state): one row pinned to the sidebar's foot. Named for the
+// provider role, not OpenRouter, since more providers are planned. Two
+// states — key set (tick) or not set (cross); the panel has the details.
 function KeyFooter() {
   const key = useLiveQuery(() => db.settings.get('settings').then((s) => s?.openRouterApiKey ?? null), [])
   const open = useReview((s) => s.keyPanel.open)
@@ -135,7 +136,7 @@ function KeyFooter() {
     <button
       type="button"
       data-key-cell=""
-      title={set ? 'OpenRouter key set' : 'OpenRouter key not set'}
+      title={set ? 'AI provider: OpenRouter key set' : 'AI provider: no key set'}
       onClick={() => (open ? closeKeyPanel() : openKeyPanel('cell'))}
       className={cn(
         'flex h-[30px] flex-none items-center gap-2 border-t border-border pr-3 pl-3.5 font-mono text-[11.5px] text-secondary-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
@@ -143,7 +144,7 @@ function KeyFooter() {
       )}
     >
       <KeyRound size={13} strokeWidth={1.75} aria-hidden />
-      <span className="flex-auto text-left">OpenRouter key</span>
+      <span className="flex-auto text-left">AI Provider</span>
       {set ? (
         <Check size={13} strokeWidth={2.25} className="text-primary" aria-label="set" />
       ) : (
