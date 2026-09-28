@@ -17,7 +17,17 @@ import { focusedPane, useWorkspace } from '@/state/workspace'
 // Every cell reserves its width up front so the bar never reflows as values
 // change (§1.9, T3.9): counts up to six digits, cursor up to 9999:999.
 // Values sit in tabular figures inside that width.
-function Cell({ label, value, width, className }: { label: string; value: string; width: string; className?: string }) {
+// The last cell is flush: its spare reserved room sits before the label,
+// so the text meets the bar's right edge as the theme icons meet its left.
+function Cell({ label, value, width, flush, className }: { label: string; value: string; width: string; flush?: boolean; className?: string }) {
+  if (flush)
+    return (
+      <div className={cn('flex items-center border-l border-border-subtle px-2', className)}>
+        <span className="text-right tabular-nums" style={{ minWidth: `calc(${width} + ${label.length + 1}ch)` }}>
+          <span className="font-normal text-muted-foreground">{label}</span> {value}
+        </span>
+      </div>
+    )
   return (
     <div className={cn('flex items-center gap-1 border-l border-border-subtle px-2', className)}>
       <span className="font-normal text-muted-foreground">{label}</span>
@@ -234,7 +244,7 @@ export function StatusBar({ docsById, theme }: { docsById: Map<string, JotDocume
           <Cell label="words" value={groupDigits(c.words)} width="6ch" />
           <Cell label="lines" value={groupDigits(c.lines)} width="5ch" />
           <Cell label="paras" value={groupDigits(c.paras)} width="4ch" />
-          <Cell label="cursor" value={`${cur.line}:${cur.col}`} width="9ch" className="pr-2.5 font-medium" />
+          <Cell label="cursor" value={`${cur.line}:${cur.col}`} width="9ch" flush className="pr-2.5 font-medium" />
         </>
       )}
     </footer>
