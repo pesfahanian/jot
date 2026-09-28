@@ -6,7 +6,7 @@ const BASE = 'https://openrouter.ai/api/v1'
 // The model for the shared review call. Owner's choice (open-decisions #6):
 // a free model for now. Free OpenRouter models are rate-limited, so a busy
 // period surfaces as the review control's "review failed 429 · retry".
-export const REVIEW_MODEL = 'google/gemma-4-31b-it:free'
+export const REVIEW_MODEL = 'google/gemma-4-26b-a4b-it:free'
 
 export type KeyTest = { ok: true } | { ok: false; reason: 'rejected' | 'offline'; status?: number }
 
