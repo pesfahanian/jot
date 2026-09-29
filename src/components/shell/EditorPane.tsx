@@ -13,6 +13,7 @@ import { exportMarkdown, exportPdf, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
 import { newDocument } from '@/state/actions'
 import { useReview } from '@/state/review'
+import { canSplit } from '@/state/layout'
 import { MAX_PANES, useWorkspace } from '@/state/workspace'
 import { DocumentMenu } from './DocumentMenu'
 import { SplitIcon } from './icons'
@@ -135,9 +136,19 @@ function Tab({ doc, active, focused, paneId }: { doc: JotDocument; active: boole
   const inReview = useReview((s) => s.openIn[paneId] === doc.id)
   const activateTab = useWorkspace((s) => s.activateTab)
   const closeTab = useWorkspace((s) => s.closeTab)
+  const setDragTab = useWorkspace((s) => s.setDragTab)
   return (
     <DocumentMenu doc={doc}>
       <div
+        // Drag to reorder, into another pane, or onto a pane's edge (Phase
+        // 8). Not while its review is open: the review belongs to this pane.
+        draggable={!inReview}
+        onDragStart={(e) => {
+          e.dataTransfer.setData('application/x-jot-tab', doc.id)
+          e.dataTransfer.effectAllowed = 'move'
+          setDragTab({ docId: doc.id, from: paneId })
+        }}
+        onDragEnd={() => setDragTab(null)}
         role="tab"
         aria-selected={active}
         tabIndex={0}
@@ -179,6 +190,19 @@ function TabStrip({ pane, docs, focused }: { pane: PaneLayout; docs: JotDocument
   const strip = useRef<HTMLDivElement>(null)
   const [hidden, setHidden] = useState(0)
   const activateTab = useWorkspace((s) => s.activateTab)
+  const dragging = useWorkspace((s) => !!s.dragTab)
+  const dropTabOnStrip = useWorkspace((s) => s.dropTabOnStrip)
+  // Where a dragged tab would land: the slot index and the bar's x.
+  const [slot, setSlot] = useState<{ index: number; x: number } | null>(null)
+  const slotAt = (clientX: number) => {
+    const tabs = [...(strip.current?.querySelectorAll<HTMLElement>('[data-tab-id]') ?? [])]
+    for (let i = 0; i < tabs.length; i++) {
+      const r = tabs[i].getBoundingClientRect()
+      if (clientX < r.left + r.width / 2) return { index: i, x: tabs[i].offsetLeft }
+    }
+    const last = tabs[tabs.length - 1]
+    return { index: tabs.length, x: last ? last.offsetLeft + last.offsetWidth : 0 }
+  }
 
   const measure = () => {
     const el = strip.current
@@ -210,14 +234,28 @@ function TabStrip({ pane, docs, focused }: { pane: PaneLayout; docs: JotDocument
         ref={strip}
         role="tablist"
         onScroll={measure}
+        onDragOver={(e) => {
+          if (!dragging) return
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'move'
+          setSlot(slotAt(e.clientX))
+        }}
+        onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setSlot(null)}
+        onDrop={(e) => {
+          if (!dragging) return
+          e.preventDefault()
+          dropTabOnStrip(pane.id, slotAt(e.clientX).index)
+          setSlot(null)
+        }}
         onWheel={(e) => {
           if (strip.current && Math.abs(e.deltaY) > Math.abs(e.deltaX)) strip.current.scrollLeft += e.deltaY
         }}
-        className="flex min-w-0 flex-auto items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="relative flex min-w-0 flex-auto items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {docs.map((d) => (
           <Tab key={d.id} doc={d} active={d.id === pane.active} focused={focused} paneId={pane.id} />
         ))}
+        {dragging && slot && <span aria-hidden className="pointer-events-none absolute top-1.5 bottom-1.5 z-10 w-[2px] -translate-x-1/2 rounded-full bg-primary" style={{ left: Math.max(1, slot.x) }} />}
       </div>
       {hidden > 0 && (
         <DropdownMenu>
@@ -241,6 +279,54 @@ function TabStrip({ pane, docs, focused }: { pane: PaneLayout; docs: JotDocument
         </DropdownMenu>
       )}
     </>
+  )
+}
+
+// Drop zones over a pane's body while a tab is dragged (Phase 8): the outer
+// quarter on either side opens a new column there (the half it would take
+// is shown); the middle moves the tab into this pane. With no room for
+// another column, the whole body is the middle.
+function DropZones({ paneId }: { paneId: string }) {
+  const dragTab = useWorkspace((s) => s.dragTab)
+  const panes = useWorkspace((s) => s.panes)
+  const dropTabOnEdge = useWorkspace((s) => s.dropTabOnEdge)
+  const [zone, setZone] = useState<'left' | 'right' | 'center' | null>(null)
+  if (!dragTab) return null
+  const splittable = canSplit(panes, dragTab, paneId)
+  const own = dragTab.from === paneId
+  const zoneAt = (e: React.DragEvent) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    const f = (e.clientX - r.left) / r.width
+    return splittable && f < 0.25 ? 'left' : splittable && f > 0.75 ? 'right' : 'center'
+  }
+  return (
+    <div
+      className="absolute inset-x-0 top-[38px] bottom-0 z-20"
+      onDragOver={(e) => {
+        const z = zoneAt(e)
+        // Its own pane's middle is no drop at all.
+        if (z === 'center' && own) return setZone(null)
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'move'
+        setZone(z)
+      }}
+      onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setZone(null)}
+      onDrop={(e) => {
+        e.preventDefault()
+        const z = zoneAt(e)
+        setZone(null)
+        dropTabOnEdge(paneId, z)
+      }}
+    >
+      {zone && (
+        <div
+          className={cn(
+            'pointer-events-none absolute inset-y-2 rounded-md border-2 border-primary/70 bg-primary/10',
+            zone === 'left' ? 'left-2 w-[calc(50%-12px)]' : zone === 'right' ? 'right-2 w-[calc(50%-12px)]' : 'inset-x-2',
+          )}
+        />
+      )}
+    </div>
   )
 }
 
@@ -272,8 +358,9 @@ export function EditorPane({ pane, docsById, paneCount }: { pane: PaneLayout; do
       ref={self}
       onMouseDownCapture={() => focusPane(pane.id)}
       style={density[paneCount]}
-      className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-(--radius-panel) border border-border-strong bg-document"
+      className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-(--radius-panel) border border-border-strong bg-document"
     >
+      {!reviewHere && <DropZones paneId={pane.id} />}
       <div className="flex h-[38px] flex-none items-stretch border-b border-border bg-card">
         <TabStrip pane={pane} docs={tabs} focused={focused} />
         {/* Controls sit on the focused pane only (6f). */}

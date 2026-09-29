@@ -1,0 +1,56 @@
+import { describe, expect, it } from 'vitest'
+import type { PaneLayout } from '@/lib/db'
+import { canSplit, moveTab, splitWithTab } from './layout'
+
+const pane = (id: string, tabs: string[], active = tabs[0] ?? null, render = false): PaneLayout => ({ id, tabs, active, ...(render ? { render } : {}) })
+const tabsOf = (ps: PaneLayout[]) => ps.map((p) => `${p.id}:${p.tabs.join(',')}>${p.active}`)
+
+describe('tab drag — reorder and move', () => {
+  it('reorders within a strip, in either direction', () => {
+    const ps = [pane('A', ['a', 'b', 'c'])]
+    expect(tabsOf(moveTab(ps, { docId: 'a', from: 'A' }, 'A', 3)!.panes)).toEqual(['A:b,c,a>a'])
+    expect(tabsOf(moveTab(ps, { docId: 'c', from: 'A' }, 'A', 0)!.panes)).toEqual(['A:c,a,b>c'])
+    expect(tabsOf(moveTab(ps, { docId: 'a', from: 'A' }, 'A', 1)!.panes)).toEqual(['A:a,b,c>a'])
+  })
+
+  it('moves a tab into another pane at the slot, activating it there', () => {
+    const r = moveTab([pane('A', ['a', 'b'], 'a'), pane('B', ['x', 'y'])], { docId: 'a', from: 'A' }, 'B', 1)!
+    expect(tabsOf(r.panes)).toEqual(['A:b>b', 'B:x,a,y>a'])
+    expect(r.focus).toBe('B')
+  })
+
+  it('closes the source pane when its last tab leaves', () => {
+    const r = moveTab([pane('A', ['a']), pane('B', ['x'])], { docId: 'a', from: 'A' }, 'B', 1)!
+    expect(tabsOf(r.panes)).toEqual(['B:x,a>a'])
+  })
+
+  it("doesn't duplicate a document the target already has open", () => {
+    const r = moveTab([pane('A', ['a', 'b']), pane('B', ['a', 'x'])], { docId: 'a', from: 'A' }, 'B', 2)!
+    expect(tabsOf(r.panes)).toEqual(['A:b>b', 'B:x,a>a'])
+  })
+
+  it('never drops into a rendered pane', () => {
+    expect(moveTab([pane('A', ['a']), pane('R', ['a'], 'a', true)], { docId: 'a', from: 'A' }, 'R', 0)).toBeNull()
+  })
+})
+
+describe('tab drag — split on a pane edge', () => {
+  it('opens a new column on the chosen side', () => {
+    const ps = [pane('A', ['a', 'b']), pane('B', ['x'])]
+    expect(tabsOf(splitWithTab(ps, { docId: 'b', from: 'A' }, 'B', 'right', 'N')!.panes)).toEqual(['A:a>a', 'B:x>x', 'N:b>b'])
+    expect(tabsOf(splitWithTab(ps, { docId: 'b', from: 'A' }, 'A', 'left', 'N')!.panes)).toEqual(['N:b>b', 'A:a>a', 'B:x>x'])
+  })
+
+  it('keeps to three columns, counting a pane the move empties', () => {
+    const three = [pane('A', ['a', 'b']), pane('B', ['x']), pane('C', ['y'])]
+    expect(splitWithTab(three, { docId: 'b', from: 'A' }, 'C', 'right', 'N')).toBeNull()
+    // B empties and closes, so there is room for the new column.
+    expect(tabsOf(splitWithTab(three, { docId: 'x', from: 'B' }, 'C', 'right', 'N')!.panes)).toEqual(['A:a,b>a', 'C:y>y', 'N:x>x'])
+  })
+
+  it("is a no-op on a tab's own pane when it's the only tab", () => {
+    const ps = [pane('A', ['a']), pane('B', ['x'])]
+    expect(splitWithTab(ps, { docId: 'a', from: 'A' }, 'A', 'right', 'N')).toBeNull()
+    expect(canSplit(ps, { docId: 'x', from: 'B' }, 'A')).toBe(true)
+  })
+})

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { db, type JotDocument, type PaneLayout, type TagColor, type Workspace } from '@/lib/db'
 import type { SortMode } from '@/lib/docList'
+import { moveTab, splitWithTab, type DraggedTab } from './layout'
 
 // Shell state: panes and their tabs, which pane has focus, and the sidebar's
 // own controls. Document records live in IndexedDB and are read live; this
@@ -42,6 +43,9 @@ interface WorkspaceState {
   // A pending "move the cursor here" for a document, e.g. from a search hit.
   reveal: { documentId: string; line: number; nonce: number } | null
   toast: Toast | null
+  // The tab being dragged (Phase 8), while a drag is in flight: panes show
+  // their drop zones from it.
+  dragTab: DraggedTab | null
 
   hydrate(ws: Workspace | undefined, docs: JotDocument[]): void
   openDocument(documentId: string, opts?: { paneId?: string; line?: number }): void
@@ -50,6 +54,9 @@ interface WorkspaceState {
   focusPane(paneId: string): void
   splitRight(): void
   toggleRender(): void
+  setDragTab(tab: DraggedTab | null): void
+  dropTabOnStrip(to: string, index: number): void
+  dropTabOnEdge(target: string, side: 'left' | 'right' | 'center'): void
   closeDocumentEverywhere(documentId: string): DeletedEntry['placements']
   restorePlacements(documentId: string, placements: DeletedEntry['placements']): void
   setSidebarWidth(px: number): void
@@ -80,6 +87,7 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   cursor: null,
   reveal: null,
   toast: null,
+  dragTab: null,
 
   // Restores the saved layout, dropping tabs whose documents no longer
   // exist. With nothing saved, opens the most recently edited document.
@@ -205,6 +213,30 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     if (panes.length >= MAX_PANES) return
     const pane: PaneLayout = { id: newPaneId(), tabs: [doc], active: doc, render: true }
     set({ panes: [...panes.slice(0, i + 1), pane, ...panes.slice(i + 1)] })
+  },
+
+  setDragTab: (tab) => set({ dragTab: tab }),
+
+  dropTabOnStrip(to, index) {
+    const tab = get().dragTab
+    if (!tab) return
+    const r = moveTab(get().panes, tab, to, index)
+    set(r ? { panes: r.panes, focusedPaneId: r.focus, dragTab: null } : { dragTab: null })
+  },
+
+  // A pane's edge opens a new column beside it; its middle takes the tab
+  // into that pane's strip, at the end.
+  dropTabOnEdge(target, side) {
+    const tab = get().dragTab
+    if (!tab) return
+    // Its own pane's middle: nothing to do.
+    if (side === 'center' && tab.from === target) return set({ dragTab: null })
+    const panes = get().panes
+    const r =
+      side === 'center'
+        ? moveTab(panes, tab, target, panes.find((p) => p.id === target)?.tabs.length ?? 0)
+        : splitWithTab(panes, tab, target, side, newPaneId())
+    set(r ? { panes: r.panes, focusedPaneId: r.focus, dragTab: null } : { dragTab: null })
   },
 
   closeDocumentEverywhere(documentId) {
