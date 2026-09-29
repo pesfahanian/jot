@@ -3,7 +3,7 @@ import { insertNewlineContinueMarkupCommand } from '@codemirror/lang-markdown'
 import { syntaxTree } from '@codemirror/language'
 import type { StateCommand } from '@codemirror/state'
 import { findNext, findPrevious } from '@codemirror/search'
-import type { KeyBinding } from '@codemirror/view'
+import { EditorView, type KeyBinding } from '@codemirror/view'
 import { vscodeKeymap } from '@replit/codemirror-vscode-keymap'
 
 // The vscode keymap is the only keymap loaded — CodeMirror's own default
@@ -16,7 +16,27 @@ import { vscodeKeymap } from '@replit/codemirror-vscode-keymap'
 //   - Escape collapses multi-cursor: appended after the vscode keymap's own
 //     Escape chain (close completion, close search), so it only runs when
 //     neither of those had anything to close — same order VSCode uses.
+// Format document (Phase 8): Prettier's markdown formatter in the house
+// style (lib/format.ts), applied as one edit — one Cmd+Z undoes it. The
+// formatter loads on first use, so the edit lands a moment later; if the
+// text changed meanwhile, the stale result is dropped.
+const formatDocument = (view: EditorView) => {
+  if (view.state.readOnly) return false
+  const before = view.state.doc.toString()
+  void import('@/lib/format')
+    .then(async ({ formatMarkdown, minimalChange }) => {
+      const change = minimalChange(before, await formatMarkdown(before))
+      if (!change || view.state.doc.toString() !== before) return
+      view.dispatch({ changes: change, userEvent: 'format' })
+    })
+    .catch((e) => console.warn('format failed', e))
+  return true
+}
+
 export const supplementKeymap: readonly KeyBinding[] = [
+  // Format document: VSCode's Mac default and the owner's Cmd+Shift+I.
+  { key: 'Mod-Shift-i', run: formatDocument, preventDefault: true },
+  { key: 'Shift-Alt-f', run: formatDocument, preventDefault: true },
   // Mac only: on Windows/Linux, Ctrl-g is the vscode keymap's go-to-line.
   { mac: 'Mod-g', run: findNext, shift: findPrevious, preventDefault: true },
   { key: 'F3', run: findNext, shift: findPrevious, preventDefault: true },
