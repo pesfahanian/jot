@@ -144,6 +144,8 @@ Prepared ahead of repo creation, for the local Claude Code implementation sessio
 
 **Consequences:** Document switching relies on the sidebar and open tabs only. If a coding agent building this feature is tempted to add a command palette or quick-open as a natural addition to a keyboard-centric editor, that instinct should be overridden — it was deliberately removed, not overlooked.
 
+**Amendment (owner, after v1.0.0):** The removal was a planning expedient, not a product position — it was declared to stop the idea being re-raised while scoping v1. The owner does want a full command palette with user-customisable keyboard shortcuts, as a far-future item (`docs/todo.md`). Until that work is explicitly started, the rule above still holds: don't add either as a side effect of other work.
+
 ---
 
 ## ADR-011: Desktop only, no responsive layout

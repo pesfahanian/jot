@@ -13,7 +13,7 @@ Two more documents exist for deep detail on specific features, referenced from t
 ## Standing rules — apply everywhere, not just where a ticket happens to mention them
 
 - No formatting toolbar, anywhere, ever. Not a v1 cut.
-- No command palette, no quick-switch (Cmd+P) — deliberately removed. Don't reintroduce either as a "natural" addition to a keyboard-driven editor. (ADR-010)
+- No command palette, no quick-switch (Cmd+P) until the owner starts that work — it's a far-future to-do (palette + customisable shortcuts), not a permanent ban. Don't add either as a side effect of other work. (ADR-010 + amendment)
 - Nothing in the AI Style Review feature auto-applies. Every flag needs an explicit terminal decision before the document changes. (ADR-009)
 - No "unsaved" state anywhere in the UI. Every edit persists continuously; there is no dirty/clean distinction to represent. (ADR-008)
 - Tags are six fixed colors, metadata-only, one per document. No folders, no free text, no parsing document content for tags. (ADR-007)

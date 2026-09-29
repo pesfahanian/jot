@@ -10,7 +10,7 @@ Items the owner wants eventually but not in the current roadmap. Nearer work liv
 
 ## Command palette and customisable keyboard shortcuts
 - A full command palette plus user-remappable shortcuts.
-- **Conflicts with ADR-010**, which removed the command palette and quick-switch on purpose. Needs an ADR revisit before any work starts.
+- ADR-010's removal was a planning expedient, not the owner's position (see its amendment). Wanted; just not yet.
 
 ## Built-in diff checker (like diffchecker.com)
 - Compare two documents, or a document against pasted text: side by side and unified, with word-level highlighting.
