@@ -41,7 +41,7 @@ export async function chat(key: string, messages: ChatMessage[], signal?: AbortS
       headers: {
         Authorization: `Bearer ${key}`,
         'Content-Type': 'application/json',
-        'X-Title': 'Jot',
+        'X-Title': 'jot',
       },
       body: JSON.stringify({
         model: MODEL,

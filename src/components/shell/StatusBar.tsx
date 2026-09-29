@@ -107,7 +107,7 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
         <span className="flex h-[3px] w-5 overflow-hidden rounded-full bg-ink-mute">
           <span className="jot-running-bar w-[45%] rounded-full bg-primary" />
         </span>
-        Reviewing <span className="text-muted-foreground tabular-nums">{Math.max(0, Math.floor((now - run.startedAt) / 1000))}s</span>
+        reviewing <span className="text-muted-foreground tabular-nums">{Math.max(0, Math.floor((now - run.startedAt) / 1000))}s</span>
         <button type="button" aria-label="cancel review" title="cancel review" onClick={() => cancel(doc.id)} className="px-0.5 text-muted-foreground hover:text-foreground">
           ×
         </button>
@@ -119,12 +119,12 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
         {/* Hover for the full response (debug). */}
         <ErrorDetail message={run.message} detail={run.detail}>
           <span className="flex cursor-help items-center gap-1.5" tabIndex={0}>
-            <span className="text-destructive">{run.code === 'timeout' ? 'Timed out' : 'Failed'}</span>
+            <span className="text-destructive">{run.code === 'timeout' ? 'timed out' : 'failed'}</span>
             {run.code !== 'timeout' && <span className="text-muted-foreground">{run.code}</span>}
           </span>
         </ErrorDetail>
         <button type="button" onClick={() => void retry(doc.id)} className="underline underline-offset-2 hover:text-foreground">
-          Retry
+          retry
         </button>
         <button type="button" aria-label="dismiss" onClick={() => dismiss(doc.id)} className="px-0.5 text-muted-foreground hover:text-foreground">
           ×
@@ -163,7 +163,7 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
         )}
       >
         <Sparkles size={12} strokeWidth={1.75} className={cn('flex-none', ready || live ? 'text-primary' : 'text-ink-mute')} aria-hidden />
-        {verdict === 'current' ? 'Resume review' : verdict === 'stale' ? 'Review outdated' : 'Review style'}
+        {verdict === 'current' ? 'resume review' : verdict === 'stale' ? 'review outdated' : 'review style'}
       </button>
     )
     body = verdict === 'stale' ? <StalePrompt documentId={doc.id} flags={session!.flags}>{button}</StalePrompt> : button
