@@ -181,14 +181,23 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     set({ panes: [...panes.slice(0, i + 1), pane, ...panes.slice(i + 1)], focusedPaneId: pane.id })
   },
 
-  // Render (2g): the focused editor's document opens rendered in a pane to
-  // its right; pressed again, that rendered pane closes. Counts toward the
+  // Render (2g, Cmd/Ctrl+Shift+V): the focused editor's document opens
+  // rendered in a pane to its right; pressed again — from the editor or the
+  // rendered pane — that rendered pane closes. Counts toward the
   // three-pane limit. Focus stays on the editor.
   toggleRender() {
     const { panes, focusedPaneId } = get()
     const i = panes.findIndex((p) => p.id === focusedPaneId)
     const doc = panes[i]?.active
-    if (!doc || panes[i].render) return
+    if (!doc) return
+    // From the rendered pane itself: close it, back to its editor.
+    if (panes[i].render) {
+      const rest = panes.filter((p) => p.id !== focusedPaneId)
+      if (rest.length === 0) return
+      const editor = [...panes.slice(0, i)].reverse().find((p) => !p.render && p.active === doc) ?? rest.find((p) => !p.render)
+      set({ panes: rest, focusedPaneId: editor?.id ?? rest[0]?.id ?? '' })
+      return
+    }
     if (panes.some((p) => p.render && p.active === doc)) {
       set({ panes: panes.filter((p) => !(p.render && p.active === doc)) })
       return

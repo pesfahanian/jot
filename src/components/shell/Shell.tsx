@@ -60,12 +60,21 @@ export function Shell({ docs, theme }: { docs: JotDocument[]; theme: ThemeState 
   const docsById = useMemo(() => new Map(docs.map((d) => [d.id, d])), [docs])
   const [dropping, setDropping] = useState(false)
 
-  // Cmd/Ctrl+S does nothing: every edit already persists (ADR-008), and the
-  // browser's "Save as" dialog would only save the page. Captured before
-  // anything else sees it, wherever focus is.
+  // App-wide keys, captured before anything else sees them, wherever focus is:
+  //   Cmd/Ctrl+S        does nothing — every edit already persists (ADR-008),
+  //                     and the browser's "Save as" would only save the page
+  //   Cmd/Ctrl+Shift+V  toggles the rendered view, as VSCode's preview
+  //                     (replaces Chrome's "paste as plain text", which a
+  //                     plain-text editor never needs)
   useEffect(() => {
     const save = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 's') e.preventDefault()
+      if (!(e.metaKey || e.ctrlKey) || e.altKey) return
+      const key = e.key.toLowerCase()
+      if (key === 's' && !e.shiftKey) e.preventDefault()
+      if (key === 'v' && e.shiftKey) {
+        e.preventDefault()
+        useWorkspace.getState().toggleRender()
+      }
     }
     window.addEventListener('keydown', save, { capture: true })
     return () => window.removeEventListener('keydown', save, { capture: true })
