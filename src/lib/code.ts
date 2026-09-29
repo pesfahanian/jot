@@ -7,9 +7,16 @@ import { tags as t, type Tag } from '@lezer/highlight'
 
 // The language a fence names (```js, ```python …), from CodeMirror's
 // catalogue; its grammar loads on first use.
+// Names the catalogue doesn't know as a name, alias or extension.
+const EXTRA_ALIASES: Record<string, string> = { env: 'ini', dotenv: 'ini', conf: 'ini', cfg: 'ini', zshrc: 'sh', bashrc: 'sh', console: 'sh', terminal: 'sh' }
+
 export function findCodeLanguage(info: string | undefined): LanguageDescription | null {
-  const name = info?.trim().split(/\s+/)[0]
-  return name ? LanguageDescription.matchLanguageName(languages, name, true) : null
+  const raw = info?.trim().split(/\s+/)[0].replace(/^\./, '').toLowerCase()
+  if (!raw) return null
+  const name = EXTRA_ALIASES[raw] ?? raw
+  // By name or alias first (```python, ```bash), then as a file extension
+  // (```py, ```rs, ```yml) — people fence code the way they name files.
+  return LanguageDescription.matchLanguageName(languages, name, true) ?? LanguageDescription.matchFilename(languages, `file.${name}`)
 }
 
 // Five colour groups, each a --code-* token (index.css). Anything else —

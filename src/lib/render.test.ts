@@ -48,3 +48,15 @@ describe('code colouring', () => {
     expect(await renderHtml('```\nplain\n```')).toContain('<pre><code>plain')
   })
 })
+
+describe('fence names', () => {
+  it('match by name, alias or file extension', async () => {
+    const { findCodeLanguage } = await import('./code')
+    expect(findCodeLanguage('python')?.name).toBe('Python')
+    expect(findCodeLanguage('py')?.name).toBe('Python')
+    expect(findCodeLanguage('rs')?.name).toBe('Rust')
+    expect(findCodeLanguage('env')?.name).toBe('Properties files')
+    expect(findCodeLanguage('.zshrc')?.name).toBe('Shell')
+    expect(findCodeLanguage('nosuchlang')).toBeNull()
+  })
+})

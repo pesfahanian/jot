@@ -18,7 +18,7 @@ import { useWorkspace } from '@/state/workspace'
 import { markdownWithCode } from './codeLanguages'
 import { editorKeymap } from './keymap'
 import { getSession } from './sessions'
-import { jotEditorTheme } from './theme'
+import { codeBlockGround, jotEditorTheme } from './theme'
 
 interface EditorProps {
   documentId: string
@@ -67,6 +67,10 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
           highlightActiveLineGutter(),
           history(),
           drawSelection(),
+          // After drawSelection: CodeMirror stacks under-text layers in
+          // reverse order (first listed on top), so this ground sits beneath
+          // the selection.
+          codeBlockGround,
           dropCursor(),
           rectangularSelection(),
           EditorState.allowMultipleSelections.of(true),

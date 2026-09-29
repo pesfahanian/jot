@@ -1,6 +1,6 @@
 import { HighlightStyle, syntaxHighlighting, syntaxTree } from '@codemirror/language'
 import { RangeSetBuilder } from '@codemirror/state'
-import { Decoration, EditorView, ViewPlugin, type DecorationSet, type ViewUpdate } from '@codemirror/view'
+import { Decoration, EditorView, layer, RectangleMarker, ViewPlugin, type DecorationSet, type ViewUpdate } from '@codemirror/view'
 import { tags as t } from '@lezer/highlight'
 import { CODE_GROUPS } from '@/lib/code'
 
@@ -151,11 +151,13 @@ const baseTheme = EditorView.theme({
     backgroundColor: 'transparent',
     outline: '1px solid var(--border-strong)',
   },
+  // The ground is drawn by codeBlockGround (below the selection), not here:
+  // a line background would paint over the selection and hide it.
   '.cm-jot-codeblock': {
-    backgroundColor: 'var(--inset)',
     borderLeft: '2px solid var(--border)',
     paddingLeft: 'calc(var(--text-inset, 22px) - 2px)',
   },
+  '.cm-jot-codeblock-rect': { backgroundColor: 'var(--inset)' },
   '.cm-jot-heading-mark, .cm-jot-heading-mark *': { color: 'var(--syn-heading)', fontWeight: '400' },
   '.cm-jot-link-text': { textDecoration: 'underline', textUnderlineOffset: '3px' },
   '.cm-jot-inline-code': { backgroundColor: 'var(--code-inline)' },
@@ -193,6 +195,39 @@ const baseTheme = EditorView.theme({
   },
   '.cm-button:hover': { color: 'var(--foreground)' },
   '.cm-search [name=close]': { marginLeft: 'auto', color: 'var(--ink-dim)', fontSize: '13px', cursor: 'pointer' },
+})
+
+// Code-block ground (the inset), as a layer under the text. It must sit
+// under the selection layer too — as a line background it covered the
+// selection, so a drag-select inside code showed nothing. Must be listed
+// after drawSelection(): under-text layers stack first-listed on top.
+export const codeBlockGround = layer({
+  above: false,
+  class: 'cm-jot-codeblock-ground',
+  update: (u) => u.docChanged || u.viewportChanged || u.geometryChanged,
+  markers(view) {
+    const markers: RectangleMarker[] = []
+    const scroller = view.scrollDOM.getBoundingClientRect()
+    const content = view.contentDOM.getBoundingClientRect()
+    // Layer coordinates run from the scroller's scrolled origin.
+    const baseLeft = scroller.left - view.scrollDOM.scrollLeft
+    const baseTop = scroller.top - view.scrollDOM.scrollTop
+    const tree = syntaxTree(view.state)
+    for (const { from, to } of view.visibleRanges) {
+      tree.iterate({
+        from,
+        to,
+        enter(node) {
+          if (node.name !== 'FencedCode' && node.name !== 'CodeBlock') return
+          const top = view.lineBlockAt(node.from).top + view.documentTop - baseTop
+          const bottom = view.lineBlockAt(node.to).bottom + view.documentTop - baseTop
+          markers.push(new RectangleMarker('cm-jot-codeblock-rect', content.left - baseLeft, top, content.width, bottom - top))
+          return false
+        },
+      })
+    }
+    return markers
+  },
 })
 
 export const jotEditorTheme = [baseTheme, syntaxHighlighting(jotHighlight), markdownDecorations]
