@@ -163,6 +163,13 @@
     --syn-heading: #A83442; --syn-emph: #7B6000;
     --syn-link: #0068B2; --syn-code: #0B7643;
     --syn-punct: #969084;
+    /* Code inside fenced blocks (Phase 7): the four markdown hues again —
+       rose keywords, green strings, gold numbers and types, blue functions
+       and properties — with comments in the muted ink. Plain identifiers
+       and operators stay in the ink. */
+    --code-keyword: #A83442; --code-string: #0B7643;
+    --code-number: #7B6000; --code-function: #0068B2;
+    --code-comment: #8A8F95;
     --keycap: inset 0 1px 0 #FFF, 0 0 0 1px oklch(.90 .005 250), inset 0 -3px 0 oklch(.855 .006 250);
     --row-hover: #EBEDEF;
     --mark: #F2ECB6; /* selection, search match */
@@ -182,6 +189,9 @@
     --syn-heading: #FD8A8F; --syn-emph: #C9B04F;
     --syn-link: #63B9FE; --syn-code: #74C692;
     --syn-punct: #B7B0A3;
+    --code-keyword: #FD8A8F; --code-string: #74C692;
+    --code-number: #C9B04F; --code-function: #63B9FE;
+    --code-comment: #7E7A71;
     --keycap: inset 0 1px 0 #2D2E30, 0 0 0 1px #242426, inset 0 -3px 0 #0A0A0C;
     --row-hover: #141416;
     --mark: #433E19; /* selection, search match */
@@ -315,6 +325,11 @@
     .jot-rendered code { background: var(--inset); padding: 1px 4px; border-radius: 3px; }
     .jot-rendered pre { background: var(--inset); padding: 10px 12px; border-radius: 6px; overflow-x: auto; line-height: 1.55; }
     .jot-rendered pre code { background: none; padding: 0; }
+    .jot-rendered .code-keyword { color: var(--code-keyword); }
+    .jot-rendered .code-string { color: var(--code-string); }
+    .jot-rendered .code-number { color: var(--code-number); }
+    .jot-rendered .code-function { color: var(--code-function); }
+    .jot-rendered .code-comment { color: var(--code-comment); font-style: italic; }
     .jot-rendered blockquote { border-left: 2px solid var(--border-strong); padding-left: 12px; color: var(--secondary-foreground); }
     .jot-rendered hr { border: 0; border-top: 1px solid var(--border); margin: 1.6em 0; }
     .jot-rendered img { max-width: 100%; border-radius: 4px; }

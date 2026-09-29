@@ -1,4 +1,6 @@
+import { highlightCode, tagHighlighter } from '@lezer/highlight'
 import type { Marked, Token, TokensList } from 'marked'
+import { CODE_GROUPS, findCodeLanguage } from './code'
 
 // The one markdown → HTML renderer, shared by the rendered pane and PDF
 // export so the two never drift apart. GFM, as VSCode's preview renders it:
@@ -8,6 +10,18 @@ import type { Marked, Token, TokensList } from 'marked'
 // web content can't run inside Jot, which holds the person's API keys.
 // Links to anything but http(s), mailto and in-page anchors are dropped, and
 // real links open in a new tab.
+//
+// Fenced code is coloured by its own language with the same grammars and
+// colour groups as the editor (lib/code.ts), as code-* classes.
+
+const codeHighlighter = tagHighlighter(CODE_GROUPS.flatMap((g) => g.tags.map((tag) => ({ tag, class: `code-${g.name}` }))))
+
+// Grammars load asynchronously; everything a document's fences name is
+// loaded before rendering, so the render itself stays synchronous.
+async function loadCodeLanguages(md: string) {
+  const names = new Set([...md.matchAll(/^[ \t>]*(?:`{3,}|~{3,})[ \t]*([^\s`]+)/gm)].map((m) => m[1]))
+  await Promise.all([...names].map((n) => findCodeLanguage(n)?.load().catch(() => undefined)))
+}
 
 let instance: Promise<Marked> | undefined
 
@@ -21,6 +35,21 @@ function load(): Promise<Marked> {
       renderer: {
         html({ text }) {
           return escape(text)
+        },
+        code({ text, lang }) {
+          const name = lang?.trim().split(/\s+/)[0]
+          const cls = name ? ` class="language-${escape(name)}"` : ''
+          const support = findCodeLanguage(name)?.support
+          if (!support) return `<pre><code${cls}>${escape(text)}</code></pre>\n`
+          let html = ''
+          highlightCode(
+            text,
+            support.language.parser.parse(text),
+            codeHighlighter,
+            (piece, classes) => (html += classes ? `<span class="${classes}">${escape(piece)}</span>` : escape(piece)),
+            () => (html += '\n'),
+          )
+          return `<pre><code${cls}>${html}</code></pre>\n`
         },
         link({ href, title, tokens }) {
           const text = this.parser.parseInline(tokens)
@@ -37,7 +66,8 @@ function load(): Promise<Marked> {
 }
 
 export async function renderHtml(md: string): Promise<string> {
-  return (await load()).parse(md, { async: false })
+  const [m] = await Promise.all([load(), loadCodeLanguages(md)])
+  return m.parse(md, { async: false })
 }
 
 // A rendered top-level block and the source line it starts on (0-based) —
@@ -48,7 +78,7 @@ export interface RenderedBlock {
 }
 
 export async function renderBlocks(md: string): Promise<RenderedBlock[]> {
-  const m = await load()
+  const [m] = await Promise.all([load(), loadCodeLanguages(md)])
   const tokens = m.lexer(md)
   const out: RenderedBlock[] = []
   let line = 0

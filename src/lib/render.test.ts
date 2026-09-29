@@ -32,3 +32,19 @@ describe('rendered blocks', () => {
     expect(blocks[0].html).toContain('href="https://example.com"')
   })
 })
+
+describe('code colouring', () => {
+  it('colours fenced code by its language, with the editor\'s groups', async () => {
+    const html = await renderHtml('```js\n// hi\nconst x = "s" + 1\n```')
+    expect(html).toContain('class="language-js"')
+    expect(html).toContain('<span class="code-keyword">const</span>')
+    expect(html).toContain('<span class="code-string">&quot;s&quot;</span>')
+    expect(html).toContain('<span class="code-number">1</span>')
+    expect(html).toContain('<span class="code-comment">// hi</span>')
+  })
+
+  it('leaves unknown or unnamed languages as plain escaped code', async () => {
+    expect(await renderHtml('```nosuchlang\n<b>x</b>\n```')).toContain('<code class="language-nosuchlang">&lt;b&gt;x&lt;/b&gt;')
+    expect(await renderHtml('```\nplain\n```')).toContain('<pre><code>plain')
+  })
+})

@@ -2,6 +2,7 @@ import { HighlightStyle, syntaxHighlighting, syntaxTree } from '@codemirror/lang
 import { RangeSetBuilder } from '@codemirror/state'
 import { Decoration, EditorView, ViewPlugin, type DecorationSet, type ViewUpdate } from '@codemirror/view'
 import { tags as t } from '@lezer/highlight'
+import { CODE_GROUPS } from '@/lib/code'
 
 // Every color below is a CSS variable from index.css, so the editor follows
 // a theme switch with no reconfiguration — light and dark differ only in the
@@ -20,6 +21,12 @@ const jotHighlight = HighlightStyle.define([
   { tag: t.monospace, color: 'var(--syn-code)' },
   { tag: t.quote, color: 'var(--syn-quote)' },
   { tag: [t.processingInstruction, t.contentSeparator, t.labelName], color: 'var(--syn-punct)' },
+  // Code in fenced blocks, coloured by its own language (lib/code.ts).
+  ...CODE_GROUPS.map(({ name, tags }) => ({
+    tag: tags,
+    color: `var(--code-${name})`,
+    ...(name === 'comment' ? { fontStyle: 'italic' } : {}),
+  })),
 ])
 
 // Treatments the highlighter can't express: heading markers take the heading

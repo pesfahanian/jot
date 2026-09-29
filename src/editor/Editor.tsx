@@ -1,6 +1,5 @@
 import { closeBrackets } from '@codemirror/autocomplete'
 import { history } from '@codemirror/commands'
-import { markdownLanguage } from '@codemirror/lang-markdown'
 import { bracketMatching, indentOnInput, LanguageSupport } from '@codemirror/language'
 import { highlightSelectionMatches, search } from '@codemirror/search'
 import { Compartment, EditorSelection, EditorState } from '@codemirror/state'
@@ -16,6 +15,7 @@ import {
 import { useEffect, useRef } from 'react'
 import { isLocked, useReview } from '@/state/review'
 import { useWorkspace } from '@/state/workspace'
+import { markdownWithCode } from './codeLanguages'
 import { editorKeymap } from './keymap'
 import { getSession } from './sessions'
 import { jotEditorTheme } from './theme'
@@ -75,10 +75,11 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
           closeBrackets(),
           highlightSelectionMatches(),
           search({ top: true }),
-          // The markdown language alone (GFM), not lang-markdown's markdown()
-          // helper: that one bundles HTML/CSS/JS grammars for embedded code
-          // and layers its own Enter/Backspace keymap over the vscode one.
-          new LanguageSupport(markdownLanguage),
+          // GFM markdown, with fenced code parsed in its own language
+          // (codeLanguages.ts) — not lang-markdown's markdown() helper, which
+          // bundles HTML/CSS/JS grammars and layers its own Enter/Backspace
+          // keymap over the vscode one.
+          new LanguageSupport(markdownWithCode),
           EditorView.lineWrapping,
           // Real contenteditable text, so the OS/browser spellchecker attaches
           // to it directly — the reason for CM6 over Monaco (ADR-002).

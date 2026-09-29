@@ -156,6 +156,9 @@ const printCss = `
   table { border-collapse: collapse; } th, td { border: 1px solid #CCD0D3; padding: 4px 8px; text-align: left; }
   hr { border: none; border-top: 1px solid #CCD0D3; }
   img { max-width: 100%; }
+  /* Code colours, light values of the --code-* tokens (print is always light). */
+  .code-keyword { color: #A83442; } .code-string { color: #0B7643; } .code-number { color: #7B6000; }
+  .code-function { color: #0068B2; } .code-comment { color: #8A8F95; font-style: italic; }
 `
 
 export async function exportPdf(title: string, content: string) {
