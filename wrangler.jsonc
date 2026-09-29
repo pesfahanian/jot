@@ -1,0 +1,10 @@
+{
+  // Cloudflare Workers Builds deploys the static build output. No Worker code:
+  // Jot has no backend (ADR-004). public/_headers ships inside dist/ and carries
+  // the CSP and cache headers.
+  "name": "jot",
+  "compatibility_date": "2026-09-29",
+  "assets": {
+    "directory": "./dist"
+  }
+}
