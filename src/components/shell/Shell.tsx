@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { JotDocument } from '@/lib/db'
 import { cn } from '@/lib/utils'
 import { importFiles, newDocument } from '@/state/actions'
-import type { ThemeState } from '@/state/theme'
 import { useWorkspace } from '@/state/workspace'
 import { KeyPanel } from '@/components/review/KeyPanel'
 import { EditorPane, PaneEmpty } from './EditorPane'
@@ -55,7 +54,7 @@ function FirstRun() {
   )
 }
 
-export function Shell({ docs, theme }: { docs: JotDocument[]; theme: ThemeState }) {
+export function Shell({ docs }: { docs: JotDocument[] }) {
   const panes = useWorkspace((s) => s.panes)
   const docsById = useMemo(() => new Map(docs.map((d) => [d.id, d])), [docs])
   const [dropping, setDropping] = useState(false)
@@ -136,7 +135,7 @@ export function Shell({ docs, theme }: { docs: JotDocument[]; theme: ThemeState 
         </div>
       </div>
       <div className="relative flex-none">
-        <StatusBar docsById={docsById} theme={theme} />
+        <StatusBar docsById={docsById} />
       </div>
     </div>
   )

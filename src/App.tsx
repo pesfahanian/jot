@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 import { setFavicon } from '@/lib/favicon'
 import { useDocuments } from '@/state/hooks'
 import { useReview } from '@/state/review'
-import { useApplyTheme, useTheme, type ThemeState } from '@/state/theme'
+import { useApplyTheme, useTheme } from '@/state/theme'
 import { useWorkspace } from '@/state/workspace'
 
 // Desktop only (ADR-011): below 1000px nothing of the app mounts — only this
@@ -24,7 +24,7 @@ function TooNarrow() {
   )
 }
 
-function Workspace({ theme }: { theme: ThemeState }) {
+function Workspace() {
   const docs = useDocuments()
   const loaded = useWorkspace((s) => s.loaded)
 
@@ -43,7 +43,7 @@ function Workspace({ theme }: { theme: ThemeState }) {
   }, [docs, loaded])
 
   if (!docs || !loaded) return <div className="h-svh bg-background" />
-  return <Shell docs={docs} theme={theme} />
+  return <Shell docs={docs} />
 }
 
 // The favicon mirrors the review (lib/favicon.ts): an unseen result first,
@@ -59,7 +59,7 @@ function App() {
   const theme = useTheme()
   useApplyTheme(theme.resolved)
   useFaviconStatus()
-  return isWide ? <Workspace theme={theme} /> : <TooNarrow />
+  return isWide ? <Workspace /> : <TooNarrow />
 }
 
 export default App

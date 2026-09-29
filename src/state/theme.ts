@@ -42,6 +42,9 @@ export function useApplyTheme(resolved: 'light' | 'dark') {
   }, [resolved])
 }
 
-export function setTheme(theme: ThemePreference) {
-  return updateSettings({ theme })
+// One button cycles light → dark → system (owner, Phase 7).
+const order: ThemePreference[] = ['light', 'dark', 'system']
+export const nextTheme = (current: ThemePreference) => order[(order.indexOf(current) + 1) % order.length]
+export function cycleTheme(current: ThemePreference) {
+  return updateSettings({ theme: nextTheme(current) })
 }

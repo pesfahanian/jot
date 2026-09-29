@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Monitor, Moon, Sparkles, Sun } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { ErrorDetail } from '@/components/review/ErrorDetail'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -11,7 +11,6 @@ import { getSettings, providerKey } from '@/lib/settings'
 import { cn } from '@/lib/utils'
 import { useNow } from '@/state/hooks'
 import { useReview } from '@/state/review'
-import { setTheme, type ThemePreference, type ThemeState } from '@/state/theme'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 
 // Counts hug their values and pack against the bar's right edge (§1.8:
@@ -171,46 +170,11 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
   return <div className="flex min-w-0 flex-auto items-center px-[5px] whitespace-nowrap">{body}</div>
 }
 
-// Theme switch (3f): three icons — light, dark, system — with the current
-// one lit, so every choice is one click and the state is always visible.
-// System's tooltip names what the OS resolves to, so the cell never lies.
-const themes: { value: ThemePreference; Icon: typeof Sun }[] = [
-  { value: 'light', Icon: Sun },
-  { value: 'dark', Icon: Moon },
-  { value: 'system', Icon: Monitor },
-]
-function ThemeCell({ preference, resolved }: { preference: ThemePreference; resolved: 'light' | 'dark' }) {
-  return (
-    <div role="radiogroup" aria-label="theme" className="flex flex-none items-center gap-px border-r border-border-subtle px-[5px]">
-      {themes.map(({ value, Icon }) => {
-        const on = preference === value
-        return (
-          <button
-            key={value}
-            type="button"
-            role="radio"
-            aria-checked={on}
-            aria-label={value}
-            title={value === 'system' ? `system (now ${resolved})` : value}
-            onClick={() => void setTheme(value)}
-            className={cn(
-              'flex h-[18px] w-5 items-center justify-center rounded-sm focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
-              on ? 'bg-hover-lift text-foreground' : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <Icon size={13} strokeWidth={on ? 2 : 1.75} aria-hidden />
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
 // The left block never shrinks below what the review control's widest state
-// ("Review outdated", the error chip) needs beside the theme icons.
-const LEFT_BLOCK_MIN = 236
+// ("review outdated", the error chip) needs.
+const LEFT_BLOCK_MIN = 180
 
-export function StatusBar({ docsById, theme }: { docsById: Map<string, JotDocument>; theme: ThemeState }) {
+export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) {
   const pane = useWorkspace(focusedPane)
   const cursor = useWorkspace((s) => s.cursor)
   const sidebarWidth = useWorkspace((s) => s.sidebarWidth)
@@ -221,11 +185,10 @@ export function StatusBar({ docsById, theme }: { docsById: Map<string, JotDocume
 
   return (
     <footer className="flex h-7 flex-none items-stretch overflow-hidden rounded-(--radius-status) border border-border-strong bg-card font-mono text-[11.5px]">
-      {/* Theme and review share the left block, as wide as the sidebar so
-          its edge lines up with the sidebar's (never narrower than the
-          review control's widest state needs). */}
+      {/* The bar is the focused document's alone (the theme lives in the
+          sidebar foot). The review control's block is as wide as the sidebar,
+          so its edge lines up with the sidebar's. */}
       <div className="flex flex-none items-stretch border-r border-border-subtle" style={{ width: Math.max(sidebarWidth - 1, LEFT_BLOCK_MIN) }}>
-        <ThemeCell preference={theme.preference} resolved={theme.resolved} />
         {/* With no document there is nothing to review or count (6d): only
             global state remains. */}
         {doc && <ReviewControl doc={doc} text={text} />}

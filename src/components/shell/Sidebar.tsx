@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Check, KeyRound, X } from 'lucide-react'
+import { Check, KeyRound, Monitor, Moon, Sun, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { JotDocument } from '@/lib/db'
@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 import { newDocument, renameDocument } from '@/state/actions'
 import { useNow } from '@/state/hooks'
 import { useReview } from '@/state/review'
+import { cycleTheme, nextTheme, useTheme } from '@/state/theme'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 import { DocumentMenu } from './DocumentMenu'
 import { FilterIcon, PinIcon, PlusIcon, SearchIcon, SortIcon } from './icons'
@@ -129,6 +130,28 @@ function FileRow({ doc, selected, now }: { doc: JotDocument; selected: boolean; 
 // per-document state): one row pinned to the sidebar's foot. Named for the
 // provider role, not OpenRouter, since more providers are planned. Two
 // states — key set (tick) or not set (cross); the panel has the details.
+// Theme (3f, moved here in Phase 7: the status bar is per-document, this
+// foot is the app's own settings). One icon showing the current mode —
+// sun, moon, or monitor for system — and a click cycles light → dark →
+// system. The tooltip says what system resolves to and what's next.
+const themeIcon = { light: Sun, dark: Moon, system: Monitor } as const
+function ThemeButton() {
+  const { preference, resolved } = useTheme()
+  const Icon = themeIcon[preference]
+  const now = preference === 'system' ? `system (now ${resolved})` : preference
+  return (
+    <button
+      type="button"
+      aria-label={`theme: ${now}`}
+      title={`theme: ${now} — click for ${nextTheme(preference)}`}
+      onClick={() => void cycleTheme(preference)}
+      className="flex w-[34px] flex-none items-center justify-center border-l border-border text-secondary-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+    >
+      <Icon size={13} strokeWidth={1.75} aria-hidden />
+    </button>
+  )
+}
+
 function KeyFooter() {
   const settings = useLiveQuery(() => getSettings(), [])
   const provider = PROVIDERS[settings?.provider ?? 'openrouter']
@@ -144,7 +167,7 @@ function KeyFooter() {
       title={`AI provider: ${provider.label} — ${set ? 'key set' : 'no key set'}`}
       onClick={() => (open ? closeKeyPanel() : openKeyPanel('cell'))}
       className={cn(
-        'flex h-[30px] flex-none items-center gap-2 border-t border-border pr-3 pl-3.5 font-mono text-[11.5px] text-secondary-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+        'flex min-w-0 flex-auto items-center gap-2 pr-3 pl-3.5 font-mono text-[11.5px] text-secondary-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
         open && 'bg-popover text-foreground',
       )}
     >
@@ -419,7 +442,10 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
         )}
       </header>
       <div className="flex min-h-0 flex-auto flex-col overflow-y-auto">{body}</div>
-      <KeyFooter />
+      <div className="flex h-[30px] flex-none items-stretch border-t border-border">
+        <KeyFooter />
+        <ThemeButton />
+      </div>
     </aside>
   )
 }
