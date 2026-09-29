@@ -15,6 +15,7 @@ export const defaultSettings: Settings = {
   googleKeyStatus: 'untested',
   googleLastValidatedAt: null,
   theme: 'system',
+  minimap: true,
 }
 
 // One provider's key, read and written through the same shape whichever

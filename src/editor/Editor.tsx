@@ -12,10 +12,13 @@ import {
   lineNumbers,
   rectangularSelection,
 } from '@codemirror/view'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef } from 'react'
+import { getSettings } from '@/lib/settings'
 import { isLocked, useReview } from '@/state/review'
 import { useWorkspace } from '@/state/workspace'
 import { markdownWithCode } from './codeLanguages'
+import { minimapCompartment, minimapFor } from './minimap'
 import { editorKeymap } from './keymap'
 import { getSession } from './sessions'
 import { codeBlockGround, jotEditorTheme } from './theme'
@@ -55,6 +58,12 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
   const viewRef = useRef<EditorView | null>(null)
   const focusedRef = useRef(focused)
   focusedRef.current = focused
+  // Minimap: the setting (default on), and never with three panes open.
+  const minimapSetting = useLiveQuery(() => getSettings().then((s) => s.minimap ?? true), []) ?? true
+  const paneCount = useWorkspace((s) => s.panes.length)
+  const minimapOn = minimapSetting && paneCount < 3
+  const minimapRef = useRef(minimapOn)
+  minimapRef.current = minimapOn
 
   useEffect(() => {
     const session = getSession(documentId, initialContent)
@@ -90,6 +99,7 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
           EditorView.contentAttributes.of({ spellcheck: 'true', autocorrect: 'on', autocapitalize: 'off' }),
           keymap.of(editorKeymap),
           jotEditorTheme,
+          minimapCompartment.of(minimapFor(minimapRef.current)),
           themeMode.of(themeModeFor(isDark())),
           lock.of(lockFor(isLocked(useReview.getState().openIn, documentId))),
           EditorView.updateListener.of((u) => {
@@ -136,6 +146,10 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
     if (!renaming && !view.hasFocus) view.focus()
     reportCursor(view, documentId)
   }, [focused, documentId, renaming])
+
+  useEffect(() => {
+    viewRef.current?.dispatch({ effects: minimapCompartment.reconfigure(minimapFor(minimapOn)) })
+  }, [minimapOn])
 
   const locked = useReview((s) => isLocked(s.openIn, documentId))
   useEffect(() => {

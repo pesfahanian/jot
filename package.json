@@ -26,6 +26,7 @@
     "@lezer/common": "^1.5.3",
     "@lezer/highlight": "^1.2.4",
     "@lezer/markdown": "^1.7.2",
+    "@replit/codemirror-minimap": "^0.5.2",
     "@replit/codemirror-vscode-keymap": "^6.0.2",
     "@tailwindcss/vite": "^4.3.3",
     "class-variance-authority": "^0.7.1",

@@ -1,9 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Check, KeyRound, Monitor, Moon, Sun, X } from 'lucide-react'
+import { Check, KeyRound, Monitor, Moon, PanelRight, PanelRightDashed, Sun, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { JotDocument } from '@/lib/db'
-import { getSettings, providerKey } from '@/lib/settings'
+import { getSettings, providerKey, updateSettings } from '@/lib/settings'
 import { PROVIDERS } from '@/review/providers'
 import {
   arrangeDocuments,
@@ -148,6 +148,28 @@ function ThemeButton() {
       className="flex w-[34px] flex-none items-center justify-center border-l border-border text-secondary-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
     >
       <Icon size={13} strokeWidth={1.75} aria-hidden />
+    </button>
+  )
+}
+
+// Minimap on/off (Phase 8), app-wide. Lit while on. With three panes open
+// the editors hide it regardless — the tooltip says so.
+function MinimapButton() {
+  const on = useLiveQuery(() => getSettings().then((s) => s.minimap ?? true), []) ?? true
+  const crowded = useWorkspace((s) => s.panes.length >= 3)
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      aria-label="minimap"
+      title={`minimap: ${on ? 'on' : 'off'}${on && crowded ? ' (hidden with three panes)' : ''} — click to ${on ? 'hide' : 'show'}`}
+      onClick={() => void updateSettings({ minimap: !on })}
+      className={cn(
+        'flex w-[34px] flex-none items-center justify-center border-l border-border hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+        on ? 'text-secondary-foreground' : 'text-ink-dim',
+      )}
+    >
+      {on ? <PanelRight size={13} strokeWidth={1.75} aria-hidden /> : <PanelRightDashed size={13} strokeWidth={1.75} aria-hidden />}
     </button>
   )
 }
@@ -444,6 +466,7 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
       <div className="flex min-h-0 flex-auto flex-col overflow-y-auto">{body}</div>
       <div className="flex h-[30px] flex-none items-stretch border-t border-border">
         <KeyFooter />
+        <MinimapButton />
         <ThemeButton />
       </div>
     </aside>

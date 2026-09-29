@@ -30,6 +30,8 @@ export interface Settings {
   googleKeyStatus: KeyStatus
   googleLastValidatedAt: number | null
   theme: 'light' | 'dark' | 'system'
+  // The editor's minimap (Phase 8); on unless turned off.
+  minimap: boolean
 }
 
 export type FlagFamily = 'tier1' | 'tier1b' | 'tier2' | 'spelling' | 'grammar' | 'punctuation'
