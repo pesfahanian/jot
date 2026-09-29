@@ -2,7 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- The dotted j (docs/design/logo). SVG follows the OS theme on its own;
+         PNGs cover browsers without SVG favicons
+         (listed first: SVG-capable browsers take the last, scalable one). The review swaps these
+         for its running / done / failed states (src/lib/favicon.ts). -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32-light.png" media="(prefers-color-scheme: light)" data-favicon="light" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32-dark.png" media="(prefers-color-scheme: dark)" data-favicon="dark" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" data-favicon="svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jot</title>
   </head>

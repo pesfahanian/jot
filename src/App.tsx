@@ -1,7 +1,9 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { Shell } from '@/components/shell/Shell'
 import { db } from '@/lib/db'
+import { setFavicon } from '@/lib/favicon'
 import { useDocuments } from '@/state/hooks'
+import { useReview } from '@/state/review'
 import { useApplyTheme, useTheme, type ThemeState } from '@/state/theme'
 import { useWorkspace } from '@/state/workspace'
 
@@ -44,10 +46,19 @@ function Workspace({ theme }: { theme: ThemeState }) {
   return <Shell docs={docs} theme={theme} />
 }
 
+// The favicon mirrors the review (lib/favicon.ts): an unseen result first,
+// then a review in progress, else the plain mark.
+function useFaviconStatus() {
+  const running = useReview((s) => Object.values(s.runs).some((r) => r.state === 'running'))
+  const unseen = useReview((s) => s.unseen)
+  useEffect(() => setFavicon(unseen ?? (running ? 'running' : 'idle')), [running, unseen])
+}
+
 function App() {
   const isWide = useSyncExternalStore(subscribeWidth, () => wide.matches)
   const theme = useTheme()
   useApplyTheme(theme.resolved)
+  useFaviconStatus()
   return isWide ? <Workspace theme={theme} /> : <TooNarrow />
 }
 

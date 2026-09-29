@@ -1,0 +1,15 @@
+Theme-aware favicon sources. Save each block as its own .svg file.
+(The project file store strips <style> from .svg files, so the .svg copies in this project fall back to light fills only.)
+
+=== favicon.svg ===
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><style>.i{fill:#25292F}.a{fill:#AD7300}@media (prefers-color-scheme:dark){.i{fill:#F2F1EC}.a{fill:#F2823B}}</style><rect class="a" x="9" y="1" width="3" height="3" rx="0.75"/><path class="i" d="M5 6H12V13Q12 15 10 15H4V13H9V8H5Z"/></svg>
+
+=== favicon-running.svg ===
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><style>.i{fill:#25292F}.a{fill:#AD7300}.m{fill:#A7ABB0}@media (prefers-color-scheme:dark){.i{fill:#F2F1EC}.a{fill:#F2823B}.m{fill:#5A5854}}</style><rect class="a" x="9" y="1" width="3" height="3" rx="0.75"/><path class="i" d="M5 6H12V10H10V15H4V13H9V8H5Z"/><rect class="m" x="11" y="11" width="5" height="5" rx="1"/></svg>
+
+=== favicon-done.svg ===
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><style>.i{fill:#25292F}.a{fill:#AD7300}@media (prefers-color-scheme:dark){.i{fill:#F2F1EC}.a{fill:#F2823B}}</style><rect class="i" x="9" y="1" width="3" height="3" rx="0.75"/><path class="i" d="M5 6H12V10H10V15H4V13H9V8H5Z"/><rect class="a" x="11" y="11" width="5" height="5" rx="1"/></svg>
+
+=== favicon-failed.svg ===
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><style>.i{fill:#25292F}.e{fill:#B32035}@media (prefers-color-scheme:dark){.i{fill:#F2F1EC}.e{fill:#E5484D}}</style><rect class="i" x="9" y="1" width="3" height="3" rx="0.75"/><path class="i" d="M5 6H12V10H10V15H4V13H9V8H5Z"/><rect class="e" x="11" y="11" width="5" height="5" rx="1"/></svg>
+

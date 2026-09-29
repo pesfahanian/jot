@@ -26,6 +26,9 @@ interface ReviewState {
   logOpen: boolean
   keyPanel: { open: boolean; reason: 'cell' | 'review'; documentId?: string }
   keyTesting: boolean
+  // A review that finished while Jot's tab was in the background, until the
+  // person comes back — the favicon's done / failed badge (lib/favicon.ts).
+  unseen: 'done' | 'failed' | null
 
   loadSession(documentId: string): Promise<ReviewSession | undefined>
   requestReview(documentId: string): Promise<void>
@@ -61,6 +64,7 @@ export const useReview = create<ReviewState>()((set, get) => ({
   logOpen: false,
   keyPanel: { open: false, reason: 'cell' },
   keyTesting: false,
+  unseen: null,
 
   async loadSession(documentId) {
     const cached = get().sessions[documentId]
@@ -138,10 +142,12 @@ export const useReview = create<ReviewState>()((set, get) => ({
       void _done
       set({ runs, sessions: { ...get().sessions, [documentId]: now } })
       openHere(documentId)
+      noteIfAway('done')
     } catch (e) {
       if ((e as Error).name === 'AbortError') {
         // A cancel has already cleared the run; only a timeout reports.
-        if (timedOut)
+        if (timedOut) {
+          noteIfAway('failed')
           set({
             runs: {
               ...get().runs,
@@ -153,11 +159,13 @@ export const useReview = create<ReviewState>()((set, get) => ({
               },
             },
           })
+        }
         return
       }
       const code = e instanceof ReviewRequestError ? String(e.status === 'network' ? 'offline' : e.status) : 'error'
       const detail = e instanceof ReviewRequestError && e.raw ? e.raw : String((e as Error).stack ?? e)
       set({ runs: { ...get().runs, [documentId]: { state: 'error', code, message: (e as Error).message, detail } } })
+      noteIfAway('failed')
     } finally {
       clearTimeout(timer)
       if (controllers[documentId] === ctrl) delete controllers[documentId]
@@ -223,6 +231,17 @@ export const useReview = create<ReviewState>()((set, get) => ({
   closeKeyPanel: () => set({ keyPanel: { open: false, reason: 'cell' } }),
   setKeyTesting: (v) => set({ keyTesting: v }),
 }))
+
+// Only a result the person didn't see arrive is flagged; failed outranks
+// done. Coming back to the tab clears it.
+function noteIfAway(outcome: 'done' | 'failed') {
+  if (document.visibilityState !== 'hidden') return
+  const was = useReview.getState().unseen
+  useReview.setState({ unseen: was === 'failed' ? 'failed' : outcome })
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && useReview.getState().unseen) useReview.setState({ unseen: null })
+})
 
 // Shows the review in the pane where the document is focused (or the first
 // pane showing it), opening the document there if needed.

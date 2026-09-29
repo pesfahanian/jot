@@ -23,6 +23,7 @@ import { DocumentMenu } from './DocumentMenu'
 import { FilterIcon, PinIcon, PlusIcon, SearchIcon, SortIcon } from './icons'
 import { tagClass } from './tagClass'
 import { TagMark } from './TagMark'
+import { Wordmark } from './Wordmark'
 
 const iconButton =
   'flex h-5 w-6 flex-none items-center justify-center rounded-md border border-border bg-control text-secondary-foreground hover:text-foreground hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:text-ink-mute'
@@ -395,7 +396,9 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
           <SearchField />
         ) : (
           <>
-            <span className="flex-auto font-mono text-[13.5px] font-semibold tracking-(--wordmark-tracking) text-foreground">jot</span>
+            <span className="flex flex-auto items-center text-foreground">
+              <Wordmark />
+            </span>
             <button type="button" title="new document" className={iconButton} onClick={() => void newDocument()}>
               <PlusIcon />
             </button>
