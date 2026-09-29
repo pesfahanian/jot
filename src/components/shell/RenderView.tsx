@@ -1,24 +1,20 @@
 import type { EditorView } from '@codemirror/view'
 import { useEffect, useRef, useState } from 'react'
 import { followContent, openContent, viewsOf } from '@/editor/sessions'
-import type { JotDocument, PaneLayout } from '@/lib/db'
+import type { JotDocument } from '@/lib/db'
 import { renderBlocks, type RenderedBlock } from '@/lib/render'
-import { cn } from '@/lib/utils'
 import { useWorkspace } from '@/state/workspace'
-import { TagMark } from './TagMark'
 
-// The rendered pane (2g): one document, rendered, beside its editor. It
-// follows the text as it's typed, and scrolls in step with every editor
+// The rendered view (2g): one document, rendered — the body of a rendered
+// tab ("render:" + id), which moves like any tab. It follows the text as
+// it's typed, and scrolls in step with every editor
 // showing the same document, the way VSCode's preview does — by source line,
 // not by percentage, so a tall table or code block on one side doesn't pull
 // the two apart.
 
 const RENDER_DELAY = 120
 
-export function RenderPane({ pane, doc }: { pane: PaneLayout; doc: JotDocument }) {
-  const focused = useWorkspace((s) => s.focusedPaneId === pane.id)
-  const focusPane = useWorkspace((s) => s.focusPane)
-  const closeTab = useWorkspace((s) => s.closeTab)
+export function RenderView({ doc }: { doc: JotDocument }) {
   const [blocks, setBlocks] = useState<RenderedBlock[] | null>(null)
   const scroller = useRef<HTMLDivElement>(null)
 
@@ -46,40 +42,15 @@ export function RenderPane({ pane, doc }: { pane: PaneLayout; doc: JotDocument }
   useScrollSync(doc.id, scroller, blocks)
 
   return (
-    <section
-      onMouseDownCapture={() => focusPane(pane.id)}
-      className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-(--radius-panel) border border-border-strong bg-document"
-    >
-      <div className="flex h-[38px] flex-none items-stretch border-b border-border bg-card">
-        <div
-          className={cn(
-            '-mb-px flex max-w-full min-w-0 items-center gap-2.5 border-r border-b-2 border-r-border bg-document px-3.5',
-            focused ? 'border-b-primary' : 'border-b-ink-dim',
-          )}
-        >
-          <TagMark color={doc.color} className="size-[7px]" />
-          <span className="truncate text-[13px] font-medium text-foreground">{doc.title}</span>
-          <span className="flex-none font-mono text-[11px] text-muted-foreground">rendered</span>
-          <button
-            type="button"
-            aria-label={`close rendered ${doc.title}`}
-            onClick={() => closeTab(pane.id, doc.id)}
-            className="flex-none font-mono text-[13px] text-muted-foreground hover:text-foreground"
-          >
-            ×
-          </button>
-        </div>
+    // Full pane width, as VSCode's preview (owner) — no measure cap.
+    <div ref={scroller} className="relative min-h-0 flex-auto overflow-y-auto px-7 py-6">
+      <div className="jot-rendered">
+        {blocks?.map((b) => (
+          <div key={`${b.line}:${b.html.length}`} data-line={b.line} dangerouslySetInnerHTML={{ __html: b.html }} />
+        ))}
+        {blocks?.length === 0 && <p className="text-muted-foreground">Nothing to render yet.</p>}
       </div>
-      {/* Full pane width, as VSCode's preview (owner) — no measure cap. */}
-      <div ref={scroller} className="relative min-h-0 flex-auto overflow-y-auto px-7 py-6">
-        <div className="jot-rendered">
-          {blocks?.map((b) => (
-            <div key={`${b.line}:${b.html.length}`} data-line={b.line} dangerouslySetInnerHTML={{ __html: b.html }} />
-          ))}
-          {blocks?.length === 0 && <p className="text-muted-foreground">Nothing to render yet.</p>}
-        </div>
-      </div>
-    </section>
+    </div>
   )
 }
 

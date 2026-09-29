@@ -11,6 +11,7 @@ import { getSettings, providerKey } from '@/lib/settings'
 import { cn } from '@/lib/utils'
 import { useNow } from '@/state/hooks'
 import { useReview } from '@/state/review'
+import { docIdOf } from '@/state/layout'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 
 // Counts hug their values and pack against the bar's right edge (§1.8:
@@ -178,7 +179,8 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
   const pane = useWorkspace(focusedPane)
   const cursor = useWorkspace((s) => s.cursor)
   const sidebarWidth = useWorkspace((s) => s.sidebarWidth)
-  const doc = pane?.active ? docsById.get(pane.active) : undefined
+  // A rendered tab counts as its document.
+  const doc = pane?.active ? docsById.get(docIdOf(pane.active)) : undefined
   const text = doc ? (openContent(doc.id) ?? doc.content) : ''
   const c = countText(text)
   const cur = cursor && doc && cursor.documentId === doc.id ? cursor : { line: 1, col: 1 }

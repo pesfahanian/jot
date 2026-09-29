@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { db, type JotDocument, type PaneLayout, type TagColor, type Workspace } from '@/lib/db'
 import type { SortMode } from '@/lib/docList'
-import { moveTab, splitWithTab, type DraggedTab } from './layout'
+import { docIdOf, moveTab, renderTab, splitWithTab, type DraggedTab } from './layout'
 
 // Shell state: panes and their tabs, which pane has focus, and the sidebar's
 // own controls. Document records live in IndexedDB and are read live; this
@@ -91,11 +91,14 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
 
   // Restores the saved layout, dropping tabs whose documents no longer
   // exist. With nothing saved, opens the most recently edited document.
+  // Layouts saved before rendered views became tabs had whole "render"
+  // panes; those become panes of rendered tabs.
   hydrate(ws, docs) {
     const ids = new Set(docs.map((d) => d.id))
     let panes: PaneLayout[] = (ws?.panes ?? [])
+      .map(({ render, ...p }) => (render ? { ...p, tabs: p.tabs.map(renderTab), active: p.active && renderTab(p.active) } : p))
       .map((p) => {
-        const tabs = p.tabs.filter((t) => ids.has(t))
+        const tabs = p.tabs.filter((t) => ids.has(docIdOf(t)))
         return { ...p, tabs, active: p.active && tabs.includes(p.active) ? p.active : (tabs[0] ?? null) }
       })
       .filter((p) => p.tabs.length > 0)
@@ -117,20 +120,8 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   // Opens in the focused pane (or the given one): activates the tab if it's
   // already there, otherwise inserts it right after the active tab.
   openDocument(documentId, opts) {
-    let { panes } = get()
-    let paneId = opts?.paneId ?? get().focusedPaneId
-    // A rendered pane only ever shows its own document: opening goes to the
-    // nearest editor pane on its left (or right), or a new one if none is left.
-    const at = panes.findIndex((p) => p.id === paneId)
-    if (panes[at]?.render) {
-      const editor = [...panes.slice(0, at)].reverse().find((p) => !p.render) ?? panes.slice(at + 1).find((p) => !p.render)
-      if (editor) paneId = editor.id
-      else {
-        const pane: PaneLayout = { id: newPaneId(), tabs: [], active: null }
-        panes = [...panes.slice(0, at), pane, ...panes.slice(at)]
-        paneId = pane.id
-      }
-    }
+    const { panes } = get()
+    const paneId = opts?.paneId ?? get().focusedPaneId
     set({
       panes: panes.map((p) => {
         if (p.id !== paneId) return p
@@ -182,37 +173,40 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     const { panes, focusedPaneId } = get()
     if (panes.length >= MAX_PANES) return
     const i = panes.findIndex((p) => p.id === focusedPaneId)
-    if (panes[i]?.render) return
     const current = panes[i]?.active
     if (!current) return
     const pane: PaneLayout = { id: newPaneId(), tabs: [current], active: current }
     set({ panes: [...panes.slice(0, i + 1), pane, ...panes.slice(i + 1)], focusedPaneId: pane.id })
   },
 
-  // Render (2g, Cmd/Ctrl+Shift+V): the focused editor's document opens
-  // rendered in a pane to its right; pressed again — from the editor or the
-  // rendered pane — that rendered pane closes. Counts toward the
-  // three-pane limit. Focus stays on the editor.
+  // Render (2g, Cmd/Ctrl+Shift+V) toggles the focused document's rendered
+  // view — a tab ("render:" + id), movable like any other. Opening puts it in
+  // a new pane to the right, or, with three panes open, as a tab in the
+  // neighbouring pane; focus stays put. Pressed again, from the editor or
+  // the rendered tab, every rendered tab of that document closes.
   toggleRender() {
     const { panes, focusedPaneId } = get()
     const i = panes.findIndex((p) => p.id === focusedPaneId)
-    const doc = panes[i]?.active
-    if (!doc) return
-    // From the rendered pane itself: close it, back to its editor.
-    if (panes[i].render) {
-      const rest = panes.filter((p) => p.id !== focusedPaneId)
-      if (rest.length === 0) return
-      const editor = [...panes.slice(0, i)].reverse().find((p) => !p.render && p.active === doc) ?? rest.find((p) => !p.render)
-      set({ panes: rest, focusedPaneId: editor?.id ?? rest[0]?.id ?? '' })
+    const active = panes[i]?.active
+    if (!active) return
+    const rid = renderTab(docIdOf(active))
+    if (panes.some((p) => p.tabs.includes(rid))) {
+      for (const p of get().panes) if (p.tabs.includes(rid)) get().closeTab(p.id, rid)
       return
     }
-    if (panes.some((p) => p.render && p.active === doc)) {
-      set({ panes: panes.filter((p) => !(p.render && p.active === doc)) })
+    if (panes.length < MAX_PANES) {
+      const pane: PaneLayout = { id: newPaneId(), tabs: [rid], active: rid }
+      set({ panes: [...panes.slice(0, i + 1), pane, ...panes.slice(i + 1)] })
       return
     }
-    if (panes.length >= MAX_PANES) return
-    const pane: PaneLayout = { id: newPaneId(), tabs: [doc], active: doc, render: true }
-    set({ panes: [...panes.slice(0, i + 1), pane, ...panes.slice(i + 1)] })
+    const j = i + 1 < panes.length ? i + 1 : i - 1
+    set({
+      panes: panes.map((p, k) => {
+        if (k !== j) return p
+        const at = p.active ? p.tabs.indexOf(p.active) + 1 : p.tabs.length
+        return { ...p, tabs: [...p.tabs.slice(0, at), rid, ...p.tabs.slice(at)], active: rid }
+      }),
+    })
   },
 
   setDragTab: (tab) => set({ dragTab: tab }),
@@ -246,6 +240,9 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
       if (index !== -1) placements.push({ paneId: p.id, index, wasActive: p.active === documentId })
     }
     for (const pl of placements) get().closeTab(pl.paneId, documentId)
+    // Its rendered views go too (undo restores the editor tabs only).
+    const rid = renderTab(documentId)
+    for (const p of get().panes) if (p.tabs.includes(rid)) get().closeTab(p.id, rid)
     return placements
   },
 

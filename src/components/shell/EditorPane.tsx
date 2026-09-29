@@ -13,8 +13,9 @@ import { exportMarkdown, exportPdf, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
 import { newDocument } from '@/state/actions'
 import { useReview } from '@/state/review'
-import { canSplit } from '@/state/layout'
+import { canSplit, docIdOf, isRenderTab, renderTab } from '@/state/layout'
 import { MAX_PANES, useWorkspace } from '@/state/workspace'
+import { RenderView } from './RenderView'
 import { DocumentMenu } from './DocumentMenu'
 import { SplitIcon } from './icons'
 import { QuietButton } from './Sidebar'
@@ -67,12 +68,12 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
   const splitRight = useWorkspace((s) => s.splitRight)
   const toggleRender = useWorkspace((s) => s.toggleRender)
   const paneCount = useWorkspace((s) => s.panes.length)
-  const rendered = useWorkspace((s) => !!doc && s.panes.some((p) => p.render && p.active === doc.id))
+  const rendered = useWorkspace((s) => !!doc && s.panes.some((p) => p.tabs.includes(renderTab(doc.id))))
   const canSplit = !!doc && paneCount < MAX_PANES
-  // Render toggles this document's rendered pane (2g); opening one needs a
-  // free pane slot.
-  const canRender = !!doc && (rendered || paneCount < MAX_PANES)
-  const renderTitle = rendered ? 'close the rendered view' : canRender ? 'show this document rendered, beside it' : 'close a pane to make room for the rendered view'
+  // Render toggles this document's rendered tab (2g) — beside it in a new
+  // pane, or in the neighbouring pane when three are open.
+  const canRender = !!doc
+  const renderTitle = rendered ? 'close the rendered view' : 'show this document rendered, beside it'
   const split = (
     <button type="button" className={control} disabled={!canSplit} onClick={splitRight} title="open this document in a new pane to the right">
       <SplitIcon />
@@ -132,8 +133,11 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
   )
 }
 
-function Tab({ doc, active, focused, paneId }: { doc: JotDocument; active: boolean; focused: boolean; paneId: string }) {
-  const inReview = useReview((s) => s.openIn[paneId] === doc.id)
+// A tab is a document's editor, or its rendered view (tabId "render:" + id,
+// labelled "rendered") — both move, close and reorder the same way.
+function Tab({ tabId, doc, active, focused, paneId }: { tabId: string; doc: JotDocument; active: boolean; focused: boolean; paneId: string }) {
+  const rendered = isRenderTab(tabId)
+  const inReview = useReview((s) => !rendered && s.openIn[paneId] === doc.id)
   const activateTab = useWorkspace((s) => s.activateTab)
   const closeTab = useWorkspace((s) => s.closeTab)
   const setDragTab = useWorkspace((s) => s.setDragTab)
@@ -144,18 +148,18 @@ function Tab({ doc, active, focused, paneId }: { doc: JotDocument; active: boole
         // 8). Not while its review is open: the review belongs to this pane.
         draggable={!inReview}
         onDragStart={(e) => {
-          e.dataTransfer.setData('application/x-jot-tab', doc.id)
+          e.dataTransfer.setData('application/x-jot-tab', tabId)
           e.dataTransfer.effectAllowed = 'move'
-          setDragTab({ docId: doc.id, from: paneId })
+          setDragTab({ docId: tabId, from: paneId })
         }}
         onDragEnd={() => setDragTab(null)}
         role="tab"
         aria-selected={active}
         tabIndex={0}
-        data-tab-id={doc.id}
-        onClick={() => activateTab(paneId, doc.id)}
-        onAuxClick={(e) => e.button === 1 && closeTab(paneId, doc.id)}
-        onKeyDown={(e) => e.key === 'Enter' && activateTab(paneId, doc.id)}
+        data-tab-id={tabId}
+        onClick={() => activateTab(paneId, tabId)}
+        onAuxClick={(e) => e.button === 1 && closeTab(paneId, tabId)}
+        onKeyDown={(e) => e.key === 'Enter' && activateTab(paneId, tabId)}
         className={cn(
           'group flex max-w-[220px] flex-none cursor-default items-center gap-2.5 border-r border-border px-3.5 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
           active
@@ -166,12 +170,13 @@ function Tab({ doc, active, focused, paneId }: { doc: JotDocument; active: boole
         <TagMark color={doc.color} className="size-[7px]" />
         <span className={cn('truncate text-[13px]', active && 'font-medium')}>{doc.title}</span>
         {inReview && <span className="font-mono text-[11px] text-muted-foreground">review</span>}
+        {rendered && <span className="font-mono text-[11px] text-muted-foreground">rendered</span>}
         <button
           type="button"
-          aria-label={`close ${doc.title}`}
+          aria-label={`close ${rendered ? 'rendered ' : ''}${doc.title}`}
           onClick={(e) => {
             e.stopPropagation()
-            closeTab(paneId, doc.id)
+            closeTab(paneId, tabId)
           }}
           className={cn('flex-none font-mono text-[13px] hover:text-foreground', active ? 'text-muted-foreground' : 'text-ink-dim')}
         >
@@ -186,7 +191,12 @@ function Tab({ doc, active, focused, paneId }: { doc: JotDocument; active: boole
 // sideways (wheel or trackpad), always bringing the active tab into view.
 // When any tab is out of view, a count button at the strip's end lists every
 // tab in the pane.
-function TabStrip({ pane, docs, focused }: { pane: PaneLayout; docs: JotDocument[]; focused: boolean }) {
+interface PaneTab {
+  id: string
+  doc: JotDocument
+}
+
+function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; focused: boolean }) {
   const strip = useRef<HTMLDivElement>(null)
   const [hidden, setHidden] = useState(0)
   const activateTab = useWorkspace((s) => s.activateTab)
@@ -252,8 +262,8 @@ function TabStrip({ pane, docs, focused }: { pane: PaneLayout; docs: JotDocument
         }}
         className="relative flex min-w-0 flex-auto items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {docs.map((d) => (
-          <Tab key={d.id} doc={d} active={d.id === pane.active} focused={focused} paneId={pane.id} />
+        {tabs.map((t) => (
+          <Tab key={t.id} tabId={t.id} doc={t.doc} active={t.id === pane.active} focused={focused} paneId={pane.id} />
         ))}
         {dragging && slot && <span aria-hidden className="pointer-events-none absolute top-1.5 bottom-1.5 z-10 w-[2px] -translate-x-1/2 rounded-full bg-primary" style={{ left: Math.max(1, slot.x) }} />}
       </div>
@@ -269,10 +279,11 @@ function TabStrip({ pane, docs, focused }: { pane: PaneLayout; docs: JotDocument
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-[232px]">
-            {docs.map((d) => (
-              <DropdownMenuItem key={d.id} onSelect={() => activateTab(pane.id, d.id)} className={cn(d.id === pane.active && 'text-foreground')}>
-                <TagMark color={d.color} className="size-[7px]" />
-                <span className={cn('flex-auto truncate', d.id === pane.active && 'font-medium')}>{d.title}</span>
+            {tabs.map((t) => (
+              <DropdownMenuItem key={t.id} onSelect={() => activateTab(pane.id, t.id)} className={cn(t.id === pane.active && 'text-foreground')}>
+                <TagMark color={t.doc.color} className="size-[7px]" />
+                <span className={cn('flex-auto truncate', t.id === pane.active && 'font-medium')}>{t.doc.title}</span>
+                {isRenderTab(t.id) && <span className="font-mono text-[11px] text-muted-foreground">rendered</span>}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -348,9 +359,15 @@ export function EditorPane({ pane, docsById, paneCount }: { pane: PaneLayout; do
     return () => ro.disconnect()
   }, [])
 
-  const tabs = pane.tabs.map((id) => docsById.get(id)).filter((d): d is JotDocument => !!d)
-  const doc = pane.active ? docsById.get(pane.active) : undefined
-  const reviewHere = useReview((s) => !!doc && s.openIn[pane.id] === doc.id)
+  const tabs = pane.tabs.flatMap((id) => {
+    const doc = docsById.get(docIdOf(id))
+    return doc ? [{ id, doc }] : []
+  })
+  // The active tab's document; the pane shows its editor, or its rendered
+  // view when the active tab is a rendered one.
+  const doc = pane.active ? docsById.get(docIdOf(pane.active)) : undefined
+  const showRendered = isRenderTab(pane.active)
+  const reviewHere = useReview((s) => !!doc && !showRendered && s.openIn[pane.id] === doc.id)
   const session = useReview((s) => (doc ? s.sessions[doc.id] : undefined))
 
   return (
@@ -362,7 +379,7 @@ export function EditorPane({ pane, docsById, paneCount }: { pane: PaneLayout; do
     >
       {!reviewHere && <DropZones paneId={pane.id} />}
       <div className="flex h-[38px] flex-none items-stretch border-b border-border bg-card">
-        <TabStrip pane={pane} docs={tabs} focused={focused} />
+        <TabStrip pane={pane} tabs={tabs} focused={focused} />
         {/* Controls sit on the focused pane only (6f). */}
         {focused && (
           <div className="flex flex-none items-center gap-1.5 border-l border-border pr-2 pl-3">
@@ -370,7 +387,9 @@ export function EditorPane({ pane, docsById, paneCount }: { pane: PaneLayout; do
           </div>
         )}
       </div>
-      {doc ? (
+      {doc && showRendered ? (
+        <RenderView key={doc.id} doc={doc} />
+      ) : doc ? (
         <>
           {session && reviewHere && (
             <Suspense fallback={<div className="flex-auto" />}>

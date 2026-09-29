@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 import { newDocument, renameDocument } from '@/state/actions'
 import { useNow } from '@/state/hooks'
 import { useReview } from '@/state/review'
+import { docIdOf } from '@/state/layout'
 import { cycleTheme, nextTheme, useTheme } from '@/state/theme'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 import { DocumentMenu } from './DocumentMenu'
@@ -286,7 +287,8 @@ function highlight(text: string, ranges: [number, number][]) {
 
 function SearchResults({ results, matches, now }: { results: SearchResult[]; matches: number; now: number }) {
   const openDocument = useWorkspace((s) => s.openDocument)
-  const selectedId = useWorkspace((s) => focusedPane(s)?.active)
+  // A rendered tab selects its document too.
+  const selectedId = useWorkspace((s) => { const a = focusedPane(s)?.active; return a ? docIdOf(a) : undefined })
   return (
     <>
       <div className="border-b border-border-subtle px-3 py-1.5 font-mono text-[11px] text-muted-foreground">
@@ -361,7 +363,8 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
   const searchOpen = useWorkspace((s) => s.searchOpen)
   const query = useWorkspace((s) => s.searchQuery)
   const setSearch = useWorkspace((s) => s.setSearch)
-  const selectedId = useWorkspace((s) => focusedPane(s)?.active)
+  // A rendered tab selects its document too.
+  const selectedId = useWorkspace((s) => { const a = focusedPane(s)?.active; return a ? docIdOf(a) : undefined })
 
   const { pinned, rest } = useMemo(() => arrangeDocuments(filterByColors(docs, colorFilter), sort), [docs, colorFilter, sort])
   const search = useMemo(() => (searchOpen && query.trim() ? searchDocuments(docs, query) : null), [docs, searchOpen, query])

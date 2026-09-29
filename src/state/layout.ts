@@ -4,11 +4,19 @@ import type { PaneLayout } from '@/lib/db'
 // without the UI: reorder within a strip, move to another pane's strip, or
 // drop on a pane's left/right edge to open it in a new column there. A tab
 // moves — it leaves where it came from, and a pane left empty closes (6f).
-// Rendered panes are never sources or targets; the three-pane limit holds.
+// The three-pane limit holds.
 
 export const MAX_COLUMNS = 3
 
+// A tab is a document's editor (its id) or its rendered view ("render:" +
+// id) — an ordinary tab, as VSCode's preview is, so every tab move applies.
+const RENDER = 'render:'
+export const renderTab = (docId: string) => RENDER + docId
+export const isRenderTab = (tabId: string | null | undefined) => !!tabId?.startsWith(RENDER)
+export const docIdOf = (tabId: string) => (tabId.startsWith(RENDER) ? tabId.slice(RENDER.length) : tabId)
+
 export interface DraggedTab {
+  // The tab's id: a document id, or a rendered view's "render:" id.
   docId: string
   from: string
 }
@@ -36,7 +44,7 @@ function removeTab(panes: PaneLayout[], paneId: string, docId: string): PaneLayo
 // there. Within one strip this is a reorder.
 export function moveTab(panes: PaneLayout[], tab: DraggedTab, to: string, index: number): LayoutResult | null {
   const target = panes.find((p) => p.id === to)
-  if (!target || target.render) return null
+  if (!target) return null
   if (tab.from === to) {
     const at = target.tabs.indexOf(tab.docId)
     if (at === -1) return null
@@ -58,7 +66,7 @@ export function moveTab(panes: PaneLayout[], tab: DraggedTab, to: string, index:
 export function splitWithTab(panes: PaneLayout[], tab: DraggedTab, target: string, side: 'left' | 'right', newId: string): LayoutResult | null {
   const source = panes.find((p) => p.id === tab.from)
   const onto = panes.find((p) => p.id === target)
-  if (!source || !onto || onto.render) return null
+  if (!source || !onto) return null
   // Its own pane's edge, when it's the pane's only tab: nothing would change.
   if (tab.from === target && source.tabs.length === 1) return null
   const rest = removeTab(panes, tab.from, tab.docId)

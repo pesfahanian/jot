@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { PaneLayout } from '@/lib/db'
-import { canSplit, moveTab, splitWithTab } from './layout'
+import { canSplit, docIdOf, isRenderTab, moveTab, splitWithTab } from './layout'
 
-const pane = (id: string, tabs: string[], active = tabs[0] ?? null, render = false): PaneLayout => ({ id, tabs, active, ...(render ? { render } : {}) })
+const pane = (id: string, tabs: string[], active = tabs[0] ?? null): PaneLayout => ({ id, tabs, active })
 const tabsOf = (ps: PaneLayout[]) => ps.map((p) => `${p.id}:${p.tabs.join(',')}>${p.active}`)
 
 describe('tab drag — reorder and move', () => {
@@ -29,8 +29,10 @@ describe('tab drag — reorder and move', () => {
     expect(tabsOf(r.panes)).toEqual(['A:b>b', 'B:x,a>a'])
   })
 
-  it('never drops into a rendered pane', () => {
-    expect(moveTab([pane('A', ['a']), pane('R', ['a'], 'a', true)], { docId: 'a', from: 'A' }, 'R', 0)).toBeNull()
+  it('moves a rendered view like any tab — joining a pane beside other tabs', () => {
+    const r = moveTab([pane('A', ['a']), pane('R', ['render:a'])], { docId: 'render:a', from: 'R' }, 'A', 1)!
+    expect(tabsOf(r.panes)).toEqual(['A:a,render:a>render:a'])
+    expect(isRenderTab('render:a') && docIdOf('render:a') === 'a' && docIdOf('a') === 'a').toBe(true)
   })
 })
 

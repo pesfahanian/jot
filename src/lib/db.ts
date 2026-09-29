@@ -74,7 +74,8 @@ export interface PaneLayout {
   id: string
   tabs: string[]
   active: string | null
-  // A rendered pane (2g): shows its one document rendered, beside an editor.
+  // Only in layouts saved before rendered views became tabs ("render:" +
+  // document id, state/layout.ts); converted on load.
   render?: boolean
 }
 

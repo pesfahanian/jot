@@ -248,9 +248,10 @@ document.addEventListener('visibilitychange', () => {
 function openHere(documentId: string) {
   const ws = useWorkspace.getState()
   const focused = ws.panes.find((p) => p.id === ws.focusedPaneId)
-  // Never a rendered pane: a review needs the editor underneath it.
+  // The pane showing the document's editor tab (a review needs the editor
+  // underneath it); else the focused pane, where it opens.
   const pane =
-    focused?.active === documentId && !focused.render ? focused : (ws.panes.find((p) => p.active === documentId && !p.render) ?? ws.panes.find((p) => !p.render))
+    focused?.active === documentId ? focused : (ws.panes.find((p) => p.active === documentId) ?? focused)
   if (!pane) return
   if (pane.active !== documentId) ws.openDocument(documentId, { paneId: pane.id })
   const s = useReview.getState()
