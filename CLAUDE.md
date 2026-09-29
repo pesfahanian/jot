@@ -52,3 +52,5 @@ Scaffolded in T0.1. Package manager is pnpm (pinned via `packageManager` in `pac
 - `src/review/ruleset/` — the Style Review rule set (bundled at build time, T5.8). `checks.md` and `output-schema.md` are authoritative for Phase 5 flag production.
 - `@/` is aliased to `src/` (see `vite.config.ts`, `tsconfig*.json`).
 - `.claude/launch.json` — dev-server config for the preview browser.
+- `public/_headers` — production response headers (strict Content-Security-Policy: own code only, network only to the two AI providers); Cloudflare Pages applies it, and `vite.config.ts` feeds it to `pnpm preview`. Add any new AI provider's API host to `connect-src`, or its calls will be blocked.
+- `README.md`, `LICENSE` (MIT), `.node-version` (22, read by Cloudflare Pages).

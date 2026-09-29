@@ -2,6 +2,9 @@
   "name": "jot",
   "private": true,
   "version": "1.0.0",
+  "description": "A minimal, local-first markdown editor with an AI style review. No backend: everything stays in your browser.",
+  "license": "MIT",
+  "author": "Parsa Esfahanian",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -54,5 +57,8 @@
     "vite": "^8.3.0",
     "vitest": "^5.0.2"
   },
-  "packageManager": "pnpm@10.34.5"
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=22"
+  }
 }
