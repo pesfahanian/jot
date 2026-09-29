@@ -91,9 +91,20 @@ function FileRow({ doc, selected, now }: { doc: JotDocument; selected: boolean; 
   const renaming = useWorkspace((s) => s.renamingId === doc.id)
   const openDocument = useWorkspace((s) => s.openDocument)
   const setRenaming = useWorkspace((s) => s.setRenaming)
+  const setDragTab = useWorkspace((s) => s.setDragTab)
   return (
     <DocumentMenu doc={doc}>
       <div
+        // Drag into the panes to open it there (Phase 8, as VSCode's
+        // explorer): a tab strip, a pane's middle, or its edge for a new
+        // column. Not while its name is being edited.
+        draggable={!renaming}
+        onDragStart={(e) => {
+          e.dataTransfer.setData('application/x-jot-tab', doc.id)
+          e.dataTransfer.effectAllowed = 'move'
+          setDragTab({ docId: doc.id, from: null })
+        }}
+        onDragEnd={() => setDragTab(null)}
         role="button"
         tabIndex={0}
         data-doc-id={doc.id}

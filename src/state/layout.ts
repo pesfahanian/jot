@@ -18,7 +18,9 @@ export const docIdOf = (tabId: string) => (tabId.startsWith(RENDER) ? tabId.slic
 export interface DraggedTab {
   // The tab's id: a document id, or a rendered view's "render:" id.
   docId: string
-  from: string
+  // The pane it's dragged out of — or null for a document dragged in from
+  // the sidebar, which opens where it's dropped rather than moving.
+  from: string | null
 }
 
 export interface LayoutResult {
@@ -28,7 +30,8 @@ export interface LayoutResult {
 
 // Takes a tab out of a pane: its neighbour becomes active, and a pane left
 // empty closes unless it's the only one.
-function removeTab(panes: PaneLayout[], paneId: string, docId: string): PaneLayout[] {
+function removeTab(panes: PaneLayout[], paneId: string | null, docId: string): PaneLayout[] {
+  if (paneId === null) return panes
   return panes.flatMap((p) => {
     if (p.id !== paneId) return [p]
     const i = p.tabs.indexOf(docId)
@@ -64,11 +67,11 @@ export function moveTab(panes: PaneLayout[], tab: DraggedTab, to: string, index:
 
 // Onto a pane's left or right edge: a new column beside it holding the tab.
 export function splitWithTab(panes: PaneLayout[], tab: DraggedTab, target: string, side: 'left' | 'right', newId: string): LayoutResult | null {
-  const source = panes.find((p) => p.id === tab.from)
+  const source = tab.from === null ? null : panes.find((p) => p.id === tab.from)
   const onto = panes.find((p) => p.id === target)
-  if (!source || !onto) return null
+  if (source === undefined || !onto) return null
   // Its own pane's edge, when it's the pane's only tab: nothing would change.
-  if (tab.from === target && source.tabs.length === 1) return null
+  if (source && tab.from === target && source.tabs.length === 1) return null
   const rest = removeTab(panes, tab.from, tab.docId)
   if (rest.length >= MAX_COLUMNS) return null
   const i = rest.findIndex((p) => p.id === target)

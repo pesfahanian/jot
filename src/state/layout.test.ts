@@ -56,3 +56,17 @@ describe('tab drag — split on a pane edge', () => {
     expect(canSplit(ps, { docId: 'x', from: 'B' }, 'A')).toBe(true)
   })
 })
+
+describe('dragging a document in from the sidebar', () => {
+  const ps = [pane('A', ['a', 'b']), pane('B', ['x'])]
+  it('opens it in a strip at the slot, leaving every other pane as it was', () => {
+    expect(tabsOf(moveTab(ps, { docId: 'n', from: null }, 'B', 0)!.panes)).toEqual(['A:a,b>a', 'B:n,x>n'])
+  })
+  it("moves rather than duplicates when the pane already has it open", () => {
+    expect(tabsOf(moveTab(ps, { docId: 'b', from: null }, 'A', 0)!.panes)).toEqual(['A:b,a>b', 'B:x>x'])
+  })
+  it('opens it in a new column on a pane edge, within three columns', () => {
+    expect(tabsOf(splitWithTab(ps, { docId: 'n', from: null }, 'A', 'left', 'N')!.panes)).toEqual(['N:n>n', 'A:a,b>a', 'B:x>x'])
+    expect(splitWithTab([...ps, pane('C', ['y'])], { docId: 'n', from: null }, 'A', 'left', 'N')).toBeNull()
+  })
+})
