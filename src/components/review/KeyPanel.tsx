@@ -1,17 +1,21 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef, useState } from 'react'
 import { db, type Provider } from '@/lib/db'
-import { defaultSettings, keyPatch, providerKey, updateSettings } from '@/lib/settings'
+import { Check, ChevronDown } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { defaultSettings, providerKey, setProviderKey, updateSettings } from '@/lib/settings'
 import { cn } from '@/lib/utils'
-import { PROVIDER_ORDER, PROVIDERS } from '@/review/providers'
+import { modelChain, PROVIDER_ORDER, PROVIDERS } from '@/review/providers'
+import { ModelChain } from './ModelChain'
 import { useNow } from '@/state/hooks'
 import { useReview } from '@/state/review'
 
 // The AI Provider panel (7a–7c): a single-purpose popover anchored beside
 // the sidebar's AI Provider row, built as one titled section with its own
 // footer. Two doors open it — that row, and clicking review with no key.
-// A switch at the top picks the provider reviews run on (ADR-004
-// amendment); each provider keeps its own key.
+// A dropdown at the top picks the provider reviews run on (ADR-004
+// amendment, Phase 12); each provider keeps its own key and its own model
+// chain, edited below the key.
 //
 // No separate save: a key is stored only once a test passes, so "test" is
 // the save. Rejected keys are never stored; a dropped connection never
@@ -81,10 +85,11 @@ function KeyPanelBody() {
     if (!panel.open) return
     const down = (e: PointerEvent) => {
       const t = e.target as Node
-      if (self.current?.contains(t) || (t as Element).closest?.('[data-key-cell]')) return
+      // The provider menu is portalled outside the panel but belongs to it.
+      if (self.current?.contains(t) || (t as Element).closest?.('[data-key-cell], [data-key-menu]')) return
       close()
     }
-    const key = (e: KeyboardEvent) => e.key === 'Escape' && close()
+    const key = (e: KeyboardEvent) => e.key === 'Escape' && !(e.target as Element).closest?.('[data-key-menu]') && close()
     window.addEventListener('pointerdown', down)
     window.addEventListener('keydown', key)
     return () => {
@@ -99,7 +104,7 @@ function KeyPanelBody() {
     const result = await info.testKey(candidate)
     setTesting(false)
     if (result.ok) {
-      await updateSettings(keyPatch(provider, { key: candidate, status: 'valid', lastValidatedAt: Date.now() }))
+      await setProviderKey(provider, { key: candidate, status: 'valid', lastValidatedAt: Date.now() })
       setDraft('')
       // A passing test from the review door closes the panel and starts the
       // review that was clicked (7b).
@@ -111,15 +116,15 @@ function KeyPanelBody() {
     }
     if (result.reason === 'rejected') {
       setAttempt('rejected')
-      if (candidate === stored) await updateSettings(keyPatch(provider, { status: 'invalid' }))
+      if (candidate === stored) await setProviderKey(provider, { status: 'invalid' })
     } else {
       setAttempt('offline')
-      if (candidate === stored) await updateSettings(keyPatch(provider, { status: 'offline' }))
+      if (candidate === stored) await setProviderKey(provider, { status: 'offline' })
     }
   }
 
   const clear = async () => {
-    await updateSettings(keyPatch(provider, { key: null, status: 'untested', lastValidatedAt: null }))
+    await setProviderKey(provider, { key: null, status: 'untested', lastValidatedAt: null })
     setDraft('')
     setAttempt('idle')
     setTimeout(() => input.current?.focus())
@@ -197,24 +202,29 @@ function KeyPanelBody() {
       </div>
       <div className="flex flex-col gap-2.5 px-4 pb-3.5">
         {/* Which provider reviews run on — picking one makes it active. */}
-        <div role="radiogroup" aria-label="provider" className="flex gap-1 rounded-md border border-border bg-background p-0.5 font-mono text-[11.5px]">
-          {PROVIDER_ORDER.map((p) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <button
-              key={p}
               type="button"
-              role="radio"
-              aria-checked={p === provider}
               disabled={testing}
-              onClick={() => pick(p)}
-              className={cn(
-                'flex h-6 flex-1 items-center justify-center rounded-[5px] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
-                p === provider ? 'bg-hover-lift text-foreground' : 'text-muted-foreground hover:text-foreground',
-              )}
+              aria-label={`provider: ${info.label}`}
+              className="flex h-8 items-center gap-2 rounded-md border border-border bg-background pr-2 pl-2.5 text-[13px] text-foreground hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[state=open]:border-border-strong"
             >
-              {PROVIDERS[p].label}
+              <span className="flex-auto text-left">{info.label}</span>
+              <ChevronDown size={13} strokeWidth={1.75} className="text-muted-foreground" aria-hidden />
             </button>
-          ))}
-        </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent data-key-menu="" align="start" className="w-(--radix-dropdown-menu-trigger-width)">
+            {PROVIDER_ORDER.map((p) => (
+              <DropdownMenuItem key={p} onSelect={() => pick(p)} className={cn(p === provider && 'text-foreground')}>
+                <span className="flex-auto">{PROVIDERS[p].label}</span>
+                {/* Which providers already have a key. */}
+                {providerKey(settings, p).key && <span className="font-mono text-[10.5px] text-muted-foreground">key set</span>}
+                <Check size={13} strokeWidth={2} className={cn('text-primary', p !== provider && 'invisible')} aria-hidden />
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         {!stored && panel.reason === 'review' && (
           <div className="text-[12.5px] leading-[1.55] text-secondary-foreground">Style review runs on your own {info.label} key. Paste one to continue.</div>
         )}
@@ -283,6 +293,14 @@ function KeyPanelBody() {
               </a>
             </span>
           )}
+        </div>
+        <div className="border-t border-border pt-3">
+          <ModelChain
+            provider={provider}
+            chain={modelChain(settings.models, provider)}
+            custom={!!settings.models?.[provider]?.length}
+            apiKey={stored && current.status !== 'invalid' ? stored : null}
+          />
         </div>
       </div>
       <div className="border-t border-border px-4 pt-2.5 pb-3 text-[12px] leading-[1.55] text-muted-foreground">
