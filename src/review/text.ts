@@ -152,6 +152,11 @@ export function analyzeProse(text: string): Prose {
   }
 
   visit(tree.topNode)
+  // Math ($…$ inline, $$…$$ display — lib/math.ts's rules) is LaTeX, not
+  // prose. Matched after code is blanked, so a $ in code can't pair up
+  // with one in the text.
+  const withoutCode = chars.join('')
+  for (const m of withoutCode.matchAll(/\$\$[\s\S]+?\$\$|\$(?![\s$])(?:\\.|[^\\$\n])+?(?<!\s)\$(?!\d)/g)) blank(m.index, m.index + m[0].length)
   const masked = chars.join('')
   const sentences = blocks.flatMap((b) => splitSentences(masked, b))
   return { text, masked, blocks, sentences, words: sentences.reduce((n, s) => n + s.words, 0) }

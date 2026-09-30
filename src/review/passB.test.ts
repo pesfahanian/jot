@@ -101,3 +101,13 @@ describe('rate caps — T1-01 and T1b-05 density', () => {
     expect(flags.every((f) => f.after && f.after.length > 0)).toBe(true)
   })
 })
+
+describe('review masking of math', () => {
+  it('treats $…$ and $$…$$ as non-prose, but leaves prices alone', async () => {
+    const { analyzeProse } = await import('./text')
+    const p = analyzeProse('Energy is $E = mc^2$ here.\n\n$$\n\\frac{a}{b}\n$$\n\nIt costs $5 and $10.')
+    expect(p.masked).not.toContain('mc^2')
+    expect(p.masked).not.toContain('frac')
+    expect(p.masked).toContain('$5 and $10')
+  })
+})
