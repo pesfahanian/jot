@@ -1,5 +1,5 @@
 import type { Provider } from '@/lib/db'
-import { PROVIDERS } from './providers'
+import { chat } from './providers'
 import { ReviewRequestError, type ChatMessage } from './request'
 import type { Family, PassAResult } from './passA'
 import { ruleset } from './ruleset'
@@ -173,8 +173,8 @@ export function parseSharedResponse(raw: string): SharedResponse {
   return { sections, flags, fixes, dashes, semicolons, tricolons }
 }
 
-export async function runSharedCall(provider: Provider, key: string, text: string, a: PassAResult, signal?: AbortSignal) {
+export async function runSharedCall(provider: Provider, chain: string[], key: string, text: string, a: PassAResult, signal?: AbortSignal) {
   const request = buildSharedRequest(text, a)
-  const { content, model } = await PROVIDERS[provider].chat(key, request.messages, signal)
+  const { content, model } = await chat(provider, chain, key, request.messages, signal)
   return { request, model, response: parseSharedResponse(content) }
 }

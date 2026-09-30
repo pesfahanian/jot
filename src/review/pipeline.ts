@@ -7,9 +7,9 @@ import { runSharedCall } from './sharedCall'
 
 // The full flag-production pipeline (checks.md "Execution model"):
 //   Pass A (client) → one shared provider call → Pass B (client) → assemble
-export async function produceReview(documentId: string, text: string, provider: Provider, key: string, signal?: AbortSignal): Promise<ReviewSession> {
+export async function produceReview(documentId: string, text: string, provider: Provider, chain: string[], key: string, signal?: AbortSignal): Promise<ReviewSession> {
   const a = runPassA(text)
-  const { response, model } = await runSharedCall(provider, key, text, a, signal)
+  const { response, model } = await runSharedCall(provider, chain, key, text, a, signal)
   const sections = resolveSections(text, a, response.sections)
   const b = runPassB(text, a, response, sections)
   const flags = assembleFlags(text, a, response, b)

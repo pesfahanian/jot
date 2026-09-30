@@ -5,7 +5,7 @@ import { getDocument } from '@/lib/documents'
 import { getSettings, providerKey } from '@/lib/settings'
 import { decide as decideFlag, hasStake, reopen as reopenFlag, standing, type Decision } from '@/review/model'
 import { ReviewRequestError } from '@/review/request'
-import { PROVIDERS } from '@/review/providers'
+import { modelChain, PROVIDERS } from '@/review/providers'
 import { reanchor } from '@/review/reanchor'
 import { useWorkspace } from './workspace'
 
@@ -133,7 +133,7 @@ export const useReview = create<ReviewState>()((set, get) => ({
       const text = await liveText(documentId)
       // The pipeline (rule set, Pass A/B, prompt) loads on first use only.
       const { produceReview } = await import('@/review/pipeline')
-      const session = await produceReview(documentId, text, settings.provider, key, ctrl.signal)
+      const session = await produceReview(documentId, text, settings.provider, modelChain(settings.models, settings.provider), key, ctrl.signal)
       // The document may have been edited while the call ran; anchor the
       // flags to what it says now.
       const now = reanchor(session, await liveText(documentId))
