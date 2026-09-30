@@ -4,13 +4,27 @@ Decisions still open live in `open-decisions.md`.
 
 ## Roadmap (agreed with the owner)
 
-Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first impressions).
+Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first impressions), Phase 12 (AI providers), Phase 13 (Layout 2.0).
 
 | Phase | Contents |
 |---|---|
-| 11: PDF options | A small card behind export → PDF, remembered between exports: page size (A4 / Letter / A5) and orientation, margins (narrow / normal / wide), font (Jot sans, a serif, mono — bundled, loaded when chosen) and body size, colour presets (Jot, monochrome, classic), an optional custom-CSS box applied last, page numbers on/off |
-| 12: AI providers | OpenAI and Anthropic alongside OpenRouter and Google; provider dropdown; model picker suggesting from the provider's model list; per-provider fallback chain. Each new API host must be added to `public/_headers` connect-src |
-| 13: Layout 2.0 | Tab drag part B: top/bottom splits, up to a 2×3 grid, resizable dividers; the status bar stays global |
+| 12: AI providers ✓ | OpenAI and Anthropic alongside OpenRouter and Google; provider dropdown; model picker suggesting from the provider's model list; per-provider fallback chain; new hosts in `public/_headers` connect-src |
+| 13: Layout 2.0 ✓ | Tab drag part B: top/bottom splits, up to a 2×3 grid, resizable dividers; the status bar stays global |
+
+## Done from testing after Phases 12–13
+
+- Style review can decline text there's nothing to judge in (open-decisions #27).
+- "saves as <title>.*" dropped from the export menu.
+- AI Provider panel footer moved into a "?" tooltip in the panel header.
+
+## Next round: design first (owner)
+
+These four touch each other, so they get a design round together before any build — building PDF options now would mean redoing them for Farsi.
+
+- **PDF options** (was Phase 11). A small card behind export → PDF, remembered between exports: page size (A4 / Letter / A5) and orientation, margins (narrow / normal / wide), font (Jot sans, a serif, mono — bundled, loaded when chosen) and body size, colour presets (Jot, monochrome, classic), an optional custom-CSS box applied last, page numbers on/off. Depends on Farsi: fonts, direction and the renderer's typography.
+- **Full Farsi support** (below).
+- **Diff checker** (below).
+- **Command palette and customisable shortcuts** (below).
 
 ## Far future
 

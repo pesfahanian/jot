@@ -1,5 +1,5 @@
 import type { Provider } from '@/lib/db'
-import { PROVIDERS } from './providers'
+import { chat } from './providers'
 import { ReviewRequestError, type ChatMessage } from './request'
 import type { Family, PassAResult } from './passA'
 import { ruleset } from './ruleset'
@@ -35,6 +35,8 @@ export interface SharedResponse {
   // T2-07 decorative tricolons: every instance, with its section's quote —
   // the frequency cap is client-side arithmetic (Pass B).
   tricolons: { span: string; rationale: string }[]
+  // The model declined the document (suitability.ts), with its reason.
+  skip?: string
 }
 
 // What was actually sent, for the "one call, gated parts only when their
@@ -46,7 +48,9 @@ export interface SharedRequest {
   fixRefs: string[]
 }
 
-export function buildSharedRequest(text: string, a: PassAResult): SharedRequest {
+// allowSkip: whether the model may decline the document; off for "review
+// anyway".
+export function buildSharedRequest(text: string, a: PassAResult, allowSkip = true): SharedRequest {
   const includesDashSteps = a.dashGatePassed && a.dashes.length > 0
   const includesSemicolonStep = a.semicolons.length > 0
 
@@ -73,6 +77,10 @@ export function buildSharedRequest(text: string, a: PassAResult): SharedRequest 
   ].join('\n')
 
   const tasks: string[] = []
+  if (allowSkip)
+    tasks.push(
+      '0. FIRST decide whether this document is prose the guide can meaningfully apply to. If it is not — gibberish or random characters, placeholder text such as lorem ipsum, a data dump, a list of links or identifiers, or almost entirely code — return exactly {"skip": "<the reason in under 12 words, lowercase>"} and nothing else, doing none of the tasks below. Otherwise do not include "skip" at all. Writing that is rough, informal, short or in note form is still prose: review it.',
+    )
   tasks.push(
     '1. "sections" — FIRST, split the document into sections by what each part does and assign each a mode per modes.md. Each entry: {"start": "<verbatim quote of where the section begins, at least 6 words or the whole first line>", "mode": "strict"|"flavored"}. Sections are in document order; the first one starts at the beginning of the document.',
   )
@@ -139,6 +147,7 @@ export function parseSharedResponse(raw: string): SharedResponse {
   } catch {
     throw new ReviewRequestError('The model returned malformed JSON', 'parse', raw)
   }
+  if (typeof obj.skip === 'string' && obj.skip.trim()) return { sections: [], flags: [], fixes: {}, dashes: [], semicolons: [], tricolons: [], skip: obj.skip.trim() }
   const arr = (v: unknown) => (Array.isArray(v) ? (v as Record<string, unknown>[]) : [])
   const str = (v: unknown) => (typeof v === 'string' ? v : null)
 
@@ -173,8 +182,8 @@ export function parseSharedResponse(raw: string): SharedResponse {
   return { sections, flags, fixes, dashes, semicolons, tricolons }
 }
 
-export async function runSharedCall(provider: Provider, key: string, text: string, a: PassAResult, signal?: AbortSignal) {
-  const request = buildSharedRequest(text, a)
-  const { content, model } = await PROVIDERS[provider].chat(key, request.messages, signal)
+export async function runSharedCall(provider: Provider, chain: string[], key: string, text: string, a: PassAResult, signal?: AbortSignal, allowSkip = true) {
+  const request = buildSharedRequest(text, a, allowSkip)
+  const { content, model } = await chat(provider, chain, key, request.messages, signal)
   return { request, model, response: parseSharedResponse(content) }
 }

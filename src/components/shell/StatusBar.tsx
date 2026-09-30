@@ -85,6 +85,8 @@ function StalePrompt({ documentId, flags, children }: { documentId: string; flag
 //   running   bar + elapsed seconds + cancel; editing continues, nothing
 //             blocks; gives up after a minute (timeout → error)
 //   error     destructive wash, the status code, retry and dismiss
+//   skipped   neutral: the review declined this text (reason on hover),
+//             "review anyway" and dismiss; editing the text clears it
 function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
   const run = useReview((s) => s.runs[doc.id])
   const session = useReview((s) => s.sessions[doc.id])
@@ -109,6 +111,20 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
         </span>
         reviewing <span className="text-muted-foreground tabular-nums">{Math.max(0, Math.floor((now - run.startedAt) / 1000))}s</span>
         <button type="button" aria-label="cancel review" title="cancel review" onClick={() => cancel(doc.id)} className="px-0.5 text-muted-foreground hover:text-foreground">
+          ×
+        </button>
+      </span>
+    )
+  } else if (run?.state === 'skipped' && run.text === text) {
+    body = (
+      <span className="flex h-[18px] items-center gap-1.5 rounded-sm border border-border-strong pr-1 pl-[7px]">
+        <span className="cursor-help text-muted-foreground" tabIndex={0} title={run.by === 'jot' ? `not reviewed: ${run.reason}` : `the model declined: ${run.reason}`}>
+          skipped
+        </span>
+        <button type="button" onClick={() => void retry(doc.id, true)} className="underline underline-offset-2 hover:text-foreground">
+          review anyway
+        </button>
+        <button type="button" aria-label="dismiss" onClick={() => dismiss(doc.id)} className="px-0.5 text-muted-foreground hover:text-foreground">
           ×
         </button>
       </span>

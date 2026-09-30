@@ -20,7 +20,7 @@ Open it and write. There's no account and no server. Your documents stay on your
 
 ## Privacy
 
-Everything is stored in your browser. The AI review is off until you add your own API key (OpenRouter or Google AI Studio), and it only sends the document you're reviewing to the provider you picked.
+Everything is stored in your browser. The AI review is off until you add your own API key (OpenRouter, Google AI Studio, OpenAI or Anthropic), and it only sends the document you're reviewing to the provider you picked.
 
 Since storage is per browser, a different browser or device starts empty. Export your documents to move them.
 

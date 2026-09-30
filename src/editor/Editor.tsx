@@ -17,6 +17,7 @@ import { useEffect, useRef } from 'react'
 import { getSettings } from '@/lib/settings'
 import { isLocked, useReview } from '@/state/review'
 import { useWorkspace } from '@/state/workspace'
+import { columnsOf } from '@/state/layout'
 import { markdownWithCode } from './codeLanguages'
 import { minimapCompartment, minimapFor } from './minimap'
 import { editorKeymap } from './keymap'
@@ -58,10 +59,10 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
   const viewRef = useRef<EditorView | null>(null)
   const focusedRef = useRef(focused)
   focusedRef.current = focused
-  // Minimap: the setting (default on), and never with three panes open.
+  // Minimap: the setting (default on), and never with three columns open.
   const minimapSetting = useLiveQuery(() => getSettings().then((s) => s.minimap ?? true), []) ?? true
-  const paneCount = useWorkspace((s) => s.panes.length)
-  const minimapOn = minimapSetting && paneCount < 3
+  const columnCount = useWorkspace((s) => columnsOf(s.panes).length)
+  const minimapOn = minimapSetting && columnCount < 3
   const minimapRef = useRef(minimapOn)
   minimapRef.current = minimapOn
 

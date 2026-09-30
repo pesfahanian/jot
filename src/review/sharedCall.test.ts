@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { parseSharedResponse } from './sharedCall'
+import { runPassA } from './passA'
+import { buildSharedRequest, parseSharedResponse } from './sharedCall'
 
 // The shared call's reply without JSON mode: the model may wrap the object in
 // prose, a code fence, or reasoning text. The parser must still find it.
@@ -28,5 +29,24 @@ describe('parseSharedResponse', () => {
 
   it('fails loudly on a reply with no JSON, keeping the raw text for the error panel', () => {
     expect(() => parseSharedResponse('Sorry, I cannot help with that.')).toThrow(/did not return JSON/)
+  })
+})
+
+// The model may decline a document that isn't prose (suitability.ts).
+describe('declining', () => {
+  it('reads a skip, ignoring anything else in the reply', () => {
+    expect(parseSharedResponse('{"skip": "random characters, not prose"}').skip).toBe('random characters, not prose')
+    expect(parseSharedResponse(JSON.stringify({ ...reply, skip: '  lorem ipsum  ' }))).toMatchObject({ skip: 'lorem ipsum', flags: [] })
+  })
+
+  it('treats an empty skip as no skip', () => {
+    expect(parseSharedResponse(JSON.stringify({ ...reply, skip: '' })).skip).toBeUndefined()
+  })
+
+  it('offers the model the way out unless the review is forced', () => {
+    const a = runPassA('Some text to review.')
+    const user = (allow: boolean) => buildSharedRequest('Some text to review.', a, allow).messages[1].content
+    expect(user(true)).toContain('"skip"')
+    expect(user(false)).not.toContain('"skip"')
   })
 })

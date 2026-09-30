@@ -1,4 +1,6 @@
-import { db, type KeyStatus, type Provider, type Settings } from './db'
+import { db, type Provider, type ProviderKey, type Settings } from './db'
+
+export type { ProviderKey }
 
 // Single settings record (PRD §5). A missing record reads as the defaults,
 // so nothing has to seed the database on first run.
@@ -8,44 +10,35 @@ export type SettingsPatch = Partial<Omit<Settings, 'id'>>
 export const defaultSettings: Settings = {
   id: 'settings',
   provider: 'openrouter',
-  openRouterApiKey: null,
-  keyStatus: 'untested',
-  lastValidatedAt: null,
-  googleApiKey: null,
-  googleKeyStatus: 'untested',
-  googleLastValidatedAt: null,
+  keys: {},
+  models: {},
   theme: 'system',
   minimap: true,
   welcomedAt: null,
   welcomeDocId: null,
 }
 
-// One provider's key, read and written through the same shape whichever
-// provider it is.
-export interface ProviderKey {
-  key: string | null
-  status: KeyStatus
-  lastValidatedAt: number | null
-}
+const NO_KEY: ProviderKey = { key: null, status: 'untested', lastValidatedAt: null }
 
 export function providerKey(s: Settings, provider: Provider = s.provider): ProviderKey {
-  return provider === 'google'
-    ? { key: s.googleApiKey ?? null, status: s.googleKeyStatus ?? 'untested', lastValidatedAt: s.googleLastValidatedAt ?? null }
-    : { key: s.openRouterApiKey, status: s.keyStatus, lastValidatedAt: s.lastValidatedAt }
+  return s.keys?.[provider] ?? NO_KEY
 }
 
-export function keyPatch(provider: Provider, k: Partial<ProviderKey>): SettingsPatch {
-  const patch: SettingsPatch = {}
-  if (provider === 'google') {
-    if ('key' in k) patch.googleApiKey = k.key
-    if (k.status) patch.googleKeyStatus = k.status
-    if ('lastValidatedAt' in k) patch.googleLastValidatedAt = k.lastValidatedAt
-  } else {
-    if ('key' in k) patch.openRouterApiKey = k.key
-    if (k.status) patch.keyStatus = k.status
-    if ('lastValidatedAt' in k) patch.lastValidatedAt = k.lastValidatedAt
-  }
-  return patch
+// Changes one provider's key record, leaving the others as they are.
+export function setProviderKey(provider: Provider, k: Partial<ProviderKey>): Promise<Settings> {
+  return db.transaction('rw', db.settings, async () => {
+    const s = await getSettings()
+    return updateSettings({ keys: { ...s.keys, [provider]: { ...providerKey(s, provider), ...k } } })
+  })
+}
+
+// Sets one provider's model chain; null goes back to the default.
+export function setProviderModels(provider: Provider, chain: string[] | null): Promise<Settings> {
+  return db.transaction('rw', db.settings, async () => {
+    const { [provider]: _old, ...rest } = (await getSettings()).models ?? {}
+    void _old
+    return updateSettings({ models: chain ? { ...rest, [provider]: chain } : rest })
+  })
 }
 
 export async function getSettings(): Promise<Settings> {

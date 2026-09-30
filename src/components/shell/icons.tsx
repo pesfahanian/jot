@@ -48,10 +48,11 @@ export function PinIcon() {
   )
 }
 
-export function SplitIcon() {
+// Side by side, or stacked when the split goes below (Phase 13).
+export function SplitIcon({ down = false }: { down?: boolean }) {
   return (
-    <span className="flex h-[9px] w-[11px] rounded-[2px] border border-current">
-      <span className="flex-auto border-r border-current" />
+    <span className={cn('flex h-[9px] w-[11px] rounded-[2px] border border-current', down && 'flex-col')}>
+      <span className={cn('flex-auto border-current', down ? 'border-b' : 'border-r')} />
       <span className="flex-auto" />
     </span>
   )

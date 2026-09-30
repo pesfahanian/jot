@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 import { db, type JotDocument, type PaneLayout, type TagColor, type Workspace } from '@/lib/db'
 import type { SortMode } from '@/lib/docList'
-import { docIdOf, moveTab, renderTab, splitWithTab, type DraggedTab } from './layout'
+import { columnsOf, docIdOf, insertPane, MAX_COLUMNS, MAX_PANES, moveTab, removePane, renderTab, resize, splitWithTab, tidy, type DraggedTab, type Edge } from './layout'
 
 // Shell state: panes and their tabs, which pane has focus, and the sidebar's
 // own controls. Document records live in IndexedDB and are read live; this
 // store only holds ids.
 
-export const MAX_PANES = 3
+export { MAX_PANES }
 export const SIDEBAR_MIN = 180
 export const SIDEBAR_MAX = 460
 export const SIDEBAR_DEFAULT = 248
@@ -52,11 +52,12 @@ interface WorkspaceState {
   activateTab(paneId: string, documentId: string): void
   closeTab(paneId: string, documentId: string): void
   focusPane(paneId: string): void
-  splitRight(): void
+  split(): void
   toggleRender(): void
   setDragTab(tab: DraggedTab | null): void
   dropTabOnStrip(to: string, index: number): void
-  dropTabOnEdge(target: string, side: 'left' | 'right' | 'center'): void
+  dropTabOnEdge(target: string, side: Edge | 'center'): void
+  resizePanes(sizes: Record<string, { size?: number; split?: number }>): void
   closeDocumentEverywhere(documentId: string): DeletedEntry['placements']
   restorePlacements(documentId: string, placements: DeletedEntry['placements']): void
   setSidebarWidth(px: number): void
@@ -101,8 +102,9 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
         const tabs = p.tabs.filter((t) => ids.has(docIdOf(t)))
         return { ...p, tabs, active: p.active && tabs.includes(p.active) ? p.active : (tabs[0] ?? null) }
       })
-      .filter((p) => p.tabs.length > 0)
-      .slice(0, MAX_PANES)
+    // Panes left empty close the way a closed pane does, so the grid holds.
+    for (const p of panes) if (p.tabs.length === 0) panes = removePane(panes, p.id)
+    panes = tidy(panes)
     if (panes.length === 0) {
       const recent = docs.reduce<JotDocument | null>((a, b) => (!a || b.updatedAt > a.updatedAt ? b : a), null)
       panes = [{ id: newPaneId(), tabs: recent ? [recent.id] : [], active: recent?.id ?? null }]
@@ -143,22 +145,12 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   // pane (6f) — unless it's the only pane, which stays, empty.
   closeTab(paneId, documentId) {
     const { panes, focusedPaneId } = get()
-    const next: PaneLayout[] = []
-    for (const p of panes) {
-      if (p.id !== paneId) {
-        next.push(p)
-        continue
-      }
-      const i = p.tabs.indexOf(documentId)
-      if (i === -1) {
-        next.push(p)
-        continue
-      }
-      const tabs = p.tabs.filter((t) => t !== documentId)
-      if (tabs.length === 0 && panes.length > 1) continue
-      const active = p.active === documentId ? (tabs[Math.min(i, tabs.length - 1)] ?? null) : p.active
-      next.push({ ...p, tabs, active })
-    }
+    const p = panes.find((q) => q.id === paneId)
+    const i = p ? p.tabs.indexOf(documentId) : -1
+    if (!p || i === -1) return
+    const tabs = p.tabs.filter((t) => t !== documentId)
+    const active = p.active === documentId ? (tabs[Math.min(i, tabs.length - 1)] ?? null) : p.active
+    const next = tabs.length === 0 && panes.length > 1 ? removePane(panes, paneId) : panes.map((q) => (q.id === paneId ? { ...q, tabs, active } : q))
     const focus = next.some((p) => p.id === focusedPaneId) ? focusedPaneId : next[Math.max(0, panes.findIndex((p) => p.id === paneId) - 1)].id
     set({ panes: next, focusedPaneId: focus })
   },
@@ -167,22 +159,22 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     if (get().focusedPaneId !== paneId) set({ focusedPaneId: paneId })
   },
 
-  // Split opens the current document in a new pane to the right of the
-  // focused one (6f), up to three editors.
-  splitRight() {
+  // Split opens the current document in a new pane (6f): a new column to
+  // the right while there's room for one, else below, in its own column.
+  split() {
     const { panes, focusedPaneId } = get()
-    if (panes.length >= MAX_PANES) return
-    const i = panes.findIndex((p) => p.id === focusedPaneId)
-    const current = panes[i]?.active
-    if (!current) return
+    const current = panes.find((p) => p.id === focusedPaneId)?.active
+    const edge = splitEdge(panes, focusedPaneId)
+    if (!current || !edge) return
     const pane: PaneLayout = { id: newPaneId(), tabs: [current], active: current }
-    set({ panes: [...panes.slice(0, i + 1), pane, ...panes.slice(i + 1)], focusedPaneId: pane.id })
+    const next = insertPane(panes, focusedPaneId, edge, pane)
+    if (next) set({ panes: next, focusedPaneId: pane.id })
   },
 
   // Render (2g, Cmd/Ctrl+Shift+V) toggles the focused document's rendered
   // view — a tab ("render:" + id), movable like any other. Opening puts it in
-  // a new pane to the right, or, with three panes open, as a tab in the
-  // neighbouring pane; focus stays put. Pressed again, from the editor or
+  // a new pane where split would (right, else below), or, with no room, as a
+  // tab in the neighbouring pane; focus stays put. Pressed again, from the editor or
   // the rendered tab, every rendered tab of that document closes.
   toggleRender() {
     const { panes, focusedPaneId } = get()
@@ -194,11 +186,9 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
       for (const p of get().panes) if (p.tabs.includes(rid)) get().closeTab(p.id, rid)
       return
     }
-    if (panes.length < MAX_PANES) {
-      const pane: PaneLayout = { id: newPaneId(), tabs: [rid], active: rid }
-      set({ panes: [...panes.slice(0, i + 1), pane, ...panes.slice(i + 1)] })
-      return
-    }
+    const edge = splitEdge(panes, focusedPaneId)
+    const next = edge && insertPane(panes, focusedPaneId, edge, { id: newPaneId(), tabs: [rid], active: rid })
+    if (next) return set({ panes: next })
     const j = i + 1 < panes.length ? i + 1 : i - 1
     set({
       panes: panes.map((p, k) => {
@@ -218,8 +208,9 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     set(r ? { panes: r.panes, focusedPaneId: r.focus, dragTab: null } : { dragTab: null })
   },
 
-  // A pane's edge opens a new column beside it; its middle takes the tab
-  // into that pane's strip, at the end.
+  // A pane's left/right edge opens a new column beside it, its top/bottom
+  // edge a pane stacked in its column; its middle takes the tab into that
+  // pane's strip, at the end.
   dropTabOnEdge(target, side) {
     const tab = get().dragTab
     if (!tab) return
@@ -232,6 +223,8 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
         : splitWithTab(panes, tab, target, side, newPaneId())
     set(r ? { panes: r.panes, focusedPaneId: r.focus, dragTab: null } : { dragTab: null })
   },
+
+  resizePanes: (sizes) => set({ panes: resize(get().panes, sizes) }),
 
   closeDocumentEverywhere(documentId) {
     const placements: DeletedEntry['placements'] = []
@@ -290,6 +283,15 @@ useWorkspace.subscribe((s, prev) => {
     void db.workspace.put({ id: 'workspace', panes, focusedPaneId, sidebarWidth, sort })
   }, 200)
 })
+
+// Where split (and render) would open a pane beside `paneId`: a new column
+// to the right while there's room, else below it when its column has one
+// pane; null when the grid is full there.
+export function splitEdge(panes: PaneLayout[], paneId: string): Edge | null {
+  const cols = columnsOf(panes)
+  if (cols.length < MAX_COLUMNS) return 'right'
+  return cols.find((c) => c.some((p) => p.id === paneId))?.length === 1 ? 'bottom' : null
+}
 
 export function focusedPane(s: Pick<WorkspaceState, 'panes' | 'focusedPaneId'>): PaneLayout | undefined {
   return s.panes.find((p) => p.id === s.focusedPaneId)

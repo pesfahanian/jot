@@ -60,6 +60,8 @@ Prepared ahead of repo creation, for the local Claude Code implementation sessio
 
 **Amendment (owner, during testing):** Google AI Studio is added as a second provider, called directly from the browser (the Gemini API accepts browser calls with the key in an `x-goog-api-key` header). Reason: the free models on OpenRouter kept failing with 429s from shared provider pools, while a personal AI Studio key has its own free quota. The settings surface grows from one field to a provider switch plus one key per provider, in the "AI Provider" panel. Still no backend; each key is sent only to its own provider's host.
 
+**Amendment 2 (owner, Phase 12):** OpenAI and Anthropic join as third and fourth providers, again called straight from the browser: OpenAI with a Bearer header, Anthropic with the `anthropic-dangerous-direct-browser-access` header this ADR originally counted against it — acceptable because the key is the person's own and never leaves their browser except to Anthropic. The provider switch becomes a dropdown, and each provider gets a model chain the person edits: the model reviews run on, then fallbacks tried in order when a model is unavailable (404/429/5xx, Anthropic's 529), with suggestions read from the provider's own model list. Each new host is added to `connect-src` in `public/_headers`.
+
 ---
 
 ## ADR-005: Vite + React + shadcn, not Next.js

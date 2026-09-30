@@ -15,20 +15,26 @@ export interface JotDocument {
   updatedAt: number
 }
 
-export type Provider = 'openrouter' | 'google'
+export type Provider = 'openrouter' | 'google' | 'openai' | 'anthropic'
 export type KeyStatus = 'untested' | 'valid' | 'invalid' | 'offline'
+
+// One provider's key and what its last test said.
+export interface ProviderKey {
+  key: string | null
+  status: KeyStatus
+  lastValidatedAt: number | null
+}
 
 export interface Settings {
   id: 'settings'
   // The AI provider reviews run on (ADR-004 amendment). Each provider keeps
-  // its own key, so switching back and forth never loses one.
+  // its own key and its own model chain, so switching back and forth never
+  // loses either.
   provider: Provider
-  openRouterApiKey: string | null
-  keyStatus: KeyStatus
-  lastValidatedAt: number | null
-  googleApiKey: string | null
-  googleKeyStatus: KeyStatus
-  googleLastValidatedAt: number | null
+  keys: Partial<Record<Provider, ProviderKey>>
+  // Per provider: the model reviews run on, then its fallbacks in order
+  // (Phase 12). Missing = the provider's default chain.
+  models: Partial<Record<Provider, string[]>>
   theme: 'light' | 'dark' | 'system'
   // The editor's minimap (Phase 8); on unless turned off.
   minimap: boolean
@@ -81,6 +87,14 @@ export interface PaneLayout {
   // Only in layouts saved before rendered views became tabs ("render:" +
   // document id, state/layout.ts); converted on load.
   render?: boolean
+  // The grid (Phase 13, state/layout.ts): panes are listed column by
+  // column; a pane marked `below` sits under the one before it, in the same
+  // column. On a column's top pane: `size`, the column's width relative to
+  // the others (default 1), and `split`, the top pane's share of the
+  // column's height when it has a pane below (default 0.5).
+  below?: boolean
+  size?: number
+  split?: number
 }
 
 export interface Workspace {
@@ -107,3 +121,20 @@ db.version(1).stores({
 db.version(2).stores({
   workspace: 'id',
 })
+
+// Phase 12: keys move from one field set per provider to a map keyed by
+// provider, so adding a provider doesn't add fields.
+const LEGACY_KEY_FIELDS = ['openRouterApiKey', 'keyStatus', 'lastValidatedAt', 'googleApiKey', 'googleKeyStatus', 'googleLastValidatedAt']
+export function migrateKeys(s: Record<string, unknown>): void {
+  const keys: Partial<Record<Provider, ProviderKey>> = {}
+  const record = (key: unknown, status: unknown, at: unknown): ProviderKey => ({ key: key as string, status: (status as KeyStatus) ?? 'untested', lastValidatedAt: (at as number) ?? null })
+  if (s.openRouterApiKey) keys.openrouter = record(s.openRouterApiKey, s.keyStatus, s.lastValidatedAt)
+  if (s.googleApiKey) keys.google = record(s.googleApiKey, s.googleKeyStatus, s.googleLastValidatedAt)
+  s.keys = keys
+  s.models = {}
+  for (const f of LEGACY_KEY_FIELDS) delete s[f]
+}
+
+db.version(3)
+  .stores({})
+  .upgrade((tx) => tx.table('settings').toCollection().modify(migrateKeys))
