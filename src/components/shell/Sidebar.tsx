@@ -1,10 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Check, KeyRound, Monitor, Moon, PanelRight, PanelRightDashed, Sun, X } from 'lucide-react'
+import { Check, CircleHelp, KeyRound, Monitor, Moon, PanelRight, PanelRightDashed, Sun, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { JotDocument } from '@/lib/db'
 import { getSettings, providerKey, updateSettings } from '@/lib/settings'
 import { PROVIDERS } from '@/review/providers'
+import { welcomeDocumentId } from '@/lib/welcome'
+import { Keycap, KeycapPanel } from '@/components/review/Keycap'
 import {
   arrangeDocuments,
   colorCounts,
@@ -161,6 +163,68 @@ function ThemeButton() {
     >
       <Icon size={13} strokeWidth={1.75} aria-hidden />
     </button>
+  )
+}
+
+// The guide card (Phase 10): the shortcuts worth knowing, as keycaps, and a
+// quiet way back to the welcome document — the person's own copy if it
+// still exists, else a fresh one (lib/welcome.ts).
+const isMac = /Mac|iPhone|iPad/.test(navigator.platform)
+const MOD = isMac ? '⌘' : 'Ctrl'
+const SHIFT = isMac ? '⇧' : 'Shift'
+const GUIDE: { keys: string[]; does: string }[] = [
+  { keys: [MOD, SHIFT, 'V'], does: 'rendered view' },
+  { keys: [MOD, SHIFT, 'I'], does: 'format the document' },
+  { keys: [MOD, 'F'], does: 'find and replace' },
+  { keys: [MOD, 'Z'], does: 'undo, including a whole format or apply' },
+]
+function GuideButton() {
+  const [open, setOpen] = useState(false)
+  const openDocument = useWorkspace((s) => s.openDocument)
+  const openWelcome = async () => {
+    setOpen(false)
+    openDocument(await welcomeDocumentId())
+  }
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label="guide"
+          title="guide"
+          className="flex w-[34px] flex-none items-center justify-center border-l border-border text-secondary-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring data-[state=open]:bg-popover data-[state=open]:text-foreground"
+        >
+          <CircleHelp size={13} strokeWidth={1.75} aria-hidden />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent side="right" align="end" sideOffset={12} className="w-[340px] border-0 bg-transparent p-0 shadow-none">
+        <KeycapPanel className="flex flex-col overflow-hidden">
+          <div className="border-b border-border px-4 pt-3 pb-2.5 text-[15px] font-semibold tracking-[-0.02em]">guide</div>
+          <div className="flex flex-col gap-2 px-4 py-3">
+            {GUIDE.map((g) => (
+              <div key={g.does} className="flex items-center gap-3">
+                <span className="flex w-[92px] flex-none gap-1">
+                  {g.keys.map((k) => (
+                    <Keycap key={k}>{k}</Keycap>
+                  ))}
+                </span>
+                <span className="text-[12.5px] text-secondary-foreground">{g.does}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col gap-1 border-t border-border px-4 py-3 text-[12.5px] leading-relaxed text-secondary-foreground">
+            <span>Drag tabs to reorder or split, and documents in from the sidebar. Right-click a document for colour, rename, pin and delete.</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => void openWelcome()}
+            className="border-t border-border px-4 py-2.5 text-left font-mono text-[11.5px] text-muted-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+          >
+            open the welcome document
+          </button>
+        </KeycapPanel>
+      </PopoverContent>
+    </Popover>
   )
 }
 
@@ -480,6 +544,7 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
       <div className="flex min-h-0 flex-auto flex-col overflow-y-auto">{body}</div>
       <div className="flex h-[30px] flex-none items-stretch border-t border-border">
         <KeyFooter />
+        <GuideButton />
         <MinimapButton />
         <ThemeButton />
       </div>

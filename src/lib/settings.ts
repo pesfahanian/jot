@@ -16,6 +16,8 @@ export const defaultSettings: Settings = {
   googleLastValidatedAt: null,
   theme: 'system',
   minimap: true,
+  welcomedAt: null,
+  welcomeDocId: null,
 }
 
 // One provider's key, read and written through the same shape whichever

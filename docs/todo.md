@@ -4,11 +4,10 @@ Decisions still open live in `open-decisions.md`.
 
 ## Roadmap (agreed with the owner)
 
-Done: Phases 0–9 (v1.0.0 plus polish, editor power, render & export).
+Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first impressions).
 
 | Phase | Contents |
 |---|---|
-| 10: First impressions | The narrow-window page redone (no width number; logo tile, a line that the window isn't wide enough); empty states (first run, empty pane) restyled in the system's voice; the guide: on a true first run (no `welcomedAt` flag in settings and no documents) Jot creates and opens a "welcome to jot" document that teaches by example; existing users just get the flag set. A "?" in the sidebar foot opens a compact guide card (shortcuts) with a small "open the welcome document" line — opens the user's copy by id if it still exists, else creates a fresh one |
 | 11: PDF options | A small card behind export → PDF, remembered between exports: page size (A4 / Letter / A5) and orientation, margins (narrow / normal / wide), font (Jot sans, a serif, mono — bundled, loaded when chosen) and body size, colour presets (Jot, monochrome, classic), an optional custom-CSS box applied last, page numbers on/off |
 | 12: AI providers | OpenAI and Anthropic alongside OpenRouter and Google; provider dropdown; model picker suggesting from the provider's model list; per-provider fallback chain. Each new API host must be added to `public/_headers` connect-src |
 | 13: Layout 2.0 | Tab drag part B: top/bottom splits, up to a 2×3 grid, resizable dividers; the status bar stays global |

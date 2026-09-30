@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore } from 'react'
 import { Shell } from '@/components/shell/Shell'
 import { db } from '@/lib/db'
 import { setFavicon } from '@/lib/favicon'
+import { welcomeIfFirstRun } from '@/lib/welcome'
 import { useDocuments } from '@/state/hooks'
 import { useReview } from '@/state/review'
 import { docIdOf } from '@/state/layout'
@@ -36,10 +37,17 @@ function Workspace() {
   const docs = useDocuments()
   const loaded = useWorkspace((s) => s.loaded)
 
-  // Restore the saved layout once the document list is first known.
+  // Once the document list is first known: welcome a first run (which
+  // creates a document — the list then updates and this runs again), then
+  // restore the saved layout. With nothing saved, hydrate opens the most
+  // recent document, so a first run opens straight into the welcome.
   useEffect(() => {
     if (!docs || useWorkspace.getState().loaded) return
-    void db.workspace.get('workspace').then((ws) => useWorkspace.getState().hydrate(ws, docs))
+    void welcomeIfFirstRun(docs.length).then(async () => {
+      if (docs.length === 0 && (await db.documents.count()) > 0) return
+      if (useWorkspace.getState().loaded) return
+      useWorkspace.getState().hydrate(await db.workspace.get('workspace'), docs)
+    })
   }, [docs])
 
   // Tabs of documents that disappear (deleted elsewhere) close themselves.
