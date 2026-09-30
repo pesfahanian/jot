@@ -11,11 +11,11 @@ Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first im
 | 12: AI providers ✓ | OpenAI and Anthropic alongside OpenRouter and Google; provider dropdown; model picker suggesting from the provider's model list; per-provider fallback chain; new hosts in `public/_headers` connect-src |
 | 13: Layout 2.0 ✓ | Tab drag part B: top/bottom splits, up to a 2×3 grid, resizable dividers; the status bar stays global |
 
-## Banked (owner, testing after Phases 12–13)
+## Done from testing after Phases 12–13
 
-- **Style review can decline.** The review should be able to opt out, skipping the review rather than producing flags, when there's nothing to review: gibberish, all code, very short, or similar. Open: whether the client decides some cases before any call (length, code share) and the model the rest (gibberish), and how "skipped" reads in the review control.
-- **Drop "saves as <title>.*"** from the export menu. The OS save dialog already shows the file name.
-- **AI Provider panel footer → a "?".** Replace the "Stored in this browser only. Sent only to …" line with a single ? icon whose tooltip carries it, to keep the panel compact.
+- Style review can decline text there's nothing to judge in (open-decisions #27).
+- "saves as <title>.*" dropped from the export menu.
+- AI Provider panel footer moved into a "?" tooltip in the panel header.
 
 ## Next round: design first (owner)
 

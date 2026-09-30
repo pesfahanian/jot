@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef, useState } from 'react'
 import { db, type Provider } from '@/lib/db'
-import { Check, ChevronDown } from 'lucide-react'
+import { Check, ChevronDown, CircleHelp } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { defaultSettings, providerKey, setProviderKey, updateSettings } from '@/lib/settings'
 import { cn } from '@/lib/utils'
@@ -110,7 +110,7 @@ function KeyPanelBody() {
       // review that was clicked (7b).
       if (panel.reason === 'review' && panel.documentId) {
         close()
-        void run(panel.documentId)
+        void run(panel.documentId, panel.force)
       }
       return
     }
@@ -194,8 +194,27 @@ function KeyPanelBody() {
       aria-label="AI provider"
       className="absolute bottom-0 left-[calc(100%+var(--seam))] z-50 flex w-[380px] flex-col overflow-hidden rounded-(--radius-panel) border border-border-float bg-popover text-popover-foreground"
     >
-      <div className={cn('flex items-center gap-2.5 pt-3 pr-3 pl-4', stored ? 'pb-2.5' : 'pb-1.5')}>
+      <div className={cn('relative flex items-center gap-2.5 pt-3 pr-3 pl-4', stored ? 'pb-2.5' : 'pb-1.5')}>
         <span className="flex-auto text-[15px] font-semibold tracking-[-0.02em]">AI Provider</span>
+        {/* Where the key lives and goes, on hover or focus of a "?" rather than
+            as a standing footer (owner). Drawn inside the panel, which clips. */}
+        <span className="group flex">
+          <button
+            type="button"
+            aria-label="where your key is kept"
+            aria-describedby="key-privacy"
+            className="text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            <CircleHelp size={13} strokeWidth={1.75} aria-hidden />
+          </button>
+          <span
+            id="key-privacy"
+            role="tooltip"
+            className="pointer-events-none invisible absolute top-[calc(100%-2px)] right-3 z-20 w-[260px] rounded-md border border-border-float bg-popover px-3 py-2 text-[12px] leading-[1.55] text-secondary-foreground opacity-0 transition-opacity group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
+          >
+            Stored in this browser only. Sent only to {info.host}, and only when you test it or run a review.
+          </span>
+        </span>
         <button type="button" aria-label="close" onClick={close} className="font-mono text-[13px] text-muted-foreground hover:text-foreground">
           ×
         </button>
@@ -302,9 +321,6 @@ function KeyPanelBody() {
             apiKey={stored && current.status !== 'invalid' ? stored : null}
           />
         </div>
-      </div>
-      <div className="border-t border-border px-4 pt-2.5 pb-3 text-[12px] leading-[1.55] text-muted-foreground">
-        Stored in this browser only. Sent only to {info.host}, and only when you test it or run a review.
       </div>
     </div>
   )

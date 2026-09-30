@@ -56,10 +56,6 @@ function ExportItems({ doc }: { doc: JotDocument }) {
         <span className="flex-auto">PDF</span>
         <span className="font-mono text-[11px] text-muted-foreground">.pdf</span>
       </DropdownMenuItem>
-      {/* The footer names the file once so each row doesn't repeat it (6a). */}
-      <div title={`${doc.title}.*`} className="-mx-1 mt-1 -mb-1 truncate border-t border-border-subtle px-3.5 pt-[7px] pb-2 font-mono text-[11px] text-muted-foreground">
-        saves as {doc.title}.*
-      </div>
     </>
   )
 }

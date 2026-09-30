@@ -7,6 +7,7 @@ import { decide as decideFlag, hasStake, reopen as reopenFlag, standing, type De
 import { ReviewRequestError } from '@/review/request'
 import { modelChain, PROVIDERS } from '@/review/providers'
 import { reanchor } from '@/review/reanchor'
+import { declineReason } from '@/review/suitability'
 import { useWorkspace } from './workspace'
 
 // AI Style Review state: which documents are being reviewed or failed,
@@ -16,6 +17,9 @@ export type RunState =
   | { state: 'running'; startedAt: number }
   // detail: the full response as received, shown in the error panel.
   | { state: 'error'; code: string; message: string; detail: string }
+  // Declined — by Jot's own check or by the model (review/suitability.ts) —
+  // for this exact text; editing it clears the verdict.
+  | { state: 'skipped'; reason: string; by: 'jot' | 'model'; text: string }
 
 interface ReviewState {
   runs: Record<string, RunState>
@@ -24,7 +28,8 @@ interface ReviewState {
   openIn: Record<string, string>
   activeFlag: string | null
   logOpen: boolean
-  keyPanel: { open: boolean; reason: 'cell' | 'review'; documentId?: string }
+  // force: the review waiting on a key was a "review anyway".
+  keyPanel: { open: boolean; reason: 'cell' | 'review'; documentId?: string; force?: boolean }
   keyTesting: boolean
   // A review that finished while Jot's tab was in the background, until the
   // person comes back — the favicon's done / failed badge (lib/favicon.ts).
@@ -34,7 +39,8 @@ interface ReviewState {
   requestReview(documentId: string): Promise<void>
   resumeReview(documentId: string): Promise<void>
   reviewAgain(documentId: string): Promise<void>
-  run(documentId: string): Promise<void>
+  // force: "review anyway" — neither Jot nor the model may decline it.
+  run(documentId: string, force?: boolean): Promise<void>
   cancel(documentId: string): void
   dismissError(documentId: string): void
   decide(documentId: string, key: string, decision: Decision, userText?: string): void
@@ -43,7 +49,7 @@ interface ReviewState {
   discardSession(documentId: string): Promise<void>
   setActiveFlag(key: string | null): void
   toggleLog(): void
-  openKeyPanel(reason: 'cell' | 'review', documentId?: string): void
+  openKeyPanel(reason: 'cell' | 'review', documentId?: string, force?: boolean): void
   closeKeyPanel(): void
   setKeyTesting(v: boolean): void
 }
@@ -90,6 +96,10 @@ export const useReview = create<ReviewState>()((set, get) => ({
       if (verdict === 'stale') return
       await get().discardSession(documentId)
     }
+    // Text there's nothing to judge in is declined before a key is asked for.
+    const text = await liveText(documentId)
+    const reason = declineReason(text)
+    if (reason) return skipped(documentId, reason, 'jot', text)
     const settings = await getSettings()
     if (!providerKey(settings).key) {
       get().openKeyPanel('review', documentId)
@@ -116,10 +126,15 @@ export const useReview = create<ReviewState>()((set, get) => ({
 
   // Editing continues while a review runs; nothing blocks (2f). The run can
   // be cancelled, and gives up on its own after REVIEW_TIMEOUT_MS.
-  async run(documentId) {
+  async run(documentId, force = false) {
+    if (!force) {
+      const text = await liveText(documentId)
+      const reason = declineReason(text)
+      if (reason) return skipped(documentId, reason, 'jot', text)
+    }
     const settings = await getSettings()
     const key = providerKey(settings).key
-    if (!key) return get().openKeyPanel('review', documentId)
+    if (!key) return get().openKeyPanel('review', documentId, force)
     controllers[documentId]?.abort()
     const ctrl = new AbortController()
     controllers[documentId] = ctrl
@@ -133,7 +148,13 @@ export const useReview = create<ReviewState>()((set, get) => ({
       const text = await liveText(documentId)
       // The pipeline (rule set, Pass A/B, prompt) loads on first use only.
       const { produceReview } = await import('@/review/pipeline')
-      const session = await produceReview(documentId, text, settings.provider, modelChain(settings.models, settings.provider), key, ctrl.signal)
+      const result = await produceReview(documentId, text, settings.provider, modelChain(settings.models, settings.provider), key, ctrl.signal, force)
+      if ('skipped' in result) {
+        skipped(documentId, result.skipped, 'model', text)
+        noteIfAway('done')
+        return
+      }
+      const session = result
       // The document may have been edited while the call ran; anchor the
       // flags to what it says now.
       const now = reanchor(session, await liveText(documentId))
@@ -227,10 +248,14 @@ export const useReview = create<ReviewState>()((set, get) => ({
 
   setActiveFlag: (key) => set({ activeFlag: key }),
   toggleLog: () => set({ logOpen: !get().logOpen }),
-  openKeyPanel: (reason, documentId) => set({ keyPanel: { open: true, reason, documentId } }),
+  openKeyPanel: (reason, documentId, force) => set({ keyPanel: { open: true, reason, documentId, force } }),
   closeKeyPanel: () => set({ keyPanel: { open: false, reason: 'cell' } }),
   setKeyTesting: (v) => set({ keyTesting: v }),
 }))
+
+function skipped(documentId: string, reason: string, by: 'jot' | 'model', text: string) {
+  useReview.setState({ runs: { ...useReview.getState().runs, [documentId]: { state: 'skipped', reason, by, text } } })
+}
 
 // Only a result the person didn't see arrive is flagged; failed outranks
 // done. Coming back to the tab clears it.
