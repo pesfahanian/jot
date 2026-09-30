@@ -21,20 +21,27 @@ Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first im
 
 - **Bring README and the welcome document up to date with Phases 12–13 and the testing fixes.** The README names the four providers but nothing else; the welcome document (`src/lib/welcome.ts`) still names two providers and says nothing of the model picker, top/bottom splits and the grid, resizable seams, or the review declining short or non-prose text. Update the welcome text for new installs only: existing copies are the person's own document.
 
-## Next round: data safety (owner, decided 2026-09-30)
+## Next round: data safety (owner, locked 2026-09-30, after research)
 
-The browser's storage is the only copy of a person's writing, and browsers treat site storage as clearable. Before Jot is shared:
+The browser's storage is the only copy of a person's writing, and browsers treat site storage as clearable. Research (30 Sep 2026, summarised below) settled the plan; build before Jot is shared.
 
-- **Persistent storage.** Ask the browser to keep Jot's storage (`navigator.storage.persist()`), so it isn't cleared when the disk runs low.
-- **Workspace export.** A new entry in the export menu that saves the entire workspace (every document) as one `.zip`, clearly labelled as the whole workspace, not the current document.
-- **Safari warning.** A large coloured bar at the top when Jot is opened in Safari: Safari deletes a site's stored data after 7 days of browsing without a visit, so Jot can't keep documents there reliably.
-- **Decided details (owner accepted the recommendations):**
-  - Bar: amber, full width above the panels. Wording: "Safari deletes your jot documents if you don't open jot for 7 days. Safari clears a website's stored data after a week of browsing without a visit. Use Chrome, Firefox or Edge to keep your writing safe." Dismissible; returns after 7 days. Not shown when Jot runs as an installed web app (Dock / home screen), if research confirms those are exempt. Which browsers get it waits on research (desktop Safari for certain; iPad browsers to check).
-  - Export menu: a separated "whole workspace" section, "all N documents .zip". One `.md` per document (duplicate titles numbered, a `/` in a title becomes a folder) plus `jot-workspace.json` with tags, pins and dates. Never keys, settings or review sessions. File `jot-workspace-YYYY-MM-DD.zip`. A small zip library, loaded on use.
-  - Import: dropping the .zip restores the workspace, added alongside existing documents, never replacing.
-  - Persistence: requested when the person first creates or edits a document (not the welcome document), so Firefox's prompt has context.
-  - No backup reminder for now.
-- **Research pending** (run separately): Safari's 7-day rule and persistent storage, iPad browsers, installed web apps, browser detection. Findings decide which browsers get the bar and whether it mentions installing.
+**Research findings that shaped it**
+- Safari deletes all script-written storage, IndexedDB included, after 7 days of Safari use with no click, tap or keypress in the site (ITP). A visit alone doesn't reset it; writing in Jot does.
+- It's the WebKit engine, not the Safari brand: every browser on iPad (Chrome, Firefox, Edge) behaves the same, and so does Orion on Mac.
+- `navigator.storage.persist()` protects against disk-pressure eviction in Chrome, Edge and Firefox, but is not documented to exempt a site from Safari's 7-day rule. Assume it doesn't.
+- Installed web apps have their own separate, initially empty storage. Home Screen apps (iPad) are documented as exempt from the 7-day rule; Mac Dock apps are not documented and may not report `display-mode: standalone`.
+- Safari's Lockdown Mode turns IndexedDB off entirely.
+- Unverified on purpose (needs 8+ days on real devices; the plan doesn't depend on it): whether persistence exempts, whether Dock apps skip the rule, whether iPad Chrome really deletes.
+
+**What to build**
+1. **Warning bar, amber, full width above the panels.** Shown in any WebKit-engine browser (`navigator.vendor === 'Apple Computer, Inc.'`): Safari on Mac, every iPad browser, Orion. Not in Chromium browsers or Firefox. Hidden only in an installed iPad Home Screen app (`navigator.standalone` / `display-mode: standalone` on iPadOS). Never hidden because persistence was granted. Dismissible; returns after 7 days. Its button: **export workspace**.
+   - Mac: "Safari deletes jot's documents after 7 days of using Safari without typing or clicking in jot. Everything jot saves lives only in this browser. For writing you want to keep, use Chrome, Firefox or Edge — and export a backup now and then."
+   - iPad (WebKit with touch, `maxTouchPoints > 1`): "On iPad, every browser deletes jot's documents after 7 days of use without typing or clicking in jot. Add jot to your Home Screen to keep them there. It starts empty, so export your workspace here first and import it in the app."
+2. **Workspace export and import (.zip).** A separated "whole workspace" section in the export menu, "all N documents .zip". One `.md` per document (duplicate titles numbered, a `/` in a title becomes a folder) plus `jot-workspace.json` with tags, pins and dates. Never keys, settings or review sessions. File `jot-workspace-YYYY-MM-DD.zip`; a small zip library loaded on use. Dropping the .zip restores the workspace, added alongside existing documents, never replacing.
+3. **Persistent storage.** Ask on an explicit action — new document or import — not while typing (Firefox prompts). At most once per session, skipped if already granted; asking again in a later session is fine (Chrome re-evaluates).
+4. **Storage-unavailable screen.** When IndexedDB can't be opened (e.g. Lockdown Mode), a plain full-screen message like the narrow-window one: jot can't save documents in this browser's current mode.
+5. **Welcome document and README** (with the update banked above): each browser, profile and installed app keeps its own separate workspace; clearing site data or a "delete data on close" setting erases it; export is the backup.
+6. No backup reminder for now.
 
 ## Next round: design first (owner)
 
