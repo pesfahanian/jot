@@ -141,8 +141,9 @@ export function toPlainText(md: string): string {
 // typography (§1.8), laid out into real pages by Paged.js (Phase 9), then
 // the browser's own print-to-PDF.
 //
-// Pages (owner): A4, the 520px reading measure as the page's text width,
-// page numbers in the footer. No code block, diagram, formula, quote or
+// Pages (owner): A4 with ordinary 20mm margins (the screen's 520px measure
+// read as a narrow column in too much white on paper), type sized in
+// points, page numbers in the footer, backgrounds always printed. No code block, diagram, formula, quote or
 // table row is split across a page break; a table taller than a page
 // continues between rows with its header row repeated; a heading always
 // travels with what follows it. Tuned against docs/benchmarks/pdf-benchmark.md.
@@ -150,13 +151,16 @@ export function toPlainText(md: string): string {
 const printCss = `
   @page {
     size: A4;
-    margin: 22mm 36mm 24mm;
+    margin: 20mm 20mm 22mm;
     @bottom-center { content: counter(page) " / " counter(pages); font-family: "Source Code Pro", ui-monospace, monospace; font-size: 8.5pt; color: #868B91; }
   }
   html, body { background: #fff; }
-  body { font-family: "Public Sans", Helvetica, sans-serif; font-size: 14.5px; line-height: 1.58; color: #25292F; margin: 0; }
-  h1, h2, h3, h4, h5, h6 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; margin: 1.4em 0 0.5em; break-after: avoid; }
-  h1 { font-size: 22px; } h2 { font-size: 19px; } h3 { font-size: 16px; } h4, h5, h6 { font-size: 14.5px; }
+  /* Code grounds, table headers and diagram fills print even with the
+     print dialog's "Background graphics" unticked (its default). */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: "Public Sans", Helvetica, sans-serif; font-size: 10.5pt; line-height: 1.55; color: #25292F; margin: 0; }
+  h1, h2, h3, h4, h5, h6 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; margin: 1.3em 0 0.45em; break-after: avoid; }
+  h1 { font-size: 18pt; } h2 { font-size: 14.5pt; } h3 { font-size: 12pt; } h4, h5, h6 { font-size: 10.5pt; }
   body > :first-child { margin-top: 0; }
   p { orphans: 3; widows: 3; }
   p, ul, ol, blockquote, pre, table { margin: 0 0 0.9em; }
@@ -165,14 +169,14 @@ const printCss = `
   input[type="checkbox"] { margin: 0 0.5em 0 0; }
   a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
   strong { font-weight: 600; } del { color: #868B91; }
-  code, pre { font-family: "Source Code Pro", ui-monospace, monospace; font-size: 12.5px; }
+  code, pre { font-family: "Source Code Pro", ui-monospace, monospace; font-size: 9pt; }
   code { background: #F1F4F6; padding: 0 3px; border-radius: 3px; }
   pre { background: #F1F4F6; padding: 10px 12px; border-radius: 6px; white-space: pre-wrap; }
   pre code { background: none; padding: 0; }
   blockquote { border-left: 2px solid #CCD0D3; padding-left: 12px; color: #5F6469; }
   /* Print tables run smaller and tighter than on screen, and long cell text
      wraps, so wide tables fit the page's text width. */
-  table { border-collapse: collapse; font-size: 11.5px; line-height: 1.4; max-width: 100%; }
+  table { border-collapse: collapse; font-size: 9pt; line-height: 1.4; max-width: 100%; }
   th, td { border: 1px solid #CCD0D3; padding: 3px 6px; text-align: left; overflow-wrap: anywhere; }
   th { font-weight: 600; background: #F1F4F6; }
   tr { break-inside: avoid; }
