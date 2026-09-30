@@ -142,8 +142,10 @@ export function toPlainText(md: string): string {
 // the browser's own print-to-PDF.
 //
 // Pages (owner): A4, the 520px reading measure as the page's text width,
-// page numbers in the footer, and no table, code block, diagram, formula or
-// quote split across a page break; headings never stranded at a page foot.
+// page numbers in the footer. No code block, diagram, formula, quote or
+// table row is split across a page break; a table taller than a page
+// continues between rows with its header row repeated; a heading always
+// travels with what follows it. Tuned against docs/benchmarks/pdf-benchmark.md.
 
 const printCss = `
   @page {
@@ -168,17 +170,22 @@ const printCss = `
   pre { background: #F1F4F6; padding: 10px 12px; border-radius: 6px; white-space: pre-wrap; }
   pre code { background: none; padding: 0; }
   blockquote { border-left: 2px solid #CCD0D3; padding-left: 12px; color: #5F6469; }
-  table { border-collapse: collapse; font-size: 13.5px; } th, td { border: 1px solid #CCD0D3; padding: 4px 8px; text-align: left; } th { font-weight: 600; background: #F1F4F6; }
+  /* Print tables run smaller and tighter than on screen, and long cell text
+     wraps, so wide tables fit the page's text width. */
+  table { border-collapse: collapse; font-size: 11.5px; line-height: 1.4; max-width: 100%; }
+  th, td { border: 1px solid #CCD0D3; padding: 3px 6px; text-align: left; overflow-wrap: anywhere; }
+  th { font-weight: 600; background: #F1F4F6; }
+  tr { break-inside: avoid; }
   hr { border: none; border-top: 1px solid #CCD0D3; margin: 1.6em 0; }
   img { max-width: 100%; }
-  pre, table, blockquote, figure, img, .jot-math-block { break-inside: avoid; }
+  pre, blockquote, figure, img, .jot-math-block, .jot-keep { break-inside: avoid; }
   /* Code colours, light values of the --code-* tokens (print is always light). */
   .code-keyword { color: #A83442; } .code-string { color: #0B7643; } .code-number { color: #7B6000; }
   .code-function { color: #0068B2; } .code-comment { color: #8A8F95; font-style: italic; }
   /* Diagrams (2h) and math, as in the rendered view. */
   .jot-diagram { margin: 0 0 0.9em; border: 1px solid #CCD0D3; border-radius: 8px; }
   .jot-diagram-body { padding: 14px; text-align: center; }
-  .jot-diagram-body svg { max-width: 100%; height: auto; }
+  .jot-diagram-body svg { max-width: 100%; max-height: 110mm; height: auto; }
   .jot-diagram figcaption { border-top: 1px solid #E6E8EA; padding: 5px 12px; font-family: "Source Code Pro", ui-monospace, monospace; font-size: 10px; color: #868B91; }
   .jot-diagram-error { padding: 8px 12px 0; font-family: "Source Code Pro", ui-monospace, monospace; font-size: 11px; color: #B32035; }
   .jot-math-block { margin: 0 0 0.9em; }
@@ -203,6 +210,49 @@ function printStyles(): string {
   return out.join('\n')
 }
 
+// Paged.js ignores "break-after: avoid", so a heading is bound to the block
+// after it in a wrapper that can't break. Not when that block is a table —
+// a long table must be free to continue onto the next page.
+function keepHeadingsWithNext(doc: Document) {
+  for (const h of [...doc.body.querySelectorAll(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6')]) {
+    const next = h.nextElementSibling
+    if (!next || next.tagName === 'TABLE' || /^H[1-6]$/.test(next.tagName)) continue
+    const keep = doc.createElement('div')
+    keep.className = 'jot-keep'
+    h.before(keep)
+    keep.append(h, next)
+  }
+}
+
+interface PagedApi {
+  Handler: new (...args: unknown[]) => object
+  registerHandlers: (...handlers: unknown[]) => void
+}
+
+// A table continued onto a new page gets its header row again. Paged.js
+// rebuilds the continued <table> itself without a hook, but each row laid
+// into it passes renderNode — so the header goes in with the first one,
+// before that row is measured, and its height counts toward the page.
+function registerTableHeaders(win: Window) {
+  const Paged = (win as Window & { Paged?: PagedApi }).Paged
+  if (!Paged) return
+  class RepeatTableHeaders extends Paged.Handler {
+    renderNode(node: Node, source: Node) {
+      // Nodes belong to the frame's realm, so no instanceof against ours.
+      const el = (node.nodeType === 1 ? node : node.parentElement) as Element | null
+      const table = el?.closest?.('table[data-split-from]')
+      if (!table || table.querySelector(':scope > thead')) return
+      const src = (source.nodeType === 1 ? source : source.parentElement) as Element | null
+      const head = src?.closest?.('table')?.querySelector(':scope > thead')
+      if (!head) return
+      const copy = head.cloneNode(true) as Element
+      for (const e of [copy, ...copy.querySelectorAll('[data-ref]')]) e.removeAttribute('data-ref')
+      table.insertBefore(copy, table.firstChild)
+    }
+  }
+  Paged.registerHandlers(RepeatTableHeaders)
+}
+
 // The Paged.js polyfill runs inside the print frame, so its page styles never
 // touch the app. Referenced by path: the package exports only its main entry.
 export async function exportPdf(title: string, content: string) {
@@ -217,11 +267,13 @@ export async function exportPdf(title: string, content: string) {
   doc.open()
   doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>${safeTitle}</title><style>${printStyles()}</style><style>${printCss}</style></head><body>${body}</body></html>`)
   doc.close()
+  keepHeadingsWithNext(doc)
   win.addEventListener('afterprint', () => setTimeout(() => frame.remove(), 500))
   // Fonts first (Paged.js measures text), then paginate, then print.
   await (doc.fonts?.ready ?? Promise.resolve())
   win.PagedConfig = {
     auto: true,
+    before: () => registerTableHeaders(win),
     after: () => {
       win.focus()
       win.print()
