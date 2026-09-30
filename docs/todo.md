@@ -21,6 +21,15 @@ Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first im
 
 - **Bring README and the welcome document up to date with Phases 12–13 and the testing fixes.** The README names the four providers but nothing else; the welcome document (`src/lib/welcome.ts`) still names two providers and says nothing of the model picker, top/bottom splits and the grid, resizable seams, or the review declining short or non-prose text. Update the welcome text for new installs only: existing copies are the person's own document.
 
+## Next round: data safety (owner, decided 2026-09-30)
+
+The browser's storage is the only copy of a person's writing, and browsers treat site storage as clearable. Before Jot is shared:
+
+- **Persistent storage.** Ask the browser to keep Jot's storage (`navigator.storage.persist()`), so it isn't cleared when the disk runs low.
+- **Workspace export.** A new entry in the export menu that saves the entire workspace (every document) as one `.zip`, clearly labelled as the whole workspace, not the current document.
+- **Safari warning.** A large coloured bar at the top when Jot is opened in Safari: Safari deletes a site's stored data after 7 days of browsing without a visit, so Jot can't keep documents there reliably.
+- Details under discussion: bar wording, dismissal and which browsers it covers; what the .zip holds and whether it imports back; when persistence is asked for (Firefox prompts).
+
 ## Next round: design first (owner)
 
 These four touch each other, so they get a design round together before any build — building PDF options now would mean redoing them for Farsi.
