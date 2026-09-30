@@ -23,18 +23,25 @@ export function RenderView({ doc }: { doc: JotDocument }) {
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined
     let latest = 0
-    const render = (text: string) => {
+    let text = openContent(doc.id) ?? doc.content
+    // Diagrams are drawn in the app's current theme, and redrawn on a switch.
+    const theme = () => (document.documentElement.classList.contains('dark') ? 'dark' : 'light')
+    const render = () => {
       const n = ++latest
-      void renderBlocks(text).then((b) => n === latest && setBlocks(b))
+      void renderBlocks(text, { theme: theme() }).then((b) => n === latest && setBlocks(b))
     }
-    render(openContent(doc.id) ?? doc.content)
-    const stop = followContent(doc.id, (text) => {
+    render()
+    const stop = followContent(doc.id, (next) => {
+      text = next
       clearTimeout(timer)
-      timer = setTimeout(() => render(text), RENDER_DELAY)
+      timer = setTimeout(render, RENDER_DELAY)
     })
+    const themeWatch = new MutationObserver(render)
+    themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
     return () => {
       clearTimeout(timer)
       stop()
+      themeWatch.disconnect()
     }
     // doc.content: a change saved from elsewhere (e.g. an applied review).
   }, [doc.id, doc.content])

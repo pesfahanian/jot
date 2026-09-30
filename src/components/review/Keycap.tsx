@@ -24,9 +24,9 @@ export function KeycapPanel({ className, style, children, ...rest }: HTMLAttribu
   )
 }
 
-// A shortcut key (3g). Keys sit inside a KeycapPanel only; the review
-// keyboard model is deferred (interaction spec §6), so nothing renders
-// these yet.
+// A shortcut key (3g). Keys sit inside a KeycapPanel only. The guide card
+// (sidebar foot "?", Phase 10) is their first use; the review keyboard
+// model is still deferred (interaction spec §6).
 export function Keycap({ children }: { children: ReactNode }) {
   return (
     <kbd

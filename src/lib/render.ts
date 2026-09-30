@@ -1,6 +1,8 @@
 import { highlightCode, tagHighlighter } from '@lezer/highlight'
 import type { Marked, Token, TokensList } from 'marked'
 import { CODE_GROUPS, findCodeLanguage } from './code'
+import { diagramHtml, loadDiagrams, type DiagramTheme } from './diagrams'
+import { loadMath, mathExtension } from './math'
 
 // The one markdown → HTML renderer, shared by the rendered pane and PDF
 // export so the two never drift apart. GFM, as VSCode's preview renders it:
@@ -12,7 +14,9 @@ import { CODE_GROUPS, findCodeLanguage } from './code'
 // real links open in a new tab.
 //
 // Fenced code is coloured by its own language with the same grammars and
-// colour groups as the editor (lib/code.ts), as code-* classes.
+// colour groups as the editor (lib/code.ts), as code-* classes. A mermaid
+// fence renders as its diagram (lib/diagrams.ts) and $…$ / $$…$$ as math
+// (lib/math.ts) — each library loading only when a document uses it.
 
 const codeHighlighter = tagHighlighter(CODE_GROUPS.flatMap((g) => g.tags.map((tag) => ({ tag, class: `code-${g.name}` }))))
 
@@ -24,6 +28,21 @@ async function loadCodeLanguages(md: string) {
 }
 
 let instance: Promise<Marked> | undefined
+// The theme diagrams are drawn in for the render in progress (set just
+// before each synchronous parse).
+let theme: DiagramTheme = 'light'
+
+export interface RenderOptions {
+  // Diagram colours: the rendered view follows the app theme; print is light.
+  theme?: DiagramTheme
+}
+
+// Everything a document needs that loads asynchronously, loaded before the
+// synchronous parse: code grammars, KaTeX, drawn diagrams.
+async function prepare(md: string, opts: RenderOptions): Promise<Marked> {
+  const [m] = await Promise.all([load(), loadCodeLanguages(md), loadMath(md), loadDiagrams(md, opts.theme ?? 'light')])
+  return m
+}
 
 const SAFE_HREF = /^(https?:|mailto:|#)/i
 const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -31,6 +50,7 @@ const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').rep
 function load(): Promise<Marked> {
   instance ??= import('marked').then(({ Marked }) => {
     const m = new Marked({ gfm: true })
+    m.use(mathExtension)
     m.use({
       renderer: {
         html({ text }) {
@@ -38,6 +58,10 @@ function load(): Promise<Marked> {
         },
         code({ text, lang }) {
           const name = lang?.trim().split(/\s+/)[0]
+          if (name === 'mermaid') {
+            const diagram = diagramHtml(text, theme)
+            if (diagram) return diagram
+          }
           const cls = name ? ` class="language-${escape(name)}"` : ''
           const support = findCodeLanguage(name)?.support
           if (!support) return `<pre><code${cls}>${escape(text)}</code></pre>\n`
@@ -65,8 +89,11 @@ function load(): Promise<Marked> {
   return instance
 }
 
-export async function renderHtml(md: string): Promise<string> {
-  const [m] = await Promise.all([load(), loadCodeLanguages(md)])
+export async function renderHtml(md: string, opts: RenderOptions = {}): Promise<string> {
+  const m = await prepare(md, opts)
+  // Set in the same synchronous stretch as the parse, so a concurrent render
+  // in the other theme can't interleave.
+  theme = opts.theme ?? 'light'
   return m.parse(md, { async: false })
 }
 
@@ -77,8 +104,9 @@ export interface RenderedBlock {
   html: string
 }
 
-export async function renderBlocks(md: string): Promise<RenderedBlock[]> {
-  const [m] = await Promise.all([load(), loadCodeLanguages(md)])
+export async function renderBlocks(md: string, opts: RenderOptions = {}): Promise<RenderedBlock[]> {
+  const m = await prepare(md, opts)
+  theme = opts.theme ?? 'light'
   const tokens = m.lexer(md)
   const out: RenderedBlock[] = []
   let line = 0

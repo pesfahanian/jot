@@ -32,6 +32,10 @@ export interface Settings {
   theme: 'light' | 'dark' | 'system'
   // The editor's minimap (Phase 8); on unless turned off.
   minimap: boolean
+  // First run (Phase 10): when the welcome document was created (or the
+  // workspace was found already in use), and which document it is.
+  welcomedAt: number | null
+  welcomeDocId: string | null
 }
 
 export type FlagFamily = 'tier1' | 'tier1b' | 'tier2' | 'spelling' | 'grammar' | 'punctuation'

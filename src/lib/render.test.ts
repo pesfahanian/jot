@@ -60,3 +60,35 @@ describe('fence names', () => {
     expect(findCodeLanguage('nosuchlang')).toBeNull()
   })
 })
+
+describe('math', () => {
+  it('renders $…$ inline and $$…$$ as a block', async () => {
+    const html = await renderHtml('Energy $E = mc^2$ here.\n\n$$\n\\int_0^1 x\\,dx\n$$\n')
+    expect(html).toContain('class="katex"')
+    expect(html).toContain('<div class="jot-math-block"><span class="katex-display">')
+  })
+
+  it('leaves prices and lone dollars as text', async () => {
+    const html = await renderHtml('It costs $5 and $10, or $ 3 each.')
+    expect(html).not.toContain('katex')
+    expect(html).toContain('$5 and $10')
+  })
+
+  it('shows bad TeX in place instead of failing the render', async () => {
+    expect(await renderHtml('Broken $\\frac{1}{$ math.')).toContain('katex-error')
+  })
+
+  it('anchors a math block to its source line like any block', async () => {
+    const blocks = await renderBlocks('Intro\n\n$$\nx^2\n$$\n\nAfter')
+    expect(blocks.map((b) => b.line)).toEqual([0, 2, 6])
+  })
+})
+
+describe('diagram frame', () => {
+  it('names the diagram type from its first line', async () => {
+    const { diagramType } = await import('./diagrams')
+    expect(diagramType('flowchart LR\n  a --> b')).toBe('flowchart')
+    expect(diagramType('%% comment\nsequenceDiagram\n  A->>B: hi')).toBe('sequenceDiagram')
+    expect(diagramType('---\ntitle: x\n---\npie\n  "a": 1')).toBe('pie')
+  })
+})

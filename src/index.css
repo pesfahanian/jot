@@ -330,6 +330,15 @@
     .jot-rendered .code-number { color: var(--code-number); }
     .jot-rendered .code-function { color: var(--code-function); }
     .jot-rendered .code-comment { color: var(--code-comment); font-style: italic; }
+    /* Diagrams (2h): a bordered frame, the footer naming the block type. */
+    .jot-rendered .jot-diagram { margin: 0 0 0.9em; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .jot-rendered .jot-diagram-body { padding: 16px; display: flex; justify-content: center; overflow-x: auto; }
+    .jot-rendered .jot-diagram-body svg { max-width: 100%; height: auto; }
+    .jot-rendered .jot-diagram figcaption { border-top: 1px solid var(--border-subtle); padding: 5px 12px; font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
+    .jot-rendered .jot-diagram-error { padding: 10px 12px 0; font-family: var(--font-mono); font-size: 12px; color: var(--destructive); }
+    /* Math: display formulas scroll sideways rather than overflow. */
+    .jot-rendered .jot-math-block { margin: 0 0 0.9em; overflow-x: auto; overflow-y: hidden; }
+    .jot-rendered .katex { font-size: 1.08em; }
     .jot-rendered blockquote { border-left: 2px solid var(--border-strong); padding-left: 12px; color: var(--secondary-foreground); }
     .jot-rendered hr { border: 0; border-top: 1px solid var(--border); margin: 1.6em 0; }
     .jot-rendered img { max-width: 100%; border-radius: 4px; }

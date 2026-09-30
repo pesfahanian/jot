@@ -37,7 +37,7 @@ function FirstRun() {
     <section className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-(--radius-panel) border border-border-strong bg-document">
       <div className="h-[38px] flex-none border-b border-border bg-card" />
       <PaneEmpty>
-        <div className="text-[22px] font-semibold tracking-[-0.025em]">No documents yet</div>
+        <div className="text-[22px] font-semibold tracking-[-0.025em]">no documents yet</div>
         <div className="flex items-center gap-3.5">
           <button
             type="button"
