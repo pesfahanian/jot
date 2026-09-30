@@ -17,6 +17,10 @@ Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first im
 - "saves as <title>.*" dropped from the export menu.
 - AI Provider panel footer moved into a "?" tooltip in the panel header.
 
+## Next round: first up
+
+- **Bring README and the welcome document up to date with Phases 12–13 and the testing fixes.** The README names the four providers but nothing else; the welcome document (`src/lib/welcome.ts`) still names two providers and says nothing of the model picker, top/bottom splits and the grid, resizable seams, or the review declining short or non-prose text. Update the welcome text for new installs only: existing copies are the person's own document.
+
 ## Next round: design first (owner)
 
 These four touch each other, so they get a design round together before any build — building PDF options now would mean redoing them for Farsi.
