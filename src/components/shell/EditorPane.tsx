@@ -49,7 +49,7 @@ function ExportItems({ doc }: { doc: JotDocument }) {
         <span className="font-mono text-[11px] text-muted-foreground">.md</span>
       </DropdownMenuItem>
       <DropdownMenuItem onSelect={() => exportPlainText(doc.title, liveText(doc))}>
-        <span className="flex-auto">Plain text</span>
+        <span className="flex-auto">plain text</span>
         <span className="font-mono text-[11px] text-muted-foreground">.txt</span>
       </DropdownMenuItem>
       <DropdownMenuItem onSelect={() => void exportPdf(doc.title, liveText(doc))}>
@@ -406,7 +406,7 @@ export function EditorPane({ pane, docsById, paneCount }: { pane: PaneLayout; do
         // A pane with nothing open — only possible for the last pane, since
         // closing the last tab of any other pane closes that pane.
         <PaneEmpty>
-          <div className="text-[13px] text-muted-foreground">No document open</div>
+          <div className="text-[13px] text-muted-foreground">no document open</div>
           <QuietButton onClick={() => void newDocument()}>new document</QuietButton>
         </PaneEmpty>
       )}

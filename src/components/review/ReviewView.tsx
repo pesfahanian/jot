@@ -67,7 +67,7 @@ function ReviewHelp() {
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="flex w-[380px] flex-col gap-3 p-4 text-[12.5px] leading-relaxed">
-        <div className="text-[14px] font-semibold">How review works</div>
+        <div className="text-[14px] font-semibold">how review works</div>
         <div className="text-secondary-foreground">
           Click any marked text on the right to see the suggestion and decide. Nothing in your document changes until every flag is decided and you press{' '}
           <span className="font-mono text-foreground">apply</span>.

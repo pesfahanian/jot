@@ -391,7 +391,7 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
         // No search results (6d): state the scope searched, offer the query as a title.
         <div className="flex flex-col gap-3 px-3.5 py-[18px]">
           <div className="text-[13px] leading-normal">
-            Nothing matches <span className="font-mono text-[12.5px]">{query.trim()}</span>
+            nothing matches <span className="font-mono text-[12.5px]">{query.trim()}</span>
           </div>
           <div className="font-mono text-[11px] leading-relaxed text-muted-foreground">
             searched {docs.length} {docs.length === 1 ? 'title' : 'titles'} and their full text
@@ -412,7 +412,7 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
     body = (
       <div className="flex flex-col gap-3 px-3.5 py-[18px]">
         <div className="flex items-center gap-[7px] text-[13px]">
-          No
+          no
           {activeColors.map((c) => (
             <span key={c} className={cn('size-[9px] rounded-[2px]', tagClass(c))} />
           ))}
