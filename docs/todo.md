@@ -28,7 +28,13 @@ The browser's storage is the only copy of a person's writing, and browsers treat
 - **Persistent storage.** Ask the browser to keep Jot's storage (`navigator.storage.persist()`), so it isn't cleared when the disk runs low.
 - **Workspace export.** A new entry in the export menu that saves the entire workspace (every document) as one `.zip`, clearly labelled as the whole workspace, not the current document.
 - **Safari warning.** A large coloured bar at the top when Jot is opened in Safari: Safari deletes a site's stored data after 7 days of browsing without a visit, so Jot can't keep documents there reliably.
-- Details under discussion: bar wording, dismissal and which browsers it covers; what the .zip holds and whether it imports back; when persistence is asked for (Firefox prompts).
+- **Decided details (owner accepted the recommendations):**
+  - Bar: amber, full width above the panels. Wording: "Safari deletes your jot documents if you don't open jot for 7 days. Safari clears a website's stored data after a week of browsing without a visit. Use Chrome, Firefox or Edge to keep your writing safe." Dismissible; returns after 7 days. Not shown when Jot runs as an installed web app (Dock / home screen), if research confirms those are exempt. Which browsers get it waits on research (desktop Safari for certain; iPad browsers to check).
+  - Export menu: a separated "whole workspace" section, "all N documents .zip". One `.md` per document (duplicate titles numbered, a `/` in a title becomes a folder) plus `jot-workspace.json` with tags, pins and dates. Never keys, settings or review sessions. File `jot-workspace-YYYY-MM-DD.zip`. A small zip library, loaded on use.
+  - Import: dropping the .zip restores the workspace, added alongside existing documents, never replacing.
+  - Persistence: requested when the person first creates or edits a document (not the welcome document), so Firefox's prompt has context.
+  - No backup reminder for now.
+- **Research pending** (run separately): Safari's 7-day rule and persistent storage, iPad browsers, installed web apps, browser detection. Findings decide which browsers get the bar and whether it mentions installing.
 
 ## Next round: design first (owner)
 
