@@ -13,8 +13,8 @@ import { exportMarkdown, exportPdf, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
 import { newDocument } from '@/state/actions'
 import { useReview } from '@/state/review'
-import { canSplit, docIdOf, isRenderTab, renderTab } from '@/state/layout'
-import { MAX_PANES, useWorkspace } from '@/state/workspace'
+import { canSplit, columnsOf, docIdOf, isRenderTab, renderTab, type Edge } from '@/state/layout'
+import { splitEdge, useWorkspace } from '@/state/workspace'
 import { RenderView } from './RenderView'
 import { DocumentMenu } from './DocumentMenu'
 import { SplitIcon } from './icons'
@@ -28,7 +28,7 @@ const ReviewView = lazy(() => import('@/components/review/ReviewView').then((m) 
 // drops its label (6f). Two panes at 1400 keep the full set (2g); three fold.
 const NARROW_PANE = 460
 
-// Editor sizing per pane count (6f, §1.9): one pane at the full 13.5 with a
+// Editor sizing per column count (6f, §1.9): one pane at the full 13.5 with a
 // 46/10/22 gutter; two at 13 with 40/8/16; three at 13 with 34/8/12.
 const density: Record<number, CSSProperties> = {
   1: {},
@@ -65,25 +65,31 @@ function ExportItems({ doc }: { doc: JotDocument }) {
 }
 
 function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: boolean }) {
-  const splitRight = useWorkspace((s) => s.splitRight)
+  const split = useWorkspace((s) => s.split)
   const toggleRender = useWorkspace((s) => s.toggleRender)
-  const paneCount = useWorkspace((s) => s.panes.length)
+  const edge = useWorkspace((s) => splitEdge(s.panes, s.focusedPaneId))
   const rendered = useWorkspace((s) => !!doc && s.panes.some((p) => p.tabs.includes(renderTab(doc.id))))
-  const canSplit = !!doc && paneCount < MAX_PANES
-  // Render toggles this document's rendered tab (2g) — beside it in a new
-  // pane, or in the neighbouring pane when three are open.
+  const canSplit = !!doc && !!edge
+  // Render toggles this document's rendered tab (2g) — in a new pane where
+  // split would open one, or in the neighbouring pane when the grid is full.
   const canRender = !!doc
   const renderTitle = rendered ? 'close the rendered view' : 'show this document rendered, beside it'
-  const split = (
-    <button type="button" className={control} disabled={!canSplit} onClick={splitRight} title="open this document in a new pane to the right">
-      <SplitIcon />
+  const splitButton = (
+    <button
+      type="button"
+      className={control}
+      disabled={!canSplit}
+      onClick={split}
+      title={edge === 'bottom' ? 'open this document in a new pane below' : edge ? 'open this document in a new pane to the right' : 'no room for another pane here'}
+    >
+      <SplitIcon down={edge === 'bottom'} />
       {!narrow && 'split'}
     </button>
   )
   if (narrow) {
     return (
       <>
-        {split}
+        {splitButton}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button type="button" className={control} disabled={!doc} title="more">
@@ -106,7 +112,7 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
   }
   return (
     <>
-      {split}
+      {splitButton}
       <button
         type="button"
         className={cn(control, rendered && 'border-foreground text-foreground')}
@@ -293,22 +299,43 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
   )
 }
 
-// Drop zones over a pane's body while a tab is dragged (Phase 8): the outer
-// quarter on either side opens a new column there (the half it would take
-// is shown); the middle moves the tab into this pane. With no room for
-// another column, the whole body is the middle.
+// Drop zones over a pane's body while a tab is dragged (Phase 8; top and
+// bottom in Phase 13): the outer quarter on each side opens a pane there —
+// left/right a new column, top/bottom stacked in this column — with the
+// half it would take shown; the middle moves the tab into this pane. Sides
+// with no room in the grid are part of the middle.
+const ZONE: Record<Edge | 'center', string> = {
+  left: 'inset-y-2 left-2 w-[calc(50%-12px)]',
+  right: 'inset-y-2 right-2 w-[calc(50%-12px)]',
+  top: 'inset-x-2 top-2 h-[calc(50%-12px)]',
+  bottom: 'inset-x-2 bottom-2 h-[calc(50%-12px)]',
+  center: 'inset-2',
+}
+
 function DropZones({ paneId }: { paneId: string }) {
   const dragTab = useWorkspace((s) => s.dragTab)
   const panes = useWorkspace((s) => s.panes)
   const dropTabOnEdge = useWorkspace((s) => s.dropTabOnEdge)
-  const [zone, setZone] = useState<'left' | 'right' | 'center' | null>(null)
+  const [zone, setZone] = useState<Edge | 'center' | null>(null)
   if (!dragTab) return null
-  const splittable = canSplit(panes, dragTab, paneId)
+  const open = (edge: Edge) => canSplit(panes, dragTab, paneId, edge)
   const own = dragTab.from === paneId
-  const zoneAt = (e: React.DragEvent) => {
+  // The nearest edge within the outer quarter, if a pane can open there.
+  const zoneAt = (e: React.DragEvent): Edge | 'center' => {
     const r = e.currentTarget.getBoundingClientRect()
-    const f = (e.clientX - r.left) / r.width
-    return splittable && f < 0.25 ? 'left' : splittable && f > 0.75 ? 'right' : 'center'
+    const x = (e.clientX - r.left) / r.width
+    const y = (e.clientY - r.top) / r.height
+    const near = (
+      [
+        ['left', x],
+        ['right', 1 - x],
+        ['top', y],
+        ['bottom', 1 - y],
+      ] as [Edge, number][]
+    )
+      .filter(([edge, d]) => d < 0.25 && open(edge))
+      .sort((a, b) => a[1] - b[1])
+    return near[0]?.[0] ?? 'center'
   }
   return (
     <div
@@ -329,14 +356,7 @@ function DropZones({ paneId }: { paneId: string }) {
         dropTabOnEdge(paneId, z)
       }}
     >
-      {zone && (
-        <div
-          className={cn(
-            'pointer-events-none absolute inset-y-2 rounded-md border-2 border-primary/70 bg-primary/10',
-            zone === 'left' ? 'left-2 w-[calc(50%-12px)]' : zone === 'right' ? 'right-2 w-[calc(50%-12px)]' : 'inset-x-2',
-          )}
-        />
-      )}
+      {zone && <div className={cn('pointer-events-none absolute rounded-md border-2 border-primary/70 bg-primary/10', ZONE[zone])} />}
     </div>
   )
 }
@@ -345,7 +365,8 @@ function PaneEmpty({ children }: { children: ReactNode }) {
   return <div className="flex flex-auto flex-col justify-center gap-4 px-[72px] pb-10">{children}</div>
 }
 
-export function EditorPane({ pane, docsById, paneCount }: { pane: PaneLayout; docsById: Map<string, JotDocument>; paneCount: number }) {
+export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsById: Map<string, JotDocument>; style?: CSSProperties }) {
+  const columnCount = useWorkspace((s) => columnsOf(s.panes).length)
   const focused = useWorkspace((s) => s.focusedPaneId === pane.id)
   const focusPane = useWorkspace((s) => s.focusPane)
   const self = useRef<HTMLElement>(null)
@@ -374,8 +395,8 @@ export function EditorPane({ pane, docsById, paneCount }: { pane: PaneLayout; do
     <section
       ref={self}
       onMouseDownCapture={() => focusPane(pane.id)}
-      style={density[paneCount]}
-      className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-(--radius-panel) border border-border-strong bg-document"
+      style={{ ...density[columnCount], ...style }}
+      className="absolute flex min-h-0 min-w-0 flex-col overflow-hidden rounded-(--radius-panel) border border-border-strong bg-document"
     >
       {!reviewHere && <DropZones paneId={pane.id} />}
       <div className="flex h-[38px] flex-none items-stretch border-b border-border bg-card">

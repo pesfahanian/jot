@@ -4,14 +4,14 @@ Decisions still open live in `open-decisions.md`.
 
 ## Roadmap (agreed with the owner)
 
-Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first impressions), Phase 12 (AI providers).
+Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first impressions), Phase 12 (AI providers), Phase 13 (Layout 2.0).
 
 | Phase | Contents |
 |---|---|
 | 12: AI providers ✓ | OpenAI and Anthropic alongside OpenRouter and Google; provider dropdown; model picker suggesting from the provider's model list; per-provider fallback chain; new hosts in `public/_headers` connect-src |
-| 13: Layout 2.0 | Tab drag part B: top/bottom splits, up to a 2×3 grid, resizable dividers; the status bar stays global |
+| 13: Layout 2.0 ✓ | Tab drag part B: top/bottom splits, up to a 2×3 grid, resizable dividers; the status bar stays global |
 
-## Next round: design first (owner, after Phase 13)
+## Next round: design first (owner)
 
 These four touch each other, so they get a design round together before any build — building PDF options now would mean redoing them for Farsi.
 

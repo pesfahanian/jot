@@ -23,6 +23,7 @@ import { useReview } from '@/state/review'
 import { docIdOf } from '@/state/layout'
 import { cycleTheme, nextTheme, useTheme } from '@/state/theme'
 import { focusedPane, useWorkspace } from '@/state/workspace'
+import { columnsOf } from '@/state/layout'
 import { DocumentMenu } from './DocumentMenu'
 import { FilterIcon, PinIcon, PlusIcon, SearchIcon, SortIcon } from './icons'
 import { tagClass } from './tagClass'
@@ -232,13 +233,13 @@ function GuideButton() {
 // the editors hide it regardless — the tooltip says so.
 function MinimapButton() {
   const on = useLiveQuery(() => getSettings().then((s) => s.minimap ?? true), []) ?? true
-  const crowded = useWorkspace((s) => s.panes.length >= 3)
+  const crowded = useWorkspace((s) => columnsOf(s.panes).length >= 3)
   return (
     <button
       type="button"
       aria-pressed={on}
       aria-label="minimap"
-      title={`minimap: ${on ? 'on' : 'off'}${on && crowded ? ' (hidden with three panes)' : ''} — click to ${on ? 'hide' : 'show'}`}
+      title={`minimap: ${on ? 'on' : 'off'}${on && crowded ? ' (hidden with three columns)' : ''} — click to ${on ? 'hide' : 'show'}`}
       onClick={() => void updateSettings({ minimap: !on })}
       className={cn(
         'flex w-[34px] flex-none items-center justify-center border-l border-border hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',

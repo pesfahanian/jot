@@ -4,7 +4,8 @@ import { cn } from '@/lib/utils'
 import { importFiles, newDocument } from '@/state/actions'
 import { useWorkspace } from '@/state/workspace'
 import { KeyPanel } from '@/components/review/KeyPanel'
-import { EditorPane, PaneEmpty } from './EditorPane'
+import { PaneEmpty } from './EditorPane'
+import { PaneGrid } from './PaneGrid'
 import { Sidebar } from './Sidebar'
 import { StatusBar } from './StatusBar'
 import { Toast } from './Toast'
@@ -121,12 +122,8 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
           <KeyPanel />
         </div>
         <SidebarHandle />
-        <div className="relative flex min-w-0 flex-auto gap-(--seam)">
-          {docs.length === 0 ? (
-            <FirstRun />
-          ) : (
-            panes.map((p) => <EditorPane key={p.id} pane={p} docsById={docsById} paneCount={panes.length} />)
-          )}
+        <div className="relative flex min-w-0 flex-auto">
+          {docs.length === 0 ? <FirstRun /> : <PaneGrid panes={panes} docsById={docsById} />}
           <Toast />
         </div>
       </div>

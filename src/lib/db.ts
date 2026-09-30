@@ -87,6 +87,14 @@ export interface PaneLayout {
   // Only in layouts saved before rendered views became tabs ("render:" +
   // document id, state/layout.ts); converted on load.
   render?: boolean
+  // The grid (Phase 13, state/layout.ts): panes are listed column by
+  // column; a pane marked `below` sits under the one before it, in the same
+  // column. On a column's top pane: `size`, the column's width relative to
+  // the others (default 1), and `split`, the top pane's share of the
+  // column's height when it has a pane below (default 0.5).
+  below?: boolean
+  size?: number
+  split?: number
 }
 
 export interface Workspace {
