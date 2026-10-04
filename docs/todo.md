@@ -49,6 +49,10 @@ The browser's storage is the only copy of a person's writing, and browsers treat
 5. **Welcome document and README** (with the update banked above): each browser, profile and installed app keeps its own separate workspace; clearing site data or a "delete data on close" setting erases it; export is the backup.
 6. No backup reminder for now.
 
+## Later (owner: its own fresh chat)
+
+- **Visitor counter.** Something as basic as Cloudflare's own analytics or Google Analytics, enough to know "5 people from the UK visited today". Touches the privacy promise (README, ADR-004) and the CSP.
+
 ## Next round: design first (owner)
 
 These four touch each other, so they get a design round together before any build — building PDF options now would mean redoing them for Farsi.
