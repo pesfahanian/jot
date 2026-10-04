@@ -32,25 +32,55 @@ const statusFor: Record<Decision, FlagStatus> = {
 // Records a decision. Decisions stay revisable until apply; an action the
 // flag doesn't offer is refused (returns the list unchanged).
 export function decide(flags: ReviewFlag[], key: string, decision: Decision, userText?: string): ReviewFlag[] {
-  return flags.map((f) => {
+  const decided = flags.map((f) => {
     if (f.key !== key || !allowedDecisions(f).includes(decision)) return f
     if (decision === 'edit') {
       if (userText === undefined) return f
-      return { ...f, status: 'edited', userText }
+      const edited: ReviewFlag = { ...f, status: 'edited', userText }
+      delete edited.supersededBy
+      return edited
     }
     const next: ReviewFlag = { ...f, status: statusFor[decision] }
     delete next.userText
+    delete next.supersededBy
     return next
   })
+  return supersede(decided, key)
 }
 
 // Back to pending (a decision can be reopened before apply).
 export function reopen(flags: ReviewFlag[], key: string): ReviewFlag[] {
-  return flags.map((f) => {
+  const reopened = flags.map((f) => {
     if (f.key !== key) return f
     const next: ReviewFlag = { ...f, status: 'pending' }
     delete next.userText
+    delete next.supersededBy
     return next
+  })
+  return supersede(reopened, key)
+}
+
+const replaces = (f: ReviewFlag) => !isNote(f) && (f.status === 'accepted' || f.status === 'edited')
+const inside = (inner: ReviewFlag, outer: ReviewFlag) =>
+  inner.key !== outer.key && !isNote(inner) && inner.spanStart! >= outer.spanStart! && inner.spanEnd! <= outer.spanEnd! && inner.spanEnd! - inner.spanStart! < outer.spanEnd! - outer.spanStart!
+
+// Overlapping flags (open-decisions #16): once a flag that replaces its text
+// is accepted or edited, a pending flag wholly inside it has nothing left to
+// act on, so it's set aside as superseded. That changes no text, so ADR-009
+// holds. When the wider flag stops replacing (reopened, rejected,
+// dismissed), the flags it set aside are pending again. A decision the
+// person made themselves is never overridden.
+function supersede(flags: ReviewFlag[], key: string): ReviewFlag[] {
+  const outer = flags.find((f) => f.key === key)
+  if (!outer || isNote(outer)) return flags
+  return flags.map((f) => {
+    if (replaces(outer) && f.status === 'pending' && inside(f, outer)) return { ...f, status: 'superseded', supersededBy: key }
+    if (!replaces(outer) && f.status === 'superseded' && f.supersededBy === key) {
+      const back: ReviewFlag = { ...f, status: 'pending' }
+      delete back.supersededBy
+      return back
+    }
+    return f
   })
 }
 
@@ -92,9 +122,10 @@ export interface Applied {
 
 // Flags whose spans overlap can't both apply. The wider span wins (its
 // rewrite was written from the whole original stretch); a narrower flag
-// inside an applied one is superseded for that stretch but still needs its
-// own decision (open-decisions #16). Greedy: longest span first, then
-// earliest.
+// inside an applied one is superseded for that stretch (open-decisions #16).
+// Greedy: longest span first, then earliest. Pending flags inside an accepted or edited one are set aside as
+// superseded by decide(); this ordering still settles the preview and any
+// overlap the person chose themselves.
 export function appliedSet(flags: ReviewFlag[], mode: 'preview' | 'final'): Applied[] {
   const cands: Applied[] = []
   for (const f of flags) {

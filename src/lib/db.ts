@@ -46,7 +46,9 @@ export interface Settings {
 
 export type FlagFamily = 'tier1' | 'tier1b' | 'tier2' | 'spelling' | 'grammar' | 'punctuation'
 export type FlagKind = 'replace' | 'delete' | 'insert' | 'flag'
-export type FlagStatus = 'pending' | 'accepted' | 'rejected' | 'ignored' | 'dismissed' | 'edited'
+// superseded: set by Jot, not chosen — a pending flag inside a wider flag
+// that was accepted or edited (its text is gone; open-decisions #16).
+export type FlagStatus = 'pending' | 'accepted' | 'rejected' | 'ignored' | 'dismissed' | 'edited' | 'superseded'
 
 export interface ReviewFlag {
   // Unique per record: aggregate rules emit several flags sharing one rule id.
@@ -64,6 +66,8 @@ export interface ReviewFlag {
   rationale: string
   status: FlagStatus
   userText?: string
+  // For a superseded flag: the key of the wider flag that took its text.
+  supersededBy?: string
 }
 
 export interface ReviewSession {

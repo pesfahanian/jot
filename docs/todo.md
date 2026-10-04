@@ -23,9 +23,6 @@ Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first im
 
 ## Next round: from the decisions review (2026-10-04)
 
-- **Plain-text export keeps the markdown** (open-decisions #10): the `.txt` is the document exactly as written, no stripping.
-- **Overlapping review flags** (open-decisions #16): accepting a wider flag resolves any narrower flag inside it as "superseded" (its text is gone). It changes no text itself, so ADR-009 holds; reopening the wider flag brings the narrower one back to pending.
-- **Minimap toggle moves to the status bar** (owner): from the sidebar foot into the status bar's left block, directly left of the review-style button. Still one global setting (on/off for every editor, remembered), only its place changes.
 - **Check the model's decline live** (open-decisions #27): the AI half of the review opt-out has only been unit-tested. Next time a real key is at hand, review a gibberish document once and confirm the "skipped" chip shows the model's reason.
 
 ## Next round: data safety (owner, locked 2026-09-30, after research)
