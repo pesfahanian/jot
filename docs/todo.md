@@ -17,15 +17,12 @@ Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first im
 - "saves as <title>.*" dropped from the export menu.
 - AI Provider panel footer moved into a "?" tooltip in the panel header.
 
-## Next round: first up
+## Checks still open
 
-- **Bring README and the welcome document up to date with Phases 12–13 and the testing fixes.** The README names the four providers but nothing else; the welcome document (`src/lib/welcome.ts`) still names two providers and says nothing of the model picker, top/bottom splits and the grid, resizable seams, or the review declining short or non-prose text. Update the welcome text for new installs only: existing copies are the person's own document.
+- **Model decline, live** (open-decisions #27): the AI half of the review opt-out has only been unit-tested. Next time a real key is at hand, review a gibberish document (30+ words) once and confirm the "skipped" chip shows the model's reason.
+- **Cross-browser pass** (a QA chat with Computer Use; prompt on request): Safari and Firefox haven't been tried. Includes the storage bar in real Safari and on iPad, Firefox's persistence prompt, a workspace .zip round-trip, and the "can't save documents here" screen under Safari's Lockdown Mode (it couldn't be forced in the Chromium preview).
 
-## Next round: from the decisions review (2026-10-04)
-
-- **Check the model's decline live** (open-decisions #27): the AI half of the review opt-out has only been unit-tested. Next time a real key is at hand, review a gibberish document once and confirm the "skipped" chip shows the model's reason.
-
-## Next round: data safety (owner, locked 2026-09-30, after research)
+## Built: data safety (owner, locked 2026-09-30, after research; built 2026-10-04)
 
 The browser's storage is the only copy of a person's writing, and browsers treat site storage as clearable. Research (30 Sep 2026, summarised below) settled the plan; build before Jot is shared.
 
@@ -37,7 +34,7 @@ The browser's storage is the only copy of a person's writing, and browsers treat
 - Safari's Lockdown Mode turns IndexedDB off entirely.
 - Unverified on purpose (needs 8+ days on real devices; the plan doesn't depend on it): whether persistence exempts, whether Dock apps skip the rule, whether iPad Chrome really deletes.
 
-**What to build**
+**What was built**
 1. **Warning bar, amber, full width above the panels.** Shown in any WebKit-engine browser (`navigator.vendor === 'Apple Computer, Inc.'`): Safari on Mac, every iPad browser, Orion. Not in Chromium browsers or Firefox. Hidden only in an installed iPad Home Screen app (`navigator.standalone` / `display-mode: standalone` on iPadOS). Never hidden because persistence was granted. Dismissible; returns after 7 days. Its button: **export workspace**.
    - Mac: "Safari deletes jot's documents after 7 days of using Safari without typing or clicking in jot. Everything jot saves lives only in this browser. For writing you want to keep, use Chrome, Firefox or Edge — and export a backup now and then."
    - iPad (WebKit with touch, `maxTouchPoints > 1`): "On iPad, every browser deletes jot's documents after 7 days of use without typing or clicking in jot. Add jot to your Home Screen to keep them there. It starts empty, so export your workspace here first and import it in the app."

@@ -22,7 +22,7 @@ Open it and write. There's no account and no server. Your documents stay on your
 
 Everything is stored in your browser. The AI review is off until you add your own API key (OpenRouter, Google AI Studio, OpenAI or Anthropic), and it only sends the document you're reviewing to the provider you picked.
 
-Since storage is per browser, a different browser or device starts empty. Export your documents to move them.
+That also means the browser holds the only copy. Each browser (and profile, and installed app) has its own separate workspace, and clearing site data erases it. Export the whole workspace as a `.zip` now and then: it's your backup, and dropping it on jot brings everything back. Safari deletes a site's data on its own after a week without use, so jot is better in Chrome, Firefox or Edge.
 
 ## Run it yourself
 
