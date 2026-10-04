@@ -2,6 +2,7 @@ import type { JotDocument, TagColor } from '@/lib/db'
 import { uniqueTitle } from '@/lib/docList'
 import { createDocument, deleteDocument, listDocuments, restoreDocument, updateDocument } from '@/lib/documents'
 import { useWorkspace } from './workspace'
+import { requestPersistence } from '@/lib/storage'
 
 // Document-level actions shared by the sidebar, tabs and menus.
 
@@ -12,6 +13,7 @@ export const UNDO_WINDOW_MS = 8000
 // sidebar row straight into rename. Search's "new document "q"" passes the
 // query as the title instead, and skips rename — the name is already chosen.
 export async function newDocument(title?: string): Promise<JotDocument> {
+  void requestPersistence()
   const docs = await listDocuments()
   const doc = await createDocument({ title: title?.trim() || uniqueTitle('untitled', docs) })
   const ws = useWorkspace.getState()
@@ -65,6 +67,7 @@ export async function undoDelete(toastId: number): Promise<void> {
 // document titled after the file.
 const IMPORTABLE = /\.(md|markdown|txt)$/i
 export async function importFiles(files: FileList | File[]): Promise<number> {
+  void requestPersistence()
   const list = [...files].filter((f) => IMPORTABLE.test(f.name))
   let last: JotDocument | undefined
   for (const f of list) {
