@@ -42,6 +42,9 @@ export interface Settings {
   // workspace was found already in use), and which document it is.
   welcomedAt: number | null
   welcomeDocId: string | null
+  // When the storage warning (Safari / iPad) was last dismissed; it returns
+  // 7 days later.
+  storageWarningDismissedAt?: number | null
 }
 
 export type FlagFamily = 'tier1' | 'tier1b' | 'tier2' | 'spelling' | 'grammar' | 'punctuation'

@@ -53,6 +53,10 @@
     --color-flag-check-bg: var(--flag-check-bg);
     --color-flag-call: var(--flag-call);
     --color-flag-call-bg: var(--flag-call-bg);
+    /* Warnings (the storage bar) share the "check" amber: a caution, not an
+       error. */
+    --color-warn: var(--flag-check);
+    --color-warn-bg: var(--flag-check-bg);
     --color-resolved-bg: var(--resolved-bg);
     --color-proof-spelling: var(--proof-spelling);
     --color-proof-grammar: var(--proof-grammar);

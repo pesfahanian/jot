@@ -16,6 +16,7 @@ export const defaultSettings: Settings = {
   minimap: true,
   welcomedAt: null,
   welcomeDocId: null,
+  storageWarningDismissedAt: null,
 }
 
 const NO_KEY: ProviderKey = { key: null, status: 'untested', lastValidatedAt: null }

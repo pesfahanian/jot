@@ -8,6 +8,7 @@ import { PaneEmpty } from './EditorPane'
 import { PaneGrid } from './PaneGrid'
 import { Sidebar } from './Sidebar'
 import { StatusBar } from './StatusBar'
+import { StorageWarning } from './StorageWarning'
 import { Toast } from './Toast'
 
 // The sidebar's resize handle is the seam itself: an 8px hit target with
@@ -115,6 +116,7 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
         dropping && 'outline-2 -outline-offset-2 outline-primary',
       )}
     >
+      <StorageWarning />
       <div className="flex min-h-0 flex-auto">
         {/* The key panel opens beside the sidebar's key row, over the panes. */}
         <div className="relative flex min-h-0">
