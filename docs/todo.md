@@ -50,6 +50,8 @@ The browser's storage is the only copy of a person's writing, and browsers treat
 
 ## Next round: design first (owner)
 
+**Sequence (owner, 2026-10-04):** finish all the open design work for the three — diff checker, PDF options, Farsi — first, then build all three together. Not design → build one at a time. (The palette and shortcut editor are not among the three.)
+
 These four touch each other, so they get a design round together before any build — building PDF options now would mean redoing them for Farsi.
 
 - **PDF options** (was Phase 11). A small card behind export → PDF, remembered between exports: page size (A4 / Letter / A5) and orientation, margins (narrow / normal / wide), font (Jot sans, a serif, mono — bundled, loaded when chosen) and body size, colour presets (Jot, monochrome, classic), an optional custom-CSS box applied last, page numbers on/off. Depends on Farsi: fonts, direction and the renderer's typography.
