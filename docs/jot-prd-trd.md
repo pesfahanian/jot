@@ -85,7 +85,7 @@ Summary only — each item's full behavior is specified elsewhere.
 Two items were explicitly left open in earlier documents, deferred to "the product spec." Resolving them now, flagged clearly since they're new, not previously agreed:
 
 - **Leaving a review with undecided flags.** Proposed: the in-progress `ReviewSession` persists per document and is resumable, rather than discarded on exit. This matches the same philosophy behind continuous autosave (ADR-008) — closing a review shouldn't be able to silently lose work any more than closing a document can.
-- **What "Plain text" export means.** Proposed: markdown syntax stripped to clean prose, not the raw source with a renamed extension. A plain-text export that still contains `##` and `**` isn't actually plain text in any useful sense.
+- **What "Plain text" export means.** Proposed: markdown syntax stripped to clean prose, not the raw source with a renamed extension. A plain-text export that still contains `##` and `**` isn't actually plain text in any useful sense. **Owner (2026-10-04, open-decisions #10): the reverse — plain text is the document exactly as written, markdown included, saved as `.txt`.**
 
 Both are proposals, not settled facts — worth a direct yes/no before they go into a ticket.
 

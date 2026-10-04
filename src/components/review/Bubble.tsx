@@ -21,6 +21,7 @@ const statusWord: Record<ReviewFlag['status'], string> = {
   ignored: 'ignored',
   dismissed: 'dismissed',
   edited: 'edited',
+  superseded: 'covered by a wider change',
 }
 
 // The kind's sample, as the legend draws it.

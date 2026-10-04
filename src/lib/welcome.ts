@@ -27,6 +27,8 @@ Everything is saved as you type. There's no save button, and Cmd/Ctrl + S does n
 
 Cmd/Ctrl + Shift + I tidies the whole document: bullets, emphasis and table columns. One undo reverses it.
 
+The icon at the far left of the bar at the bottom shows or hides the minimap.
+
 ## seeing it rendered
 
 Press Cmd/Ctrl + Shift + V to open the rendered view beside this one. It scrolls along with the editor.
@@ -61,22 +63,25 @@ def greet(name):
 
 - The sidebar holds your documents. **+** makes a new one, and the icons beside it sort, filter by colour tag and search.
 - Right-click a document to tag it with a colour, rename, pin or delete it. Double-click it to rename.
-- Drag tabs to reorder them, onto another pane, or onto a pane's edge to split. Documents drag in from the sidebar too.
-- Drop .md files anywhere to import them. The **export** menu saves Markdown, plain text or PDF.
+- Drag tabs to reorder them, or onto another pane. Drop one on a pane's left or right edge for a new column, or on its top or bottom edge to stack two panes, up to three columns of two. Documents drag in from the sidebar too.
+- Drag the gaps between panes to resize them. Double-click a gap to even it out.
+- Drop .md files anywhere to import them. The **export** menu saves Markdown, plain text or PDF, and, set apart below those, the whole workspace as one .zip.
 
 ## the style review
 
 jot can review your prose against a style guide, using your own AI key.
 
-1. Click **AI Provider** at the bottom of the sidebar and add a key from OpenRouter or Google AI Studio.
+1. Click **AI Provider** at the bottom of the sidebar, pick a provider (OpenRouter, Google AI Studio, OpenAI or Anthropic) and add your key. Below the key you can choose the model, and fallbacks to try if it's busy.
 2. Press **review style** in the bar at the bottom.
 3. Click each marked passage to accept, reject or rewrite it. Nothing changes until you press **apply**.
 
-The **?** beside the review's colour key explains each kind of suggestion.
+The **?** beside the review's colour key explains each kind of suggestion. Very short documents, or ones that are all code, are skipped; **review anyway** overrides that.
 
 ## where your writing lives
 
-Everything stays in this browser. There's no account and no server, and your key only ever goes to the provider you chose. A different browser or computer starts empty, so export to move things across.
+Everything stays in this browser. There's no account and no server, and your key only ever goes to the provider you chose.
+
+That makes this browser the only copy. Each browser, profile and installed app keeps its own separate workspace, and clearing site data erases it. So now and then, export the whole workspace as a .zip: it's your backup, and dropping it on jot brings everything back, alongside whatever is already here. Safari deletes a site's data on its own after a week without use, so jot is better in Chrome, Firefox or Edge.
 `
 
 // Once per app load: guards React's double-run of effects in development.

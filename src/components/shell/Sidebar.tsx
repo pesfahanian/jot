@@ -1,9 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Check, CircleHelp, KeyRound, Monitor, Moon, PanelRight, PanelRightDashed, Sun, X } from 'lucide-react'
+import { Check, CircleHelp, KeyRound, Monitor, Moon, Sun, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { JotDocument } from '@/lib/db'
-import { getSettings, providerKey, updateSettings } from '@/lib/settings'
+import { getSettings, providerKey } from '@/lib/settings'
 import { PROVIDERS } from '@/review/providers'
 import { welcomeDocumentId } from '@/lib/welcome'
 import { Keycap, KeycapPanel } from '@/components/review/Keycap'
@@ -23,7 +23,6 @@ import { useReview } from '@/state/review'
 import { docIdOf } from '@/state/layout'
 import { cycleTheme, nextTheme, useTheme } from '@/state/theme'
 import { focusedPane, useWorkspace } from '@/state/workspace'
-import { columnsOf } from '@/state/layout'
 import { DocumentMenu } from './DocumentMenu'
 import { FilterIcon, PinIcon, PlusIcon, SearchIcon, SortIcon } from './icons'
 import { tagClass } from './tagClass'
@@ -226,28 +225,6 @@ function GuideButton() {
         </KeycapPanel>
       </PopoverContent>
     </Popover>
-  )
-}
-
-// Minimap on/off (Phase 8), app-wide. Lit while on. With three panes open
-// the editors hide it regardless — the tooltip says so.
-function MinimapButton() {
-  const on = useLiveQuery(() => getSettings().then((s) => s.minimap ?? true), []) ?? true
-  const crowded = useWorkspace((s) => columnsOf(s.panes).length >= 3)
-  return (
-    <button
-      type="button"
-      aria-pressed={on}
-      aria-label="minimap"
-      title={`minimap: ${on ? 'on' : 'off'}${on && crowded ? ' (hidden with three columns)' : ''} — click to ${on ? 'hide' : 'show'}`}
-      onClick={() => void updateSettings({ minimap: !on })}
-      className={cn(
-        'flex w-[34px] flex-none items-center justify-center border-l border-border hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
-        on ? 'text-secondary-foreground' : 'text-ink-dim',
-      )}
-    >
-      {on ? <PanelRight size={13} strokeWidth={1.75} aria-hidden /> : <PanelRightDashed size={13} strokeWidth={1.75} aria-hidden />}
-    </button>
   )
 }
 
@@ -546,7 +523,6 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
       <div className="flex h-[30px] flex-none items-stretch border-t border-border">
         <KeyFooter />
         <GuideButton />
-        <MinimapButton />
         <ThemeButton />
       </div>
     </aside>

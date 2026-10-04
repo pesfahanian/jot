@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { Shell } from '@/components/shell/Shell'
 import { db } from '@/lib/db'
 import { setFavicon } from '@/lib/favicon'
@@ -18,19 +18,46 @@ const subscribeWidth = (fn: () => void) => {
   return () => wide.removeEventListener('change', fn)
 }
 
-// No width number (owner): just the mark, and that this window isn't wide
-// enough. The tile comes in both themes; only colour differs (ADR-006).
-function TooNarrow() {
+// A whole-window notice in place of the app: the mark, a heading, a line.
+// The tile comes in both themes; only colour differs (ADR-006).
+function Notice({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="flex h-svh flex-col items-center justify-center gap-5 bg-background px-8 text-center text-foreground">
       <img src="/tile-light.svg" width={72} height={72} alt="" className="dark:hidden" />
       <img src="/tile-dark.svg" width={72} height={72} alt="" className="hidden dark:block" />
-      <div className="flex max-w-[300px] flex-col gap-2">
-        <h1 className="text-[17px] font-semibold tracking-[-0.02em]">jot needs a wider window</h1>
-        <p className="text-[13px] leading-relaxed text-muted-foreground">It's made for writing at a desk. Widen this window, or open jot on a computer.</p>
+      <div className="flex max-w-[340px] flex-col gap-2">
+        <h1 className="text-[17px] font-semibold tracking-[-0.02em]">{title}</h1>
+        <p className="text-[13px] leading-relaxed text-muted-foreground">{children}</p>
       </div>
     </div>
   )
+}
+
+// No width number (owner): just that this window isn't wide enough.
+function TooNarrow() {
+  return <Notice title="jot needs a wider window">It's made for writing at a desk. Widen this window, or open jot on a computer.</Notice>
+}
+
+// Storage switched off (data safety): Jot keeps everything in the browser,
+// so without IndexedDB — Safari's Lockdown Mode, site data blocked — there
+// is nothing it can do. Said plainly instead of failing silently.
+function NoStorage() {
+  return (
+    <Notice title="jot can't save documents here">
+      This browser isn't letting websites store data, for example in Safari's Lockdown Mode or with site data blocked. jot keeps your writing in the browser, so it needs that. Allow site data for jot, or use another browser.
+    </Notice>
+  )
+}
+
+// Whether the database opens at all, checked once per load.
+const storage: Promise<boolean> = db.open().then(
+  () => true,
+  () => false,
+)
+function useStorageOk(): boolean | null {
+  const [ok, setOk] = useState<boolean | null>(null)
+  useEffect(() => void storage.then(setOk), [])
+  return ok
 }
 
 function Workspace() {
@@ -75,7 +102,10 @@ function App() {
   const theme = useTheme()
   useApplyTheme(theme.resolved)
   useFaviconStatus()
-  return isWide ? <Workspace /> : <TooNarrow />
+  const storageOk = useStorageOk()
+  if (!isWide) return <TooNarrow />
+  if (storageOk === false) return <NoStorage />
+  return <Workspace />
 }
 
 export default App

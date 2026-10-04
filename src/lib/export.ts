@@ -1,5 +1,3 @@
-import { markdownLanguage } from '@codemirror/lang-markdown'
-import type { SyntaxNode } from '@lezer/common'
 import { renderHtml } from './render'
 
 // Export (T3.6, 6a): three formats, triggered straight from the menu — no
@@ -23,117 +21,10 @@ export function exportMarkdown(title: string, content: string) {
   download(exportFilename(title, 'md'), content, 'text/markdown;charset=utf-8')
 }
 
+// Plain text is the document exactly as written, markdown included, under a
+// .txt name (owner, open-decisions #10).
 export function exportPlainText(title: string, content: string) {
-  download(exportFilename(title, 'txt'), toPlainText(content), 'text/plain;charset=utf-8')
-}
-
-// Plain text is markdown stripped to clean prose (PRD §7) — not the raw
-// source under a .txt name. Walks the same GFM parse tree the editor uses:
-// markup characters are dropped, text is kept, block structure becomes line
-// breaks. Link and image targets go; their visible text stays. List items
-// keep a plain bullet or number, tasks a box, since those carry meaning.
-export function toPlainText(md: string): string {
-  const tree = markdownLanguage.parser.parse(md)
-  const out: string[] = []
-  const text = (from: number, to: number) => md.slice(from, to)
-
-  // Inline content of a node, minus its markup children.
-  function inline(node: SyntaxNode): string {
-    let s = ''
-    let at = node.from
-    for (let c = node.firstChild; c; c = c.nextSibling) {
-      s += text(at, c.from)
-      at = c.to
-      switch (c.name) {
-        case 'EmphasisMark':
-        case 'CodeMark':
-        case 'StrikethroughMark':
-        case 'HeaderMark':
-        case 'QuoteMark':
-        case 'ListMark':
-        case 'TaskMarker':
-        case 'LinkMark':
-        case 'URL':
-        case 'LinkTitle':
-        case 'LinkLabel':
-        case 'HTMLTag':
-        case 'Comment':
-          break
-        case 'Escape':
-          s += text(c.from + 1, c.to)
-          break
-        case 'HardBreak':
-          s += '\n'
-          break
-        default:
-          s += inline(c)
-      }
-    }
-    return s + text(at, node.to)
-  }
-
-  function block(node: SyntaxNode, prefix = '') {
-    const name = node.name
-    if (/^(ATX|Setext)Heading/.test(name) || name === 'Paragraph') {
-      out.push(prefix + inline(node).replace(/\s*\n\s*/g, ' ').trim())
-      out.push('')
-      return
-    }
-    if (name === 'FencedCode' || name === 'CodeBlock') {
-      const code = node.getChildren('CodeText').map((c) => text(c.from, c.to)).join('')
-      const lines = name === 'CodeBlock' ? code.split('\n').map((l) => l.replace(/^ {1,4}/, '')) : code.split('\n')
-      out.push(...lines.map((l) => prefix + l))
-      out.push('')
-      return
-    }
-    if (name === 'HorizontalRule' || name === 'HTMLBlock' || name === 'CommentBlock' || name === 'LinkReference') {
-      return
-    }
-    if (name === 'Blockquote') {
-      for (let c = node.firstChild; c; c = c.nextSibling) if (c.name !== 'QuoteMark') block(c, prefix)
-      return
-    }
-    if (name === 'BulletList' || name === 'OrderedList') {
-      let n = 1
-      for (let item = node.firstChild; item; item = item.nextSibling) {
-        if (item.name !== 'ListItem') continue
-        const mark = item.getChild('ListMark')
-        const bullet = name === 'OrderedList' ? `${mark ? parseInt(text(mark.from, mark.to), 10) || n : n}. ` : '• '
-        n++
-        let first = true
-        for (let c = item.firstChild; c; c = c.nextSibling) {
-          if (c.name === 'ListMark') continue
-          if (c.name === 'Task') {
-            const marker = c.getChild('TaskMarker')
-            const done = marker && /x/i.test(text(marker.from, marker.to))
-            out.push(prefix + (done ? '☑ ' : '☐ ') + inline(c).trim())
-          } else if (first && (c.name === 'Paragraph' || /Heading/.test(c.name))) {
-            out.push(prefix + bullet + inline(c).replace(/\s*\n\s*/g, ' ').trim())
-          } else {
-            const before = out.length
-            block(c, prefix + '  ')
-            // Nested blocks inside an item don't need their own blank line.
-            if (out.length > before && out[out.length - 1] === '') out.pop()
-          }
-          first = false
-        }
-      }
-      out.push('')
-      return
-    }
-    if (name === 'Table') {
-      for (let row = node.firstChild; row; row = row.nextSibling) {
-        if (row.name !== 'TableHeader' && row.name !== 'TableRow') continue
-        out.push(prefix + row.getChildren('TableCell').map((c) => inline(c).trim()).join('\t'))
-      }
-      out.push('')
-      return
-    }
-    for (let c = node.firstChild; c; c = c.nextSibling) block(c, prefix)
-  }
-
-  block(tree.topNode)
-  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n'
+  download(exportFilename(title, 'txt'), content, 'text/plain;charset=utf-8')
 }
 
 // PDF goes through the renderer (6a's note, lib/render.ts — the same one

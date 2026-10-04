@@ -17,6 +17,37 @@ Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first im
 - "saves as <title>.*" dropped from the export menu.
 - AI Provider panel footer moved into a "?" tooltip in the panel header.
 
+## Checks still open
+
+- **Model decline, live** (open-decisions #27): the AI half of the review opt-out has only been unit-tested. Next time a real key is at hand, review a gibberish document (30+ words) once and confirm the "skipped" chip shows the model's reason.
+- **Cross-browser pass** (a QA chat with Computer Use; prompt on request): Safari and Firefox haven't been tried. Includes the storage bar in real Safari and on iPad, Firefox's persistence prompt, a workspace .zip round-trip, and the "can't save documents here" screen under Safari's Lockdown Mode (it couldn't be forced in the Chromium preview).
+
+## Built: data safety (owner, locked 2026-09-30, after research; built 2026-10-04)
+
+The browser's storage is the only copy of a person's writing, and browsers treat site storage as clearable. Research (30 Sep 2026, summarised below) settled the plan; build before Jot is shared.
+
+**Research findings that shaped it**
+- Safari deletes all script-written storage, IndexedDB included, after 7 days of Safari use with no click, tap or keypress in the site (ITP). A visit alone doesn't reset it; writing in Jot does.
+- It's the WebKit engine, not the Safari brand: every browser on iPad (Chrome, Firefox, Edge) behaves the same, and so does Orion on Mac.
+- `navigator.storage.persist()` protects against disk-pressure eviction in Chrome, Edge and Firefox, but is not documented to exempt a site from Safari's 7-day rule. Assume it doesn't.
+- Installed web apps have their own separate, initially empty storage. Home Screen apps (iPad) are documented as exempt from the 7-day rule; Mac Dock apps are not documented and may not report `display-mode: standalone`.
+- Safari's Lockdown Mode turns IndexedDB off entirely.
+- Unverified on purpose (needs 8+ days on real devices; the plan doesn't depend on it): whether persistence exempts, whether Dock apps skip the rule, whether iPad Chrome really deletes.
+
+**What was built**
+1. **Warning bar, amber, full width above the panels.** Shown in any WebKit-engine browser (`navigator.vendor === 'Apple Computer, Inc.'`): Safari on Mac, every iPad browser, Orion. Not in Chromium browsers or Firefox. Hidden only in an installed iPad Home Screen app (`navigator.standalone` / `display-mode: standalone` on iPadOS). Never hidden because persistence was granted. Dismissible; returns after 7 days. Its button: **export workspace**.
+   - Mac: "Safari deletes jot's documents after 7 days of using Safari without typing or clicking in jot. Everything jot saves lives only in this browser. For writing you want to keep, use Chrome, Firefox or Edge — and export a backup now and then."
+   - iPad (WebKit with touch, `maxTouchPoints > 1`): "On iPad, every browser deletes jot's documents after 7 days of use without typing or clicking in jot. Add jot to your Home Screen to keep them there. It starts empty, so export your workspace here first and import it in the app."
+2. **Workspace export and import (.zip).** A separated "whole workspace" section in the export menu, "all N documents .zip". One `.md` per document (duplicate titles numbered, a `/` in a title becomes a folder) plus `jot-workspace.json` with tags, pins and dates. Never keys, settings or review sessions. File `jot-workspace-YYYY-MM-DD.zip`; a small zip library loaded on use. Dropping the .zip restores the workspace, added alongside existing documents, never replacing.
+3. **Persistent storage.** Ask on an explicit action — new document or import — not while typing (Firefox prompts). At most once per session, skipped if already granted; asking again in a later session is fine (Chrome re-evaluates).
+4. **Storage-unavailable screen.** When IndexedDB can't be opened (e.g. Lockdown Mode), a plain full-screen message like the narrow-window one: jot can't save documents in this browser's current mode.
+5. **Welcome document and README** (with the update banked above): each browser, profile and installed app keeps its own separate workspace; clearing site data or a "delete data on close" setting erases it; export is the backup.
+6. No backup reminder for now.
+
+## Later (owner: its own fresh chat)
+
+- **Visitor counter.** Something as basic as Cloudflare's own analytics or Google Analytics, enough to know "5 people from the UK visited today". Touches the privacy promise (README, ADR-004) and the CSP.
+
 ## Next round: design first (owner)
 
 These four touch each other, so they get a design round together before any build — building PDF options now would mean redoing them for Farsi.

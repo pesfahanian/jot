@@ -223,3 +223,55 @@ describe('review standing against the current text', () => {
     expect(hasStake(decide([f], f.key, 'reject'))).toBe(false)
   })
 })
+
+// Open-decisions #16: a pending flag wholly inside a wider flag that was
+// accepted or edited is set aside as superseded — no text changes, and it
+// comes back when the wider flag stops replacing.
+describe('overlapping flags — superseded', () => {
+  const fixture = () => {
+    const wide = flag('tier1b', 'We will leverage the pipeline moving forward', 'We use the pipeline from now on')
+    const narrow = flag('tier1', 'leverage', 'use')
+    const outside = flag('spelling', 'recieve', 'receive')
+    return { wide, narrow, outside }
+  }
+
+  it('sets aside a pending flag inside an accepted or edited wider one', () => {
+    const { wide, narrow, outside } = fixture()
+    const flags = decide([wide, narrow, outside], wide.key, 'accept')
+    expect(flags[1]).toMatchObject({ status: 'superseded', supersededBy: wide.key })
+    expect(flags[2].status).toBe('pending')
+    expect(decide([wide, narrow], wide.key, 'edit', 'We use it')[1].status).toBe('superseded')
+  })
+
+  it('counts a superseded flag as decided, so apply is not blocked by it', () => {
+    const { wide, narrow } = fixture()
+    const flags = decide([wide, narrow], wide.key, 'accept')
+    expect(counts(flags)).toEqual({ proposed: 2, decided: 2, pending: 0 })
+    expect(canApply(flags)).toBe(true)
+    expect(applyPlan(SOURCE, flags).text.startsWith('We use the pipeline from now on')).toBe(true)
+  })
+
+  it('brings it back when the wider flag is reopened or stops replacing', () => {
+    const { wide, narrow } = fixture()
+    const accepted = decide([wide, narrow], wide.key, 'accept')
+    expect(reopen(accepted, wide.key)[1]).toEqual(narrow)
+    expect(decide(accepted, wide.key, 'reject')[1]).toEqual(narrow)
+  })
+
+  it("never overrides the person's own decision on the narrower flag", () => {
+    const { wide, narrow } = fixture()
+    let flags = decide([wide, narrow], narrow.key, 'reject')
+    flags = decide(flags, wide.key, 'accept')
+    expect(flags[1].status).toBe('rejected')
+    flags = reopen(flags, wide.key)
+    expect(flags[1].status).toBe('rejected')
+  })
+
+  it('lets the person decide a superseded flag themselves, dropping the link', () => {
+    const { wide, narrow } = fixture()
+    let flags = decide([wide, narrow], wide.key, 'accept')
+    flags = decide(flags, narrow.key, 'accept')
+    expect(flags[1].status).toBe('accepted')
+    expect(flags[1].supersededBy).toBeUndefined()
+  })
+})

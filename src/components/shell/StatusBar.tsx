@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Sparkles } from 'lucide-react'
+import { PanelRight, PanelRightDashed, Sparkles } from 'lucide-react'
 import { ErrorDetail } from '@/components/review/ErrorDetail'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -7,11 +7,11 @@ import { openContent } from '@/editor/sessions'
 import type { JotDocument, ReviewFlag } from '@/lib/db'
 import { atStake, standing } from '@/review/model'
 import { countText, groupDigits } from '@/lib/counts'
-import { getSettings, providerKey } from '@/lib/settings'
+import { getSettings, providerKey, updateSettings } from '@/lib/settings'
 import { cn } from '@/lib/utils'
 import { useNow } from '@/state/hooks'
 import { useReview } from '@/state/review'
-import { docIdOf } from '@/state/layout'
+import { columnsOf, docIdOf } from '@/state/layout'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 
 // Counts hug their values and pack against the bar's right edge (§1.8:
@@ -187,9 +187,32 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
   return <div className="flex min-w-0 flex-auto items-center px-[5px] whitespace-nowrap">{body}</div>
 }
 
-// The left block never shrinks below what the review control's widest state
-// ("review outdated", the error chip) needs.
-const LEFT_BLOCK_MIN = 180
+// The left block never shrinks below what the minimap toggle and the review
+// control's widest state ("review outdated", the skipped chip) need.
+const LEFT_BLOCK_MIN = 210
+
+// Minimap on/off (Phase 8; in the status bar since the owner moved it), one
+// setting for every editor. Lit while on. With three columns open the
+// editors hide it regardless — the tooltip says so.
+function MinimapToggle() {
+  const on = useLiveQuery(() => getSettings().then((s) => s.minimap ?? true), []) ?? true
+  const crowded = useWorkspace((s) => columnsOf(s.panes).length >= 3)
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      aria-label="minimap"
+      title={`minimap: ${on ? 'on' : 'off'}${on && crowded ? ' (hidden with three columns)' : ''} — click to ${on ? 'hide' : 'show'}`}
+      onClick={() => void updateSettings({ minimap: !on })}
+      className={cn(
+        'flex w-[30px] flex-none items-center justify-center border-r border-border-subtle hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+        on ? 'text-secondary-foreground' : 'text-ink-dim',
+      )}
+    >
+      {on ? <PanelRight size={13} strokeWidth={1.75} aria-hidden /> : <PanelRightDashed size={13} strokeWidth={1.75} aria-hidden />}
+    </button>
+  )
+}
 
 export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) {
   const pane = useWorkspace(focusedPane)
@@ -203,12 +226,14 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
 
   return (
     <footer className="flex h-7 flex-none items-stretch overflow-hidden rounded-(--radius-status) border border-border-strong bg-card font-mono text-[11.5px]">
-      {/* The bar is the focused document's alone (the theme lives in the
-          sidebar foot). The review control's block is as wide as the sidebar,
-          so its edge lines up with the sidebar's. */}
+      {/* The bar is about the focused document (the theme lives in the
+          sidebar foot); the one global control here is the minimap toggle,
+          beside review (owner). The left block is as wide as the sidebar, so
+          its edge lines up with the sidebar's. */}
       <div className="flex flex-none items-stretch border-r border-border-subtle" style={{ width: Math.max(sidebarWidth - 1, LEFT_BLOCK_MIN) }}>
         {/* With no document there is nothing to review or count (6d): only
             global state remains. */}
+        <MinimapToggle />
         {doc && <ReviewControl doc={doc} text={text} />}
       </div>
       <div className="flex-auto" />
