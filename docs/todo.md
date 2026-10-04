@@ -70,6 +70,7 @@ These four touch each other, so they get a design round together before any buil
 - ADR-010's removal was a planning expedient, not the owner's position (see its amendment). Wanted; just not yet.
 
 ### Built-in diff checker (like diffchecker.com)
+- **Decided (owner, 2026-10-04):** comparable: document vs document, document vs pasted text, and two pasted texts (blank comparison). Both sides editable — a document side edits the real document (autosaved), a pasted side is scratch; the diff updates live. No version snapshots for now. Design: heavily modelled on diffchecker.com's UX (a reference, not copied — as ADR-001 treats stackedit), redrawn in Jot's design system via Claude Design. How a comparison opens: owner to show with a screenshot.
 - Compare two documents, or a document against pasted text: side by side and unified, with word-level highlighting.
 - CodeMirror has an official merge/diff view (`@codemirror/merge`), which makes this far more tractable than building from scratch.
 - Open UX questions: how a comparison opens (from the sidebar? a pane mode?), whether one side is editable, and whether Jot keeps document snapshots to diff against.
