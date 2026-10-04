@@ -21,6 +21,12 @@ Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first im
 
 - **Bring README and the welcome document up to date with Phases 12–13 and the testing fixes.** The README names the four providers but nothing else; the welcome document (`src/lib/welcome.ts`) still names two providers and says nothing of the model picker, top/bottom splits and the grid, resizable seams, or the review declining short or non-prose text. Update the welcome text for new installs only: existing copies are the person's own document.
 
+## Next round: from the decisions review (2026-10-04)
+
+- **Plain-text export keeps the markdown** (open-decisions #10): the `.txt` is the document exactly as written, no stripping.
+- **Overlapping review flags** (open-decisions #16): accepting a wider flag resolves any narrower flag inside it as "superseded" (its text is gone). It changes no text itself, so ADR-009 holds; reopening the wider flag brings the narrower one back to pending.
+- **Check the model's decline live** (open-decisions #27): the AI half of the review opt-out has only been unit-tested. Next time a real key is at hand, review a gibberish document once and confirm the "skipped" chip shows the model's reason.
+
 ## Next round: data safety (owner, locked 2026-09-30, after research)
 
 The browser's storage is the only copy of a person's writing, and browsers treat site storage as clearable. Research (30 Sep 2026, summarised below) settled the plan; build before Jot is shared.
