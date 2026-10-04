@@ -2,6 +2,7 @@ import type { JotDocument, TagColor } from '@/lib/db'
 import { uniqueTitle } from '@/lib/docList'
 import { createDocument, deleteDocument, listDocuments, restoreDocument, updateDocument } from '@/lib/documents'
 import { useWorkspace } from './workspace'
+import { openContent } from '@/editor/sessions'
 import { requestPersistence } from '@/lib/storage'
 
 // Document-level actions shared by the sidebar, tabs and menus.
@@ -64,15 +65,41 @@ export async function undoDelete(toastId: number): Promise<void> {
 }
 
 // File drop (6d's first-run copy): each dropped .md / .txt becomes a new
-// document titled after the file.
+// document titled after the file; a dropped .zip — a workspace backup —
+// brings in every document in it, with its tags, pins and dates. Either way
+// they're added alongside what's there; nothing is replaced.
 const IMPORTABLE = /\.(md|markdown|txt)$/i
 export async function importFiles(files: FileList | File[]): Promise<number> {
   void requestPersistence()
-  const list = [...files].filter((f) => IMPORTABLE.test(f.name))
   let last: JotDocument | undefined
-  for (const f of list) {
-    last = await createDocument({ title: f.name.replace(IMPORTABLE, ''), content: await f.text() })
+  let count = 0
+  for (const f of [...files]) {
+    if (IMPORTABLE.test(f.name)) {
+      last = await createDocument({ title: f.name.replace(IMPORTABLE, ''), content: await f.text() })
+      count++
+    } else if (/\.zip$/i.test(f.name)) {
+      const { unpackWorkspace } = await import('@/lib/backup')
+      for (const d of await unpackWorkspace(new Uint8Array(await f.arrayBuffer()))) {
+        last = { ...d, id: crypto.randomUUID() }
+        await restoreDocument(last)
+        count++
+      }
+    }
   }
   if (last) useWorkspace.getState().openDocument(last.id)
-  return list.length
+  return count
+}
+
+// The whole workspace as one .zip download (lib/backup.ts). Open documents
+// are taken as they stand in the editor, ahead of autosave.
+export async function exportWorkspace(): Promise<void> {
+  const { backupName, packWorkspace } = await import('@/lib/backup')
+  const docs = (await listDocuments()).map((d) => ({ ...d, content: openContent(d.id) ?? d.content }))
+  const bytes = await packWorkspace(docs)
+  const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/zip' }))
+  const a = document.createElement('a')
+  a.href = url
+  a.download = backupName()
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

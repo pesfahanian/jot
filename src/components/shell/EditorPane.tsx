@@ -8,10 +8,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Editor } from '@/editor/Editor'
 import { openContent } from '@/editor/sessions'
-import type { JotDocument, PaneLayout } from '@/lib/db'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db, type JotDocument, type PaneLayout } from '@/lib/db'
 import { exportMarkdown, exportPdf, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
-import { newDocument } from '@/state/actions'
+import { exportWorkspace, newDocument } from '@/state/actions'
 import { useReview } from '@/state/review'
 import { canSplit, columnsOf, docIdOf, isRenderTab, renderTab, type Edge } from '@/state/layout'
 import { splitEdge, useWorkspace } from '@/state/workspace'
@@ -55,6 +56,25 @@ function ExportItems({ doc }: { doc: JotDocument }) {
       <DropdownMenuItem onSelect={() => void exportPdf(doc.title, liveText(doc))}>
         <span className="flex-auto">PDF</span>
         <span className="font-mono text-[11px] text-muted-foreground">.pdf</span>
+      </DropdownMenuItem>
+      <WorkspaceExport />
+    </>
+  )
+}
+
+// Set apart from the document's own formats so it can't be mistaken for
+// one: the whole workspace, every document, as a .zip backup (data safety).
+function WorkspaceExport() {
+  const count = useLiveQuery(() => db.documents.count(), []) ?? 0
+  return (
+    <>
+      <DropdownMenuSeparator />
+      <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">whole workspace</div>
+      <DropdownMenuItem onSelect={() => void exportWorkspace()} title="every document, with tags and pins — a backup you can import by dropping it on jot">
+        <span className="flex-auto">
+          all {count} document{count === 1 ? '' : 's'}
+        </span>
+        <span className="font-mono text-[11px] text-muted-foreground">.zip</span>
       </DropdownMenuItem>
     </>
   )
