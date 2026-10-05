@@ -62,6 +62,14 @@ These four touch each other, so they get a design round together before any buil
 ## Far future
 
 ### Full Farsi support
+- **Research done** (2026-10-05): `docs/research/farsi-2026-10.md`. Feasible on the current stack; the core work is one shared per-block direction function for editor, preview and PDF.
+- **Decided (owner, 2026-10-05):**
+  1. **No UI translation for now** — Farsi documents get full support; the interface stays English. Still build the language-pack structure (data-only, lazy-loaded: detection, fonts, typography, counting, review rules and prompt, reserved keys, UI strings later) so a UI translation or another language needs no rework.
+  2. **Editor font:** Farsi falls back to Vazirmatn (proportional) behind Source Code Pro; no monospace Farsi font. Farsi pipe tables won't align in source.
+  3. **Emphasis in Farsi:** upright and bolder (no synthetic slant); English keeps real italics; same in editor, preview, PDF.
+  4. **Direction:** per block (paragraph, list item, heading) by majority script, not first letter; tables take one direction for the whole table; fenced code, inline code, URLs, math and diagrams stay LTR; plus a per-document override (auto / rtl / ltr) — where it lives is a design item.
+  5. **Normalisation** (ي/ك → ی/ک, digits, half-spaces): review suggestions only, never automatic.
+- From the research, no decision needed: Vazirmatn arabic subset via `@fontsource-variable/vazirmatn` loaded by `unicode-range`; letter-spacing 0 on RTL; no justify; Segmenter-based word counts (ZWNJ joins words); one shortcut matcher that falls back to `e.code` on non-Latin layouts; never bind Shift+Space (it types ZWNJ); check `highlightSpecialChars` doesn't mark ZWNJ; AI review for fluency only, orthography by fixed rules (Virastar, MIT). PDF (Paged.js) and Mermaid with Farsi need testing during the build.
 - **Writing:** right-to-left text in the editor, per line (CodeMirror can set direction line by line, so mixed Farsi/English documents work); a proper Farsi font (e.g. Vazirmatn, open licence), bundled for offline use.
 - **Rendered view and PDF:** RTL blocks with correct bidirectional handling of mixed text, lists, tables and code.
 - **AI style review in Farsi:** its own rule set and examples, curated by the owner. The client-side checks (Pass A) are English-specific and need Farsi counterparts or to be skipped for Farsi text.
