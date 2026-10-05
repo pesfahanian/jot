@@ -55,6 +55,7 @@ The browser's storage is the only copy of a person's writing, and browsers treat
 These four touch each other, so they get a design round together before any build — building PDF options now would mean redoing them for Farsi.
 
 - **PDF options** (was Phase 11). A small card behind export → PDF, remembered between exports: page size (A4 / Letter / A5) and orientation, margins (narrow / normal / wide), font (Jot sans, a serif, mono — bundled, loaded when chosen) and body size, colour presets (Jot, monochrome, classic), an optional custom-CSS box applied last, page numbers on/off. Depends on Farsi: fonts, direction and the renderer's typography.
+  - **Decided (owner, 2026-10-05):** the card opens on every PDF export (export → PDF), filled with the last choices, with an export button that goes on to the print dialog; no live preview in the card (the print dialog previews). One remembered set for all documents. Fonts: Jot sans = Public Sans, serif = **Source Serif 4** (OFL), mono = Source Code Pro; Farsi always uses Vazirmatn whichever is chosen. The custom-CSS box stays, collapsed under "advanced", applied last. Next: Claude Design brief (its own chat).
 - **Full Farsi support** (below).
 - **Diff checker** (below).
 - **Command palette and customisable shortcuts** (below).
