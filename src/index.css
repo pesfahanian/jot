@@ -336,13 +336,13 @@
     .jot-rendered h3 { font-size: 16px; }
     .jot-rendered h4, .jot-rendered h5, .jot-rendered h6 { font-size: 14.5px; }
     .jot-rendered p, .jot-rendered ul, .jot-rendered ol, .jot-rendered blockquote, .jot-rendered pre, .jot-rendered table { margin: 0 0 0.9em; }
-    .jot-rendered ul { list-style: disc; padding-left: 1.4em; }
-    .jot-rendered ol { list-style: decimal; padding-left: 1.6em; }
+    .jot-rendered ul { list-style: disc; padding-inline-start: 1.4em; }
+    .jot-rendered ol { list-style: decimal; padding-inline-start: 1.6em; }
     .jot-rendered ul ul { list-style: circle; }
     .jot-rendered li > ul, .jot-rendered li > ol { margin: 0.2em 0 0; }
     .jot-rendered li + li { margin-top: 0.2em; }
-    .jot-rendered li:has(> input[type="checkbox"]) { list-style: none; margin-left: -1.4em; }
-    .jot-rendered input[type="checkbox"] { margin: 0 0.5em 0 0; vertical-align: -1px; accent-color: var(--primary); }
+    .jot-rendered li:has(> input[type="checkbox"]) { list-style: none; margin-inline-start: -1.4em; }
+    .jot-rendered input[type="checkbox"] { margin: 0; margin-inline-end: 0.5em; vertical-align: -1px; accent-color: var(--primary); }
     .jot-rendered a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border-strong); }
     .jot-rendered a:hover { text-decoration-color: currentColor; }
     .jot-rendered strong { font-weight: 600; }
@@ -365,10 +365,22 @@
     /* Math: display formulas scroll sideways rather than overflow. */
     .jot-rendered .jot-math-block { margin: 0 0 0.9em; overflow-x: auto; overflow-y: hidden; }
     .jot-rendered .katex { font-size: 1.08em; }
-    .jot-rendered blockquote { border-left: 2px solid var(--border-strong); padding-left: 12px; color: var(--secondary-foreground); }
+    .jot-rendered blockquote { border-inline-start: 2px solid var(--border-strong); padding-inline-start: 12px; color: var(--secondary-foreground); }
     .jot-rendered hr { border: 0; border-top: 1px solid var(--border); margin: 1.6em 0; }
     .jot-rendered img { max-width: 100%; border-radius: 4px; }
     .jot-rendered table { border-collapse: collapse; display: block; overflow-x: auto; max-width: 100%; font-size: 13.5px; }
-    .jot-rendered th, .jot-rendered td { border: 1px solid var(--border); padding: 5px 10px; text-align: left; }
+    .jot-rendered th, .jot-rendered td { border: 1px solid var(--border); padding: 5px 10px; text-align: start; }
     .jot-rendered th { font-weight: 600; background: var(--inset); }
+    /* Farsi and mixed documents (Farsi design, frame 3). Blocks carry
+       dir="rtl" from lib/direction.ts; everything above mirrors through
+       logical properties. Code, formulas and bare links always read
+       left-to-right, isolated inside right-to-left text. */
+    .jot-rendered pre { direction: ltr; text-align: left; }
+    .jot-rendered :not(pre) > code, .jot-rendered .katex { direction: ltr; unicode-bidi: isolate; }
+    /* Dots and tails below the line need the room. */
+    .jot-rendered [dir="rtl"] { line-height: 1.8; }
+    .jot-rendered :is(h1, h2, h3, h4, h5, h6)[dir="rtl"] { letter-spacing: 0; line-height: 1.5; }
+    /* Emphasis by the script of the run: Farsi upright and bolder. */
+    .jot-rendered em .jot-fa { font-style: normal; font-weight: 600; }
+    .jot-rendered strong .jot-fa { font-style: normal; font-weight: 800; }
 }

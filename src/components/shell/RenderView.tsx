@@ -28,7 +28,7 @@ export function RenderView({ doc }: { doc: JotDocument }) {
     const theme = () => (document.documentElement.classList.contains('dark') ? 'dark' : 'light')
     const render = () => {
       const n = ++latest
-      void renderBlocks(text, { theme: theme() }).then((b) => n === latest && setBlocks(b))
+      void renderBlocks(text, { theme: theme(), dir: doc.dir ?? 'auto' }).then((b) => n === latest && setBlocks(b))
     }
     render()
     const stop = followContent(doc.id, (next) => {
@@ -43,8 +43,9 @@ export function RenderView({ doc }: { doc: JotDocument }) {
       stop()
       themeWatch.disconnect()
     }
-    // doc.content: a change saved from elsewhere (e.g. an applied review).
-  }, [doc.id, doc.content])
+    // doc.content: a change saved from elsewhere (e.g. an applied review);
+    // doc.dir: the document's direction setting changed.
+  }, [doc.id, doc.content, doc.dir])
 
   useScrollSync(doc.id, scroller, blocks)
 
