@@ -9,7 +9,7 @@ export function countText(text: string) {
     chars: [...text].length,
     // A word runs on through vowel marks and the Farsi half-space (ZWNJ):
     // می‌روم is one word, not two.
-    words: (text.match(/[\p{L}\p{N}][\p{L}\p{M}\p{N}'’_\u200c\u200d-]*/gu) ?? []).length,
+    words: (text.match(/[\p{L}\p{N}](?:[\p{L}\p{M}\p{N}'’_-]|\u200c|\u200d)*/gu) ?? []).length,
     lines: text.split('\n').length,
     paras: text.split(/\n[ \t]*\n/).filter((p) => p.trim()).length,
   }

@@ -13,6 +13,9 @@ export interface JotDocument {
   pinned: boolean
   createdAt: number
   updatedAt: number
+  // Text direction (Farsi support): auto, by block — or forced for the
+  // whole document. Missing means auto.
+  dir?: 'auto' | 'ltr' | 'rtl'
 }
 
 export type Provider = 'openrouter' | 'google' | 'openai' | 'anthropic'
