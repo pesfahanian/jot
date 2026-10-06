@@ -52,6 +52,8 @@ The browser's storage is the only copy of a person's writing, and browsers treat
 
 **Design status (2026-10-05): all three designs accepted** — diff checker, Farsi, PDF options. The owner's Farsi style-guide session is done too (`src/review/ruleset/fa/`). **Next: build all three together.**
 
+**Also in this build round (owner, 2026-10-06):** a **+** at the end of each pane's tab strip, as in a browser's tab bar, doing exactly what "new document" does, in that pane. (Seen in testing: a friend reached for it out of browser habit.)
+
 **Sequence (owner, 2026-10-04):** finish all the open design work for the three — diff checker, PDF options, Farsi — first, then build all three together. Not design → build one at a time. (The palette and shortcut editor are not among the three.)
 
 These four touch each other, so they get a design round together before any build — building PDF options now would mean redoing them for Farsi.
