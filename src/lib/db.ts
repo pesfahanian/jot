@@ -48,6 +48,9 @@ export interface Settings {
   // When the storage warning (Safari / iPad) was last dismissed; it returns
   // 7 days later.
   storageWarningDismissedAt?: number | null
+  // The PDF options card's last choices (lib/pdfOptions.ts), one set for
+  // every document.
+  pdf?: import('./pdfOptions').PdfOptions
 }
 
 export type FlagFamily = 'tier1' | 'tier1b' | 'tier2' | 'spelling' | 'grammar' | 'punctuation'

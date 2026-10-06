@@ -10,12 +10,14 @@ import { Editor } from '@/editor/Editor'
 import { openContent } from '@/editor/sessions'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type JotDocument, type PaneLayout } from '@/lib/db'
-import { exportMarkdown, exportPdf, exportPlainText } from '@/lib/export'
+import { exportMarkdown, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
 import { exportWorkspace, newDocument } from '@/state/actions'
 import { useReview } from '@/state/review'
 import { canSplit, columnsOf, docIdOf, isRenderTab, renderTab, type Edge } from '@/state/layout'
 import { splitEdge, useWorkspace } from '@/state/workspace'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { PdfOptionsCard } from './PdfOptionsCard'
 import { RenderView } from './RenderView'
 import { DocumentMenu } from './DocumentMenu'
 import { PlusIcon, SplitIcon } from './icons'
@@ -42,7 +44,7 @@ const control =
 
 const liveText = (doc: JotDocument) => openContent(doc.id) ?? doc.content
 
-function ExportItems({ doc }: { doc: JotDocument }) {
+function ExportItems({ doc, onPdf }: { doc: JotDocument; onPdf: () => void }) {
   return (
     <>
       <DropdownMenuItem onSelect={() => exportMarkdown(doc.title, liveText(doc))}>
@@ -53,7 +55,8 @@ function ExportItems({ doc }: { doc: JotDocument }) {
         <span className="flex-auto">plain text</span>
         <span className="font-mono text-[11px] text-muted-foreground">.txt</span>
       </DropdownMenuItem>
-      <DropdownMenuItem onSelect={() => void exportPdf(doc.title, liveText(doc))}>
+      {/* PDF opens the options card first (PDF options design). */}
+      <DropdownMenuItem onSelect={onPdf}>
         <span className="flex-auto">PDF</span>
         <span className="font-mono text-[11px] text-muted-foreground">.pdf</span>
       </DropdownMenuItem>
@@ -90,6 +93,15 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
   // split would open one, or in the neighbouring pane when the grid is full.
   const canRender = !!doc
   const renderTitle = rendered ? 'close the rendered view' : 'show this document rendered, beside it'
+  // The PDF options card opens where the export menu was, anchored to the
+  // same button, once the menu has closed.
+  const [pdfOpen, setPdfOpen] = useState(false)
+  const openPdf = () => setTimeout(() => setPdfOpen(true))
+  const pdfCard = doc && (
+    <PopoverContent align="end" className="w-auto p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <PdfOptionsCard doc={doc} text={() => liveText(doc)} onDone={() => setPdfOpen(false)} />
+    </PopoverContent>
+  )
   const splitButton = (
     <button
       type="button"
@@ -106,23 +118,28 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
     return (
       <>
         {splitButton}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button type="button" className={control} disabled={!doc} title="more">
-              ⋯
-            </button>
-          </DropdownMenuTrigger>
-          {doc && (
-            <DropdownMenuContent align="end" className="w-[232px]">
-              <DropdownMenuItem disabled={!canRender} title={renderTitle} onSelect={toggleRender}>
-                {rendered ? 'close render' : 'render'}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">export</div>
-              <ExportItems doc={doc} />
-            </DropdownMenuContent>
-          )}
-        </DropdownMenu>
+        <Popover open={pdfOpen} onOpenChange={setPdfOpen}>
+          <DropdownMenu>
+            <PopoverAnchor asChild>
+              <DropdownMenuTrigger asChild>
+                <button type="button" className={control} disabled={!doc} title="more">
+                  ⋯
+                </button>
+              </DropdownMenuTrigger>
+            </PopoverAnchor>
+            {doc && (
+              <DropdownMenuContent align="end" className="w-[232px]" onCloseAutoFocus={(e) => pdfOpen && e.preventDefault()}>
+                <DropdownMenuItem disabled={!canRender} title={renderTitle} onSelect={toggleRender}>
+                  {rendered ? 'close render' : 'render'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">export</div>
+                <ExportItems doc={doc} onPdf={openPdf} />
+              </DropdownMenuContent>
+            )}
+          </DropdownMenu>
+          {pdfCard}
+        </Popover>
       </>
     )
   }
@@ -139,18 +156,24 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
       >
         render
       </button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button type="button" className={control} disabled={!doc}>
-            export <span className="text-muted-foreground">▾</span>
-          </button>
-        </DropdownMenuTrigger>
-        {doc && (
-          <DropdownMenuContent align="end" className="w-[232px]">
-            <ExportItems doc={doc} />
-          </DropdownMenuContent>
-        )}
-      </DropdownMenu>
+      <Popover open={pdfOpen} onOpenChange={setPdfOpen}>
+        <DropdownMenu>
+          <PopoverAnchor asChild>
+            <DropdownMenuTrigger asChild>
+              {/* Held while the card is open: the card stands in for this menu. */}
+              <button type="button" className={cn(control, pdfOpen && 'text-foreground')} disabled={!doc} data-state={pdfOpen ? 'open' : undefined}>
+                export <span className="text-muted-foreground">▾</span>
+              </button>
+            </DropdownMenuTrigger>
+          </PopoverAnchor>
+          {doc && (
+            <DropdownMenuContent align="end" className="w-[232px]" onCloseAutoFocus={(e) => pdfOpen && e.preventDefault()}>
+              <ExportItems doc={doc} onPdf={openPdf} />
+            </DropdownMenuContent>
+          )}
+        </DropdownMenu>
+        {pdfCard}
+      </Popover>
     </>
   )
 }
