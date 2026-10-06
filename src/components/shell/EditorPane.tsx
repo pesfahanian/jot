@@ -18,7 +18,7 @@ import { canSplit, columnsOf, docIdOf, isRenderTab, renderTab, type Edge } from 
 import { splitEdge, useWorkspace } from '@/state/workspace'
 import { RenderView } from './RenderView'
 import { DocumentMenu } from './DocumentMenu'
-import { SplitIcon } from './icons'
+import { PlusIcon, SplitIcon } from './icons'
 import { QuietButton } from './Sidebar'
 import { TagMark } from './TagMark'
 
@@ -282,13 +282,42 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
         onWheel={(e) => {
           if (strip.current && Math.abs(e.deltaY) > Math.abs(e.deltaX)) strip.current.scrollLeft += e.deltaY
         }}
-        className="relative flex min-w-0 flex-auto items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="relative flex min-w-0 flex-[0_1_auto] items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {tabs.map((t) => (
           <Tab key={t.id} tabId={t.id} doc={t.doc} active={t.id === pane.active} focused={focused} paneId={pane.id} />
         ))}
         {dragging && slot && <span aria-hidden className="pointer-events-none absolute top-1.5 bottom-1.5 z-10 w-[2px] -translate-x-1/2 rounded-full bg-primary" style={{ left: Math.max(1, slot.x) }} />}
       </div>
+      {/* New tab, as in a browser's tab bar (owner): right after the last
+          tab, pinned at the edge once the tabs overflow. It does exactly
+          what the sidebar's + does, in this pane (the click focuses it). */}
+      <div className="flex flex-none items-center px-1">
+        <button
+          type="button"
+          aria-label="new document"
+          title="new document"
+          onClick={() => void newDocument()}
+          className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+        >
+          <PlusIcon />
+        </button>
+      </div>
+      {/* The rest of the bar: a drop target at the end of the strip. */}
+      <div
+        className="min-w-0 flex-auto"
+        onDragOver={(e) => {
+          if (!dragging) return
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'move'
+        }}
+        onDrop={(e) => {
+          if (!dragging) return
+          e.preventDefault()
+          dropTabOnStrip(pane.id, tabs.length)
+          setSlot(null)
+        }}
+      />
       {hidden > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
