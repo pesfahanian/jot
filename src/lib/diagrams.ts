@@ -65,7 +65,7 @@ export async function loadDiagrams(md: string, theme: DiagramTheme): Promise<voi
   mermaid ??= import('mermaid').then((m) => m.default)
   const m = await mermaid
   if (current !== theme) {
-    m.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'base', fontFamily: '"Public Sans", Helvetica, sans-serif', themeVariables: PALETTE[theme] })
+    m.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'base', fontFamily: '"Public Sans", "Vazirmatn", Helvetica, sans-serif', themeVariables: PALETTE[theme] })
     current = theme
   }
   for (const source of sources) {

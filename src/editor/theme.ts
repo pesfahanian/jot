@@ -101,7 +101,7 @@ const markdownDecorations = ViewPlugin.fromClass(
 // 46px right-aligned with a 10px inner pad, text 22px past the rule (as 8a/8b
 // render it), 18px top pad. The size variables are set per pane: split panes
 // drop to 13px with a 40/8/16 gutter, three panes to 34/8/12 (6f).
-const MONO = "'Source Code Pro', ui-monospace, monospace"
+const MONO = "'Source Code Pro', 'Vazirmatn', ui-monospace, monospace"
 
 const baseTheme = EditorView.theme({
   '&': {
