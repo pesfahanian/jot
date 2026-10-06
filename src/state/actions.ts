@@ -1,6 +1,7 @@
-import type { JotDocument, TagColor } from '@/lib/db'
+import { db, type Comparison, type JotDocument, type TagColor } from '@/lib/db'
 import { uniqueTitle } from '@/lib/docList'
 import { createDocument, deleteDocument, listDocuments, restoreDocument, updateDocument } from '@/lib/documents'
+import { diffTab } from './layout'
 import { useWorkspace } from './workspace'
 import { openContent } from '@/editor/sessions'
 import { requestPersistence } from '@/lib/storage'
@@ -103,3 +104,27 @@ export async function exportWorkspace(): Promise<void> {
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
+
+// The diff checker: a new comparison opens as a diff tab in the focused
+// pane (or the given one). "compare with…" starts with that document as
+// the original, and the picker opens on the changed side.
+export async function newComparison(opts: { docId?: string; paneId?: string } = {}): Promise<string> {
+  const comparison: Comparison = {
+    id: crypto.randomUUID(),
+    left: opts.docId ? { kind: 'doc', docId: opts.docId } : { kind: 'empty' },
+    right: { kind: 'empty' },
+    stage: 'input',
+    layout: 'split',
+    hideUnchanged: false,
+    ignoreWhitespace: false,
+    precision: 'word',
+    createdAt: Date.now(),
+  }
+  await db.comparisons.add(comparison)
+  if (opts.docId) pickerRequests.add(comparison.id)
+  useWorkspace.getState().openDocument(diffTab(comparison.id), { paneId: opts.paneId })
+  return comparison.id
+}
+
+// Comparisons whose changed-side picker should open on arrival.
+export const pickerRequests = new Set<string>()

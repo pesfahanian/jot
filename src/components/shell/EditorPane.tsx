@@ -9,20 +9,25 @@ import {
 import { Editor } from '@/editor/Editor'
 import { openContent } from '@/editor/sessions'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, type JotDocument, type PaneLayout } from '@/lib/db'
+import { db, type DiffSide, type JotDocument, type PaneLayout } from '@/lib/db'
 import { exportMarkdown, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
-import { exportWorkspace, newDocument } from '@/state/actions'
+import { exportWorkspace, newComparison, newDocument } from '@/state/actions'
 import { useReview } from '@/state/review'
-import { canSplit, columnsOf, docIdOf, isRenderTab, renderTab, type Edge } from '@/state/layout'
+import { useDocuments } from '@/state/hooks'
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
+import { canSplit, columnsOf, comparisonIdOf, docIdOf, isDiffTab, isRenderTab, renderTab, type Edge } from '@/state/layout'
 import { splitEdge, useWorkspace } from '@/state/workspace'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { PdfOptionsCard } from './PdfOptionsCard'
 import { RenderView } from './RenderView'
 import { DocumentMenu } from './DocumentMenu'
-import { PlusIcon, SplitIcon } from './icons'
+import { DiffIcon, PlusIcon, SplitIcon } from './icons'
 import { QuietButton } from './Sidebar'
 import { TagMark } from './TagMark'
+
+// The diff checker loads the first time a comparison opens.
+const DiffView = lazy(() => import('@/components/diff/DiffView').then((m) => ({ default: m.DiffView })))
 
 // The review view loads the first time a review opens.
 const ReviewView = lazy(() => import('@/components/review/ReviewView').then((m) => ({ default: m.ReviewView })))
@@ -238,7 +243,74 @@ function Tab({ tabId, doc, active, focused, paneId }: { tabId: string; doc: JotD
 // tab in the pane.
 interface PaneTab {
   id: string
-  doc: JotDocument
+  // Missing for a diff tab, which shows a comparison rather than a document.
+  doc?: JotDocument
+}
+
+// A diff tab's name (diff checker): "original ↔ changed" by document name
+// or "pasted text", "…" for a side still empty; "new comparison" while
+// both are.
+function useComparisonLabel(tabId: string): string {
+  const docs = useDocuments()
+  const cmp = useLiveQuery(() => db.comparisons.get(comparisonIdOf(tabId)), [tabId])
+  if (!cmp) return 'new comparison'
+  const name = (s: DiffSide) => (s.kind === 'doc' ? (docs?.find((d) => d.id === s.docId)?.title ?? '…') : s.kind === 'paste' ? 'pasted text' : '…')
+  if (cmp.left.kind === 'empty' && cmp.right.kind === 'empty') return 'new comparison'
+  return `${name(cmp.left)} ↔ ${name(cmp.right)}`
+}
+
+function DiffTabLabel({ tabId, active }: { tabId: string; active?: boolean }) {
+  const label = useComparisonLabel(tabId)
+  return (
+    <>
+      <DiffIcon className={active ? 'text-foreground' : 'text-muted-foreground'} />
+      <span className={cn('truncate text-[13px]', active && 'font-medium')}>{label}</span>
+    </>
+  )
+}
+
+// A diff tab: the same shape as a document tab, without the document menu.
+function DiffTab({ tabId, active, focused, paneId }: { tabId: string; active: boolean; focused: boolean; paneId: string }) {
+  const activateTab = useWorkspace((s) => s.activateTab)
+  const closeTab = useWorkspace((s) => s.closeTab)
+  const setDragTab = useWorkspace((s) => s.setDragTab)
+  return (
+    <div
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData('application/x-jot-tab', tabId)
+        e.dataTransfer.effectAllowed = 'move'
+        setDragTab({ docId: tabId, from: paneId })
+      }}
+      onDragEnd={() => setDragTab(null)}
+      role="tab"
+      aria-selected={active}
+      tabIndex={0}
+      data-tab-id={tabId}
+      onClick={() => activateTab(paneId, tabId)}
+      onAuxClick={(e) => e.button === 1 && closeTab(paneId, tabId)}
+      onKeyDown={(e) => e.key === 'Enter' && activateTab(paneId, tabId)}
+      className={cn(
+        'group flex max-w-[220px] flex-none cursor-default items-center gap-2.5 border-r border-border px-3.5 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+        active
+          ? cn('-mb-px border-b-2 bg-document text-foreground', focused ? 'border-b-primary' : 'border-b-ink-dim')
+          : 'rounded-t-md text-secondary-foreground hover:bg-row-hover hover:text-foreground',
+      )}
+    >
+      <DiffTabLabel tabId={tabId} active={active} />
+      <button
+        type="button"
+        aria-label="close comparison"
+        onClick={(e) => {
+          e.stopPropagation()
+          closeTab(paneId, tabId)
+        }}
+        className={cn('flex-none font-mono text-[13px] hover:text-foreground', active ? 'text-muted-foreground' : 'text-ink-dim')}
+      >
+        ×
+      </button>
+    </div>
+  )
 }
 
 function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; focused: boolean }) {
@@ -308,7 +380,11 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
         className="relative flex min-w-0 flex-[0_1_auto] items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {tabs.map((t) => (
-          <Tab key={t.id} tabId={t.id} doc={t.doc} active={t.id === pane.active} focused={focused} paneId={pane.id} />
+          t.doc ? (
+            <Tab key={t.id} tabId={t.id} doc={t.doc} active={t.id === pane.active} focused={focused} paneId={pane.id} />
+          ) : (
+            <DiffTab key={t.id} tabId={t.id} active={t.id === pane.active} focused={focused} paneId={pane.id} />
+          )
         ))}
         {dragging && slot && <span aria-hidden className="pointer-events-none absolute top-1.5 bottom-1.5 z-10 w-[2px] -translate-x-1/2 rounded-full bg-primary" style={{ left: Math.max(1, slot.x) }} />}
       </div>
@@ -326,21 +402,30 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
           <PlusIcon />
         </button>
       </div>
-      {/* The rest of the bar: a drop target at the end of the strip. */}
-      <div
-        className="min-w-0 flex-auto"
-        onDragOver={(e) => {
-          if (!dragging) return
-          e.preventDefault()
-          e.dataTransfer.dropEffect = 'move'
-        }}
-        onDrop={(e) => {
-          if (!dragging) return
-          e.preventDefault()
-          dropTabOnStrip(pane.id, tabs.length)
-          setSlot(null)
-        }}
-      />
+      {/* The rest of the bar: a drop target at the end of the strip, and
+          right-click for a new document or a new comparison in this pane. */}
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div
+            className="min-w-0 flex-auto"
+            onDragOver={(e) => {
+              if (!dragging) return
+              e.preventDefault()
+              e.dataTransfer.dropEffect = 'move'
+            }}
+            onDrop={(e) => {
+              if (!dragging) return
+              e.preventDefault()
+              dropTabOnStrip(pane.id, tabs.length)
+              setSlot(null)
+            }}
+          />
+        </ContextMenuTrigger>
+        <ContextMenuContent className="w-[220px]">
+            <ContextMenuItem onSelect={() => void newDocument()}>new document</ContextMenuItem>
+            <ContextMenuItem onSelect={() => void newComparison({ paneId: pane.id })}>new comparison</ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
       {hidden > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -355,9 +440,15 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
           <DropdownMenuContent align="end" className="w-[232px]">
             {tabs.map((t) => (
               <DropdownMenuItem key={t.id} onSelect={() => activateTab(pane.id, t.id)} className={cn(t.id === pane.active && 'text-foreground')}>
-                <TagMark color={t.doc.color} className="size-[7px]" />
-                <span className={cn('flex-auto truncate', t.id === pane.active && 'font-medium')}>{t.doc.title}</span>
-                {isRenderTab(t.id) && <span className="font-mono text-[11px] text-muted-foreground">rendered</span>}
+                {t.doc ? (
+                  <>
+                    <TagMark color={t.doc.color} className="size-[7px]" />
+                    <span className={cn('flex-auto truncate', t.id === pane.active && 'font-medium')}>{t.doc.title}</span>
+                    {isRenderTab(t.id) && <span className="font-mono text-[11px] text-muted-foreground">rendered</span>}
+                  </>
+                ) : (
+                  <DiffTabLabel tabId={t.id} active={t.id === pane.active} />
+                )}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -448,7 +539,8 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
     return () => ro.disconnect()
   }, [])
 
-  const tabs = pane.tabs.flatMap((id) => {
+  const tabs: PaneTab[] = pane.tabs.flatMap((id) => {
+    if (isDiffTab(id)) return [{ id }]
     const doc = docsById.get(docIdOf(id))
     return doc ? [{ id, doc }] : []
   })
@@ -476,7 +568,11 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
           </div>
         )}
       </div>
-      {doc && showRendered ? (
+      {isDiffTab(pane.active) ? (
+        <Suspense fallback={<div className="flex-auto" />}>
+          <DiffView key={pane.active} tabId={pane.active!} paneId={pane.id} />
+        </Suspense>
+      ) : doc && showRendered ? (
         <RenderView key={doc.id} doc={doc} />
       ) : doc ? (
         <>

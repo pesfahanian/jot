@@ -79,6 +79,8 @@
        error. */
     --color-warn: var(--flag-check);
     --color-warn-bg: var(--flag-check-bg);
+    --color-diff-del: var(--diff-del);
+    --color-diff-add: var(--diff-add);
     --color-resolved-bg: var(--resolved-bg);
     --color-proof-spelling: var(--proof-spelling);
     --color-proof-grammar: var(--proof-grammar);
@@ -384,3 +386,41 @@
     .jot-rendered em .jot-fa { font-style: normal; font-weight: 600; }
     .jot-rendered strong .jot-fa { font-style: normal; font-weight: 800; }
 }
+
+/* The diff checker (design in docs/design/diff-checker/): removed is the
+   destructive red, added the review's quick-fix teal (owner: not a tag
+   colour). Washes mix onto the document ground — light for a whole changed
+   line, stronger for the exact changed text. Dark mixes more to reach the
+   same visible step on a near-black ground. Removed text is never struck
+   through: a diff only reports what differs. */
+:root {
+    --diff-del: var(--destructive);
+    --diff-add: var(--flag-quick);
+    --diff-del-line: color-mix(in oklab, var(--diff-del) 9%, var(--document));
+    --diff-add-line: color-mix(in oklab, var(--diff-add) 9%, var(--document));
+    --diff-del-char: color-mix(in oklab, var(--diff-del) 24%, var(--document));
+    --diff-add-char: color-mix(in oklab, var(--diff-add) 24%, var(--document));
+}
+.dark {
+    --diff-del-line: color-mix(in oklab, var(--diff-del) 15%, var(--document));
+    --diff-add-line: color-mix(in oklab, var(--diff-add) 15%, var(--document));
+    --diff-del-char: color-mix(in oklab, var(--diff-del) 34%, var(--document));
+    --diff-add-char: color-mix(in oklab, var(--diff-add) 34%, var(--document));
+}
+.jot-diff .cm-editor .cm-changedLine, .jot-diff .cm-editor .cm-insertedLine { background: var(--diff-add-line) !important; }
+.jot-diff .cm-merge-a .cm-changedLine, .jot-diff .cm-editor .cm-deletedChunk, .jot-diff .cm-editor .cm-deletedLine { background: var(--diff-del-line) !important; }
+.jot-diff .cm-editor .cm-changedText { background: var(--diff-add-char) !important; border-radius: 2px; }
+.jot-diff .cm-merge-a .cm-changedText, .jot-diff .cm-editor .cm-deletedChunk .cm-deletedText, .jot-diff .cm-editor .cm-deletedLine del { background: var(--diff-del-char) !important; text-decoration: none !important; border-radius: 2px; }
+.jot-diff .cm-changeGutter { width: 14px; padding: 0; }
+.jot-diff .cm-changeGutter .cm-gutterElement { text-align: center; font-family: var(--font-mono); font-size: 12px; }
+.jot-diff .cm-changedLineGutter, .jot-diff .cm-deletedLineGutter, .jot-diff .cm-inlineChangedLineGutter { background: none !important; }
+.jot-diff .cm-merge-b .cm-changedLineGutter::before, .jot-diff .cm-inlineChangedLineGutter::before { content: "+"; color: var(--diff-add); }
+.jot-diff .cm-merge-a .cm-changedLineGutter::before, .jot-diff .cm-deletedLineGutter::before { content: "−"; color: var(--diff-del); }
+.jot-diff .cm-mergeView .cm-mergeViewEditors { height: 100%; }
+.jot-diff .cm-mergeViewEditor + .cm-mergeViewEditor { border-left: 1px solid var(--border); }
+.jot-diff .cm-mergeSpacer { background: var(--inset); }
+/* Hidden unchanged lines fold into a quiet band. */
+.jot-diff .cm-collapsedLines { background: var(--inset) !important; color: var(--muted-foreground); font-family: var(--font-mono); font-size: 11px; padding: 5px 12px; cursor: pointer; border-block: 1px solid var(--border-subtle); }
+.jot-diff .cm-collapsedLines:hover { color: var(--foreground); }
+.jot-diff .cm-collapsedLines::before, .jot-diff .cm-collapsedLines::after { content: none !important; }
+

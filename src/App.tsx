@@ -5,7 +5,7 @@ import { setFavicon } from '@/lib/favicon'
 import { welcomeIfFirstRun } from '@/lib/welcome'
 import { useDocuments } from '@/state/hooks'
 import { useReview } from '@/state/review'
-import { docIdOf } from '@/state/layout'
+import { docIdOf, isDiffTab } from '@/state/layout'
 import { useApplyTheme, useTheme } from '@/state/theme'
 import { useWorkspace } from '@/state/workspace'
 
@@ -82,7 +82,7 @@ function Workspace() {
     if (!docs || !loaded) return
     const ids = new Set(docs.map((d) => d.id))
     const ws = useWorkspace.getState()
-    for (const p of ws.panes) for (const t of p.tabs) if (!ids.has(docIdOf(t))) ws.closeTab(p.id, t)
+    for (const p of ws.panes) for (const t of p.tabs) if (!isDiffTab(t) && !ids.has(docIdOf(t))) ws.closeTab(p.id, t)
   }, [docs, loaded])
 
   if (!docs || !loaded) return <div className="h-svh bg-background" />

@@ -118,11 +118,30 @@ export interface Workspace {
   sort: 'date' | 'name'
 }
 
+// A comparison in a diff tab (diff checker; design in docs/design/
+// diff-checker/). Each side is a document — edits there are the document's
+// own — or pasted scratch text, or empty. It lives as long as its tab.
+export type DiffSide = { kind: 'empty' } | { kind: 'doc'; docId: string } | { kind: 'paste'; text: string }
+
+export interface Comparison {
+  id: string
+  left: DiffSide
+  right: DiffSide
+  // input: filling the two sides; result: the diff.
+  stage: 'input' | 'result'
+  layout: 'split' | 'unified'
+  hideUnchanged: boolean
+  ignoreWhitespace: boolean
+  precision: 'word' | 'char'
+  createdAt: number
+}
+
 export const db = new Dexie('jot') as Dexie & {
   documents: EntityTable<JotDocument, 'id'>
   settings: EntityTable<Settings, 'id'>
   reviewSessions: EntityTable<ReviewSession, 'documentId'>
   workspace: EntityTable<Workspace, 'id'>
+  comparisons: EntityTable<Comparison, 'id'>
 }
 
 db.version(1).stores({
@@ -151,3 +170,8 @@ export function migrateKeys(s: Record<string, unknown>): void {
 db.version(3)
   .stores({})
   .upgrade((tx) => tx.table('settings').toCollection().modify(migrateKeys))
+
+// The diff checker's comparisons, one per diff tab.
+db.version(4).stores({
+  comparisons: 'id',
+})
