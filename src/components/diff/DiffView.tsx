@@ -411,7 +411,7 @@ export function DiffView({ tabId }: { tabId: string; paneId: string }) {
     const other = sides[name === 'left' ? 'right' : 'left']
     const lines = sideText(s, d).split('\n').length
     return (
-      <div className="flex h-8 flex-none items-center gap-2 border-b border-border-subtle px-3 font-mono text-[11px] text-muted-foreground">
+      <div className="flex h-8 flex-none items-center gap-2 overflow-hidden border-b border-border-subtle px-3 font-mono text-[11px] whitespace-nowrap text-muted-foreground">
         <span>{LABEL[name]}</span>
         {s.kind === 'doc' && d ? (
           <>
