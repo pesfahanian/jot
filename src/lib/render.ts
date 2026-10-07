@@ -1,6 +1,7 @@
 import { highlightCode, tagHighlighter } from '@lezer/highlight'
 import type { Marked, Token, TokensList } from 'marked'
 import { CODE_GROUPS, findCodeLanguage } from './code'
+import { directionOf, lineDirections, type DirSetting } from './direction'
 import { diagramHtml, loadDiagrams, type DiagramTheme } from './diagrams'
 import { loadMath, mathExtension } from './math'
 
@@ -31,10 +32,29 @@ let instance: Promise<Marked> | undefined
 // The theme diagrams are drawn in for the render in progress (set just
 // before each synchronous parse).
 let theme: DiagramTheme = 'light'
+// Whether list items lay out their own text by their own script (direction
+// "auto"); a forced document direction applies to every item instead.
+let itemDirs = true
 
 export interface RenderOptions {
   // Diagram colours: the rendered view follows the app theme; print is light.
   theme?: DiagramTheme
+  // The document's direction setting (Farsi support). Each block takes the
+  // direction lib/direction.ts gives its first line — the same answer the
+  // editor shows — and only right-to-left blocks are marked, so an English
+  // document renders exactly as before.
+  dir?: DirSetting
+}
+
+// Farsi emphasis stays upright and goes bolder (Farsi design): Arabic-script
+// runs inside <em> / <strong> get their own span, styled by script. English
+// emphasis keeps its italics.
+const ARABIC_RUN = /[\p{Script=Arabic}](?:(?:[\p{Script=Arabic}\p{M} ]|\u200c|\u200d)*[\p{Script=Arabic}\p{M}])?/gu
+function markFarsiRuns(html: string): string {
+  return html
+    .split(/(<[^>]+>)/)
+    .map((part) => (part.startsWith('<') ? part : part.replace(ARABIC_RUN, '<span class="jot-fa">$&</span>')))
+    .join('')
 }
 
 // Everything a document needs that loads asynchronously, loaded before the
@@ -75,12 +95,34 @@ function load(): Promise<Marked> {
           )
           return `<pre><code${cls}>${html}</code></pre>\n`
         },
+        // A whole list takes one direction, which puts every marker on one
+        // side; each item's own text still reads in its own direction, so a
+        // Farsi item in an English list ends with its full stop on the left.
+        // The item's direction goes on a wrapper, not the li, so the marker
+        // stays put; nested lists sit outside it and decide their own.
+        listitem(item) {
+          if (!itemDirs) return false
+          const own = item.tokens.filter((t) => t.type !== 'list')
+          // Code blocks inside an item don't vote, as everywhere else.
+          const dir = directionOf(own.filter((t) => t.type !== 'code').map((t) => t.raw).join(''))
+          if (!dir) return false
+          const nested = item.tokens.filter((t) => t.type === 'list')
+          return `<li><div class="jot-li" dir="${dir}">${this.parser.parse(own)}</div>${this.parser.parse(nested)}</li>\n`
+        },
+        em({ tokens }) {
+          return `<em>${markFarsiRuns(this.parser.parseInline(tokens))}</em>`
+        },
+        strong({ tokens }) {
+          return `<strong>${markFarsiRuns(this.parser.parseInline(tokens))}</strong>`
+        },
         link({ href, title, tokens }) {
           const text = this.parser.parseInline(tokens)
           if (!SAFE_HREF.test(href.trim())) return text
           const t = title ? ` title="${escape(title)}"` : ''
           const external = href.startsWith('#') ? '' : ' target="_blank" rel="noopener noreferrer"'
-          return `<a href="${escape(href)}"${t}${external}>${text}</a>`
+          // A bare link shows its URL, which always reads left-to-right.
+          const ltr = text === escape(href) || text === href ? ' dir="ltr"' : ''
+          return `<a href="${escape(href)}"${t}${external}${ltr}>${text}</a>`
         },
       },
     })
@@ -90,11 +132,7 @@ function load(): Promise<Marked> {
 }
 
 export async function renderHtml(md: string, opts: RenderOptions = {}): Promise<string> {
-  const m = await prepare(md, opts)
-  // Set in the same synchronous stretch as the parse, so a concurrent render
-  // in the other theme can't interleave.
-  theme = opts.theme ?? 'light'
-  return m.parse(md, { async: false })
+  return (await renderBlocks(md, opts)).map((b) => b.html).join('')
 }
 
 // A rendered top-level block and the source line it starts on (0-based) —
@@ -104,17 +142,28 @@ export interface RenderedBlock {
   html: string
 }
 
+// The block's outer element takes dir="rtl" when its direction is
+// right-to-left. Code, math and diagrams are always left-to-right.
+const withDir = (html: string, rtl: boolean) => (rtl ? html.replace(/^<([a-z][a-z0-9]*)/, '<$1 dir="rtl"') : html)
+
 export async function renderBlocks(md: string, opts: RenderOptions = {}): Promise<RenderedBlock[]> {
   const m = await prepare(md, opts)
+  // Set in the same synchronous stretch as the parse, so a concurrent render
+  // in the other theme can't interleave.
   theme = opts.theme ?? 'light'
+  itemDirs = (opts.dir ?? 'auto') === 'auto'
   const tokens = m.lexer(md)
+  const dirs = lineDirections(md, opts.dir ?? 'auto')
   const out: RenderedBlock[] = []
   let line = 0
   for (const token of tokens as Token[]) {
     if (token.type !== 'space') {
       // One block at a time, sharing the document's link definitions.
       const one = Object.assign([token], { links: (tokens as TokensList).links }) as TokensList
-      out.push({ line, html: m.parser(one) })
+      // A token's raw text can start with blank lines; its direction is its
+      // first line with text.
+      const lead = (token.raw.match(/^(?:[ \t]*\n)*/)?.[0].match(/\n/g) ?? []).length
+      out.push({ line, html: withDir(m.parser(one), dirs[line + lead] === 'rtl' && token.type !== 'code') })
     }
     line += (token.raw.match(/\n/g) ?? []).length
   }

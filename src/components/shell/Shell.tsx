@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { JotDocument } from '@/lib/db'
+import { shortcutKey } from '@/lib/keys'
 import { cn } from '@/lib/utils'
 import { importFiles, newDocument } from '@/state/actions'
 import { useWorkspace } from '@/state/workspace'
@@ -69,7 +70,7 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
   useEffect(() => {
     const save = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey) || e.altKey) return
-      const key = e.key.toLowerCase()
+      const key = shortcutKey(e)
       if (key === 's' && !e.shiftKey) e.preventDefault()
       if (key === 'v' && e.shiftKey) {
         e.preventDefault()

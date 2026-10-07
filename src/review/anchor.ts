@@ -25,6 +25,38 @@ function occurrences(text: string, quote: string): Range[] {
   const re = new RegExp(q.split(/\s+/).map(esc).join('\\s+'), 'g')
   let m: RegExpExecArray | null
   while ((m = re.exec(text))) out.push({ start: m.index, end: m.index + m[0].length })
+  if (out.length) return out
+  return folded(text, q)
+}
+
+// Farsi fallback (Farsi support): models quoting Farsi drop or retype the
+// half-space, swap Arabic ي / ك for Persian ی / ک, and drop the ezafe mark.
+// Both sides are folded the same way — those characters and all whitespace
+// removed, Arabic letters mapped to Persian — and a match maps back to the
+// exact stretch of the original document.
+const DROP = /[\s\u200c-\u200f\u0654]/u
+const LETTER: Record<string, string> = { '\u064a': '\u06cc', '\u0649': '\u06cc', '\u0643': '\u06a9' }
+function fold(s: string): { text: string; at: number[] } {
+  let text = ''
+  const at: number[] = []
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]
+    if (DROP.test(c)) continue
+    text += LETTER[c] ?? c
+    at.push(i)
+  }
+  return { text, at }
+}
+function folded(text: string, quote: string): Range[] {
+  const q = fold(quote).text
+  if (q.length < 2) return []
+  const t = fold(text)
+  const out: Range[] = []
+  let i = t.text.indexOf(q)
+  while (i !== -1) {
+    out.push({ start: t.at[i], end: t.at[i + q.length - 1] + 1 })
+    i = t.text.indexOf(q, i + 1)
+  }
   return out
 }
 

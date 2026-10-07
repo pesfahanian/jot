@@ -1,7 +1,7 @@
 import { create } from 'zustand'
-import { db, type JotDocument, type PaneLayout, type TagColor, type Workspace } from '@/lib/db'
+import { db, type Comparison, type JotDocument, type PaneLayout, type TagColor, type Workspace } from '@/lib/db'
 import type { SortMode } from '@/lib/docList'
-import { columnsOf, docIdOf, insertPane, MAX_COLUMNS, MAX_PANES, moveTab, removePane, renderTab, resize, splitWithTab, tidy, type DraggedTab, type Edge } from './layout'
+import { columnsOf, comparisonIdOf, docIdOf, isDiffTab, insertPane, MAX_COLUMNS, MAX_PANES, moveTab, removePane, renderTab, resize, splitWithTab, tidy, type DraggedTab, type Edge } from './layout'
 
 // Shell state: panes and their tabs, which pane has focus, and the sidebar's
 // own controls. Document records live in IndexedDB and are read live; this
@@ -28,6 +28,9 @@ export type Toast =
   | { kind: 'deleted'; id: number; entry: DeletedEntry }
   // After Apply (6c): how much text moved, with undo as one editor step.
   | { kind: 'applied'; id: number; documentId: string; changed: number; kept: number }
+  // A comparison cleared (diff checker), with undo; or a plain notice.
+  | { kind: 'cleared'; id: number; comparison: Comparison }
+  | { kind: 'notice'; id: number; lead: string; detail: string }
 
 interface WorkspaceState {
   loaded: boolean
@@ -99,7 +102,8 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     let panes: PaneLayout[] = (ws?.panes ?? [])
       .map(({ render, ...p }) => (render ? { ...p, tabs: p.tabs.map(renderTab), active: p.active && renderTab(p.active) } : p))
       .map((p) => {
-        const tabs = p.tabs.filter((t) => ids.has(docIdOf(t)))
+        // Diff tabs keep their place; a missing comparison opens empty.
+        const tabs = p.tabs.filter((t) => isDiffTab(t) || ids.has(docIdOf(t)))
         return { ...p, tabs, active: p.active && tabs.includes(p.active) ? p.active : (tabs[0] ?? null) }
       })
     // Panes left empty close the way a closed pane does, so the grid holds.
@@ -153,6 +157,8 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     const next = tabs.length === 0 && panes.length > 1 ? removePane(panes, paneId) : panes.map((q) => (q.id === paneId ? { ...q, tabs, active } : q))
     const focus = next.some((p) => p.id === focusedPaneId) ? focusedPaneId : next[Math.max(0, panes.findIndex((p) => p.id === paneId) - 1)].id
     set({ panes: next, focusedPaneId: focus })
+    // A comparison lives as long as its tab.
+    if (isDiffTab(documentId) && !next.some((q) => q.tabs.includes(documentId))) void db.comparisons.delete(comparisonIdOf(documentId))
   },
 
   focusPane(paneId) {
@@ -165,7 +171,8 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     const { panes, focusedPaneId } = get()
     const current = panes.find((p) => p.id === focusedPaneId)?.active
     const edge = splitEdge(panes, focusedPaneId)
-    if (!current || !edge) return
+    // A comparison stays in one tab.
+    if (!current || !edge || isDiffTab(current)) return
     const pane: PaneLayout = { id: newPaneId(), tabs: [current], active: current }
     const next = insertPane(panes, focusedPaneId, edge, pane)
     if (next) set({ panes: next, focusedPaneId: pane.id })
@@ -180,7 +187,7 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     const { panes, focusedPaneId } = get()
     const i = panes.findIndex((p) => p.id === focusedPaneId)
     const active = panes[i]?.active
-    if (!active) return
+    if (!active || isDiffTab(active)) return
     const rid = renderTab(docIdOf(active))
     if (panes.some((p) => p.tabs.includes(rid))) {
       for (const p of get().panes) if (p.tabs.includes(rid)) get().closeTab(p.id, rid)

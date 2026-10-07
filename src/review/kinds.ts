@@ -1,5 +1,6 @@
 import type { ReviewFlag } from '@/lib/db'
 import { isNote, isProofing } from './model'
+import rulesFaMd from './ruleset/fa/RULES.md?raw'
 
 // What the reader sees instead of the rule set's internals (owner, testing):
 // every flag is one of seven kinds, named for what it asks of the reader,
@@ -107,9 +108,14 @@ const RULE_NAMES: Record<string, string> = {
   'T2-08': 'Tacked-on clause',
 }
 
+// The Farsi guide's names come from its RULES.md "Name shown" column.
+const FA_RULE_NAMES: Record<string, string> = Object.fromEntries(
+  [...rulesFaMd.matchAll(/^\| (FA-T[12]b?-\d+) \|[^\n]*\| ([^|\n]+?) \|$/gm)].map((m) => [m[1], m[2]]),
+)
+
 // The rule's plain name, or null for proofing and notes (their kind says it all).
 export function ruleName(f: ReviewFlag): string | null {
   const k = kindOf(f)
   if (k !== 'quick' && k !== 'check' && k !== 'call') return null
-  return RULE_NAMES[f.id] ?? null
+  return RULE_NAMES[f.id] ?? FA_RULE_NAMES[f.id] ?? null
 }

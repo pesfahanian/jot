@@ -9,18 +9,25 @@ import {
 import { Editor } from '@/editor/Editor'
 import { openContent } from '@/editor/sessions'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, type JotDocument, type PaneLayout } from '@/lib/db'
-import { exportMarkdown, exportPdf, exportPlainText } from '@/lib/export'
+import { db, type DiffSide, type JotDocument, type PaneLayout } from '@/lib/db'
+import { exportMarkdown, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
-import { exportWorkspace, newDocument } from '@/state/actions'
+import { exportWorkspace, newComparison, newDocument } from '@/state/actions'
 import { useReview } from '@/state/review'
-import { canSplit, columnsOf, docIdOf, isRenderTab, renderTab, type Edge } from '@/state/layout'
+import { useDocuments } from '@/state/hooks'
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
+import { canSplit, columnsOf, comparisonIdOf, docIdOf, isDiffTab, isRenderTab, renderTab, type Edge } from '@/state/layout'
 import { splitEdge, useWorkspace } from '@/state/workspace'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { PdfOptionsCard } from './PdfOptionsCard'
 import { RenderView } from './RenderView'
 import { DocumentMenu } from './DocumentMenu'
-import { SplitIcon } from './icons'
+import { DiffIcon, PlusIcon, SplitIcon } from './icons'
 import { QuietButton } from './Sidebar'
 import { TagMark } from './TagMark'
+
+// The diff checker loads the first time a comparison opens.
+const DiffView = lazy(() => import('@/components/diff/DiffView').then((m) => ({ default: m.DiffView })))
 
 // The review view loads the first time a review opens.
 const ReviewView = lazy(() => import('@/components/review/ReviewView').then((m) => ({ default: m.ReviewView })))
@@ -42,7 +49,7 @@ const control =
 
 const liveText = (doc: JotDocument) => openContent(doc.id) ?? doc.content
 
-function ExportItems({ doc }: { doc: JotDocument }) {
+function ExportItems({ doc, onPdf }: { doc: JotDocument; onPdf: () => void }) {
   return (
     <>
       <DropdownMenuItem onSelect={() => exportMarkdown(doc.title, liveText(doc))}>
@@ -53,7 +60,8 @@ function ExportItems({ doc }: { doc: JotDocument }) {
         <span className="flex-auto">plain text</span>
         <span className="font-mono text-[11px] text-muted-foreground">.txt</span>
       </DropdownMenuItem>
-      <DropdownMenuItem onSelect={() => void exportPdf(doc.title, liveText(doc))}>
+      {/* PDF opens the options card first (PDF options design). */}
+      <DropdownMenuItem onSelect={onPdf}>
         <span className="flex-auto">PDF</span>
         <span className="font-mono text-[11px] text-muted-foreground">.pdf</span>
       </DropdownMenuItem>
@@ -90,6 +98,36 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
   // split would open one, or in the neighbouring pane when the grid is full.
   const canRender = !!doc
   const renderTitle = rendered ? 'close the rendered view' : 'show this document rendered, beside it'
+  // The PDF options card opens where the export menu was, anchored to the
+  // same button, once the menu has closed.
+  //
+  // Opened only once the menu has finished closing — never sooner. The menu
+  // hands focus back to its button when its close animation ends; if the
+  // card were already open, that focus would land "outside" it and close it
+  // again (on a large document, the animation ends late enough to lose that
+  // race). So choosing PDF only asks, and the menu's own close opens the card.
+  const [pdfOpen, setPdfOpen] = useState(false)
+  const pdfAsked = useRef(false)
+  const openPdf = () => {
+    pdfAsked.current = true
+  }
+  const menuClosed = (e: Event) => {
+    if (!pdfAsked.current) return
+    pdfAsked.current = false
+    e.preventDefault()
+    setPdfOpen(true)
+  }
+  const pdfCard = doc && (
+    <PopoverContent
+      align="end"
+      className="w-auto p-0"
+      onOpenAutoFocus={(e) => e.preventDefault()}
+      // Focus returning to the export / ⋯ button is not "leaving" the card.
+      onFocusOutside={(e) => (e.target as Element).closest?.('[data-pdf-anchor]') && e.preventDefault()}
+    >
+      <PdfOptionsCard doc={doc} text={() => liveText(doc)} onDone={() => setPdfOpen(false)} />
+    </PopoverContent>
+  )
   const splitButton = (
     <button
       type="button"
@@ -106,23 +144,28 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
     return (
       <>
         {splitButton}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button type="button" className={control} disabled={!doc} title="more">
-              ⋯
-            </button>
-          </DropdownMenuTrigger>
-          {doc && (
-            <DropdownMenuContent align="end" className="w-[232px]">
-              <DropdownMenuItem disabled={!canRender} title={renderTitle} onSelect={toggleRender}>
-                {rendered ? 'close render' : 'render'}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">export</div>
-              <ExportItems doc={doc} />
-            </DropdownMenuContent>
-          )}
-        </DropdownMenu>
+        <Popover open={pdfOpen} onOpenChange={setPdfOpen}>
+          <DropdownMenu>
+            <PopoverAnchor asChild>
+              <DropdownMenuTrigger asChild>
+                <button type="button" className={control} disabled={!doc} title="more" data-pdf-anchor="">
+                  ⋯
+                </button>
+              </DropdownMenuTrigger>
+            </PopoverAnchor>
+            {doc && (
+              <DropdownMenuContent align="end" className="w-[232px]" onCloseAutoFocus={menuClosed}>
+                <DropdownMenuItem disabled={!canRender} title={renderTitle} onSelect={toggleRender}>
+                  {rendered ? 'close render' : 'render'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">export</div>
+                <ExportItems doc={doc} onPdf={openPdf} />
+              </DropdownMenuContent>
+            )}
+          </DropdownMenu>
+          {pdfCard}
+        </Popover>
       </>
     )
   }
@@ -139,18 +182,24 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
       >
         render
       </button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button type="button" className={control} disabled={!doc}>
-            export <span className="text-muted-foreground">▾</span>
-          </button>
-        </DropdownMenuTrigger>
-        {doc && (
-          <DropdownMenuContent align="end" className="w-[232px]">
-            <ExportItems doc={doc} />
-          </DropdownMenuContent>
-        )}
-      </DropdownMenu>
+      <Popover open={pdfOpen} onOpenChange={setPdfOpen}>
+        <DropdownMenu>
+          <PopoverAnchor asChild>
+            <DropdownMenuTrigger asChild>
+              {/* Held while the card is open: the card stands in for this menu. */}
+              <button type="button" className={cn(control, pdfOpen && 'text-foreground')} disabled={!doc} data-pdf-anchor="">
+                export <span className="text-muted-foreground">▾</span>
+              </button>
+            </DropdownMenuTrigger>
+          </PopoverAnchor>
+          {doc && (
+            <DropdownMenuContent align="end" className="w-[232px]" onCloseAutoFocus={menuClosed}>
+              <ExportItems doc={doc} onPdf={openPdf} />
+            </DropdownMenuContent>
+          )}
+        </DropdownMenu>
+        {pdfCard}
+      </Popover>
     </>
   )
 }
@@ -215,7 +264,74 @@ function Tab({ tabId, doc, active, focused, paneId }: { tabId: string; doc: JotD
 // tab in the pane.
 interface PaneTab {
   id: string
-  doc: JotDocument
+  // Missing for a diff tab, which shows a comparison rather than a document.
+  doc?: JotDocument
+}
+
+// A diff tab's name (diff checker): "original ↔ changed" by document name
+// or "pasted text", "…" for a side still empty; "new comparison" while
+// both are.
+function useComparisonLabel(tabId: string): string {
+  const docs = useDocuments()
+  const cmp = useLiveQuery(() => db.comparisons.get(comparisonIdOf(tabId)), [tabId])
+  if (!cmp) return 'new comparison'
+  const name = (s: DiffSide) => (s.kind === 'doc' ? (docs?.find((d) => d.id === s.docId)?.title ?? '…') : s.kind === 'paste' ? 'pasted text' : '…')
+  if (cmp.left.kind === 'empty' && cmp.right.kind === 'empty') return 'new comparison'
+  return `${name(cmp.left)} ↔ ${name(cmp.right)}`
+}
+
+function DiffTabLabel({ tabId, active }: { tabId: string; active?: boolean }) {
+  const label = useComparisonLabel(tabId)
+  return (
+    <>
+      <DiffIcon className={active ? 'text-foreground' : 'text-muted-foreground'} />
+      <span className={cn('truncate text-[13px]', active && 'font-medium')}>{label}</span>
+    </>
+  )
+}
+
+// A diff tab: the same shape as a document tab, without the document menu.
+function DiffTab({ tabId, active, focused, paneId }: { tabId: string; active: boolean; focused: boolean; paneId: string }) {
+  const activateTab = useWorkspace((s) => s.activateTab)
+  const closeTab = useWorkspace((s) => s.closeTab)
+  const setDragTab = useWorkspace((s) => s.setDragTab)
+  return (
+    <div
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData('application/x-jot-tab', tabId)
+        e.dataTransfer.effectAllowed = 'move'
+        setDragTab({ docId: tabId, from: paneId })
+      }}
+      onDragEnd={() => setDragTab(null)}
+      role="tab"
+      aria-selected={active}
+      tabIndex={0}
+      data-tab-id={tabId}
+      onClick={() => activateTab(paneId, tabId)}
+      onAuxClick={(e) => e.button === 1 && closeTab(paneId, tabId)}
+      onKeyDown={(e) => e.key === 'Enter' && activateTab(paneId, tabId)}
+      className={cn(
+        'group flex max-w-[220px] flex-none cursor-default items-center gap-2.5 border-r border-border px-3.5 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+        active
+          ? cn('-mb-px border-b-2 bg-document text-foreground', focused ? 'border-b-primary' : 'border-b-ink-dim')
+          : 'rounded-t-md text-secondary-foreground hover:bg-row-hover hover:text-foreground',
+      )}
+    >
+      <DiffTabLabel tabId={tabId} active={active} />
+      <button
+        type="button"
+        aria-label="close comparison"
+        onClick={(e) => {
+          e.stopPropagation()
+          closeTab(paneId, tabId)
+        }}
+        className={cn('flex-none font-mono text-[13px] hover:text-foreground', active ? 'text-muted-foreground' : 'text-ink-dim')}
+      >
+        ×
+      </button>
+    </div>
+  )
 }
 
 function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; focused: boolean }) {
@@ -282,13 +398,55 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
         onWheel={(e) => {
           if (strip.current && Math.abs(e.deltaY) > Math.abs(e.deltaX)) strip.current.scrollLeft += e.deltaY
         }}
-        className="relative flex min-w-0 flex-auto items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="relative flex min-w-0 flex-[0_1_auto] items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {tabs.map((t) => (
-          <Tab key={t.id} tabId={t.id} doc={t.doc} active={t.id === pane.active} focused={focused} paneId={pane.id} />
+          t.doc ? (
+            <Tab key={t.id} tabId={t.id} doc={t.doc} active={t.id === pane.active} focused={focused} paneId={pane.id} />
+          ) : (
+            <DiffTab key={t.id} tabId={t.id} active={t.id === pane.active} focused={focused} paneId={pane.id} />
+          )
         ))}
         {dragging && slot && <span aria-hidden className="pointer-events-none absolute top-1.5 bottom-1.5 z-10 w-[2px] -translate-x-1/2 rounded-full bg-primary" style={{ left: Math.max(1, slot.x) }} />}
       </div>
+      {/* New tab, as in a browser's tab bar (owner): right after the last
+          tab, pinned at the edge once the tabs overflow. It does exactly
+          what the sidebar's + does, in this pane (the click focuses it). */}
+      <div className="flex flex-none items-center px-1">
+        <button
+          type="button"
+          aria-label="new document"
+          title="new document"
+          onClick={() => void newDocument()}
+          className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+        >
+          <PlusIcon />
+        </button>
+      </div>
+      {/* The rest of the bar: a drop target at the end of the strip, and
+          right-click for a new document or a new comparison in this pane. */}
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div
+            className="min-w-0 flex-auto"
+            onDragOver={(e) => {
+              if (!dragging) return
+              e.preventDefault()
+              e.dataTransfer.dropEffect = 'move'
+            }}
+            onDrop={(e) => {
+              if (!dragging) return
+              e.preventDefault()
+              dropTabOnStrip(pane.id, tabs.length)
+              setSlot(null)
+            }}
+          />
+        </ContextMenuTrigger>
+        <ContextMenuContent className="w-[220px]">
+            <ContextMenuItem onSelect={() => void newDocument()}>new document</ContextMenuItem>
+            <ContextMenuItem onSelect={() => void newComparison({ paneId: pane.id })}>new comparison</ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
       {hidden > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -303,9 +461,15 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
           <DropdownMenuContent align="end" className="w-[232px]">
             {tabs.map((t) => (
               <DropdownMenuItem key={t.id} onSelect={() => activateTab(pane.id, t.id)} className={cn(t.id === pane.active && 'text-foreground')}>
-                <TagMark color={t.doc.color} className="size-[7px]" />
-                <span className={cn('flex-auto truncate', t.id === pane.active && 'font-medium')}>{t.doc.title}</span>
-                {isRenderTab(t.id) && <span className="font-mono text-[11px] text-muted-foreground">rendered</span>}
+                {t.doc ? (
+                  <>
+                    <TagMark color={t.doc.color} className="size-[7px]" />
+                    <span className={cn('flex-auto truncate', t.id === pane.active && 'font-medium')}>{t.doc.title}</span>
+                    {isRenderTab(t.id) && <span className="font-mono text-[11px] text-muted-foreground">rendered</span>}
+                  </>
+                ) : (
+                  <DiffTabLabel tabId={t.id} active={t.id === pane.active} />
+                )}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -396,7 +560,8 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
     return () => ro.disconnect()
   }, [])
 
-  const tabs = pane.tabs.flatMap((id) => {
+  const tabs: PaneTab[] = pane.tabs.flatMap((id) => {
+    if (isDiffTab(id)) return [{ id }]
     const doc = docsById.get(docIdOf(id))
     return doc ? [{ id, doc }] : []
   })
@@ -424,7 +589,11 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
           </div>
         )}
       </div>
-      {doc && showRendered ? (
+      {isDiffTab(pane.active) ? (
+        <Suspense fallback={<div className="flex-auto" />}>
+          <DiffView key={pane.active} tabId={pane.active!} paneId={pane.id} />
+        </Suspense>
+      ) : doc && showRendered ? (
         <RenderView key={doc.id} doc={doc} />
       ) : doc ? (
         <>

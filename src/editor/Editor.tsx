@@ -23,6 +23,8 @@ import { minimapCompartment, minimapFor } from './minimap'
 import { editorKeymap } from './keymap'
 import { getSession } from './sessions'
 import { codeBlockGround, jotEditorTheme } from './theme'
+import { dirCompartment, directionExtension, dirSettingFor } from './direction'
+import { db } from '@/lib/db'
 
 interface EditorProps {
   documentId: string
@@ -63,6 +65,10 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
   const minimapSetting = useLiveQuery(() => getSettings().then((s) => s.minimap ?? true), []) ?? true
   const columnCount = useWorkspace((s) => columnsOf(s.panes).length)
   const minimapOn = minimapSetting && columnCount < 3
+  // The document's direction setting (Farsi support), live.
+  const dir = useLiveQuery(() => db.documents.get(documentId).then((d) => d?.dir ?? 'auto'), [documentId]) ?? 'auto'
+  const dirRef = useRef(dir)
+  dirRef.current = dir
   const minimapRef = useRef(minimapOn)
   minimapRef.current = minimapOn
 
@@ -101,6 +107,7 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
           keymap.of(editorKeymap),
           jotEditorTheme,
           minimapCompartment.of(minimapFor(minimapRef.current)),
+          directionExtension(dirRef.current),
           themeMode.of(themeModeFor(isDark())),
           lock.of(lockFor(isLocked(useReview.getState().openIn, documentId))),
           EditorView.updateListener.of((u) => {
@@ -151,6 +158,10 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
   useEffect(() => {
     viewRef.current?.dispatch({ effects: minimapCompartment.reconfigure(minimapFor(minimapOn)) })
   }, [minimapOn])
+
+  useEffect(() => {
+    viewRef.current?.dispatch({ effects: dirCompartment.reconfigure(dirSettingFor(dir)) })
+  }, [dir])
 
   const locked = useReview((s) => isLocked(s.openIn, documentId))
   useEffect(() => {

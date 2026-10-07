@@ -38,7 +38,7 @@ export interface FixRequest {
   candidate?: boolean
 }
 
-export type ModeRule = 'T1-01' | 'T1-08' | 'T1-11' | 'T1b-05'
+export type ModeRule = 'T1-01' | 'T1-08' | 'T1-11' | 'T1b-05' | 'FA-T1-20' | 'FA-T1-23' | 'FA-T1-25'
 
 export interface Candidate {
   rule: ModeRule
@@ -78,6 +78,9 @@ export interface PassAResult {
   dashes: DashInstance[]
   dashGatePassed: boolean
   semicolons: SemicolonInstance[]
+  // Which guide the document is reviewed against (Farsi support): English
+  // unless set.
+  lang?: 'en' | 'fa'
 }
 
 // ── helpers ────────────────────────────────────────────────────────────────

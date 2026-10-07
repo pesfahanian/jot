@@ -3,9 +3,9 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import type { JotDocument, TagColor } from '@/lib/db'
 import { TAG_SLOTS } from '@/lib/docList'
 import { cn } from '@/lib/utils'
-import { deleteWithUndo, setColor, setPinned } from '@/state/actions'
+import { deleteWithUndo, setColor, setPinned, newComparison } from '@/state/actions'
 import { useWorkspace } from '@/state/workspace'
-import { NoColorMark, PinIcon } from './icons'
+import { NoColorMark, PinIcon, DiffIcon } from './icons'
 import { tagClass } from './tagClass'
 
 // A document's own context menu (3c) — right-click on its sidebar row or its
@@ -63,6 +63,16 @@ export function DocumentMenu({ doc, children }: { doc: JotDocument; children: Re
           </span>
           {doc.pinned ? 'unpin' : 'pin'}
         </ContextMenuItem>
+        <div className="-mx-1 my-1 h-px bg-border-subtle" />
+        {/* The diff checker: this document on "original", the picker open
+            on "changed". */}
+        <ContextMenuItem onSelect={() => void newComparison({ docId: doc.id })}>
+          <span className="flex w-3.5 justify-center">
+            <DiffIcon />
+          </span>
+          compare with…
+        </ContextMenuItem>
+        <div className="-mx-1 my-1 h-px bg-border-subtle" />
         <ContextMenuItem onSelect={() => void deleteWithUndo(doc)}>
           <span className="flex w-3.5 justify-center font-mono text-[13px] text-ink-tertiary">×</span>
           delete

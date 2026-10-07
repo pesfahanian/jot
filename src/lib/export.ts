@@ -1,3 +1,5 @@
+import { directionOf, type DirSetting } from './direction'
+import { PDF_DEFAULTS, pdfCss, type PdfOptions } from './pdfOptions'
 import { renderHtml } from './render'
 
 // Export (T3.6, 6a): three formats, triggered straight from the menu — no
@@ -28,63 +30,14 @@ export function exportPlainText(title: string, content: string) {
 }
 
 // PDF goes through the renderer (6a's note, lib/render.ts — the same one
-// the rendered view uses): markdown → HTML, set in the rendered-pane
-// typography (§1.8), laid out into real pages by Paged.js (Phase 9), then
-// the browser's own print-to-PDF.
-//
-// Pages (owner): A4 with ordinary 20mm margins (the screen's 520px measure
-// read as a narrow column in too much white on paper), type sized in
-// points, page numbers in the footer, backgrounds always printed. No code block, diagram, formula, quote or
-// table row is split across a page break; a table taller than a page
-// continues between rows with its header row repeated; a heading always
-// travels with what follows it. Tuned against docs/benchmarks/pdf-benchmark.md.
-
-const printCss = `
-  @page {
-    size: A4;
-    margin: 20mm 20mm 22mm;
-    @bottom-center { content: counter(page) " / " counter(pages); font-family: "Source Code Pro", ui-monospace, monospace; font-size: 8.5pt; color: #868B91; }
-  }
-  html, body { background: #fff; }
-  /* Code grounds, table headers and diagram fills print even with the
-     print dialog's "Background graphics" unticked (its default). */
-  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body { font-family: "Public Sans", Helvetica, sans-serif; font-size: 10.5pt; line-height: 1.55; color: #25292F; margin: 0; }
-  h1, h2, h3, h4, h5, h6 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; margin: 1.3em 0 0.45em; break-after: avoid; }
-  h1 { font-size: 18pt; } h2 { font-size: 14.5pt; } h3 { font-size: 12pt; } h4, h5, h6 { font-size: 10.5pt; }
-  body > :first-child { margin-top: 0; }
-  p { orphans: 3; widows: 3; }
-  p, ul, ol, blockquote, pre, table { margin: 0 0 0.9em; }
-  ul { list-style: disc; padding-left: 1.4em; } ol { list-style: decimal; padding-left: 1.6em; }
-  li:has(> input[type="checkbox"]) { list-style: none; margin-left: -1.4em; }
-  input[type="checkbox"] { margin: 0 0.5em 0 0; }
-  a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
-  strong { font-weight: 600; } del { color: #868B91; }
-  code, pre { font-family: "Source Code Pro", ui-monospace, monospace; font-size: 9pt; }
-  code { background: #F1F4F6; padding: 0 3px; border-radius: 3px; }
-  pre { background: #F1F4F6; padding: 10px 12px; border-radius: 6px; white-space: pre-wrap; }
-  pre code { background: none; padding: 0; }
-  blockquote { border-left: 2px solid #CCD0D3; padding-left: 12px; color: #5F6469; }
-  /* Print tables run smaller and tighter than on screen, and long cell text
-     wraps, so wide tables fit the page's text width. */
-  table { border-collapse: collapse; font-size: 9pt; line-height: 1.4; max-width: 100%; }
-  th, td { border: 1px solid #CCD0D3; padding: 3px 6px; text-align: left; overflow-wrap: anywhere; }
-  th { font-weight: 600; background: #F1F4F6; }
-  tr { break-inside: avoid; }
-  hr { border: none; border-top: 1px solid #CCD0D3; margin: 1.6em 0; }
-  img { max-width: 100%; }
-  pre, blockquote, figure, img, .jot-math-block, .jot-keep { break-inside: avoid; }
-  /* Code colours, light values of the --code-* tokens (print is always light). */
-  .code-keyword { color: #A83442; } .code-string { color: #0B7643; } .code-number { color: #7B6000; }
-  .code-function { color: #0068B2; } .code-comment { color: #8A8F95; font-style: italic; }
-  /* Diagrams (2h) and math, as in the rendered view. */
-  .jot-diagram { margin: 0 0 0.9em; border: 1px solid #CCD0D3; border-radius: 8px; }
-  .jot-diagram-body { padding: 14px; text-align: center; }
-  .jot-diagram-body svg { max-width: 100%; max-height: 110mm; height: auto; }
-  .jot-diagram figcaption { border-top: 1px solid #E6E8EA; padding: 5px 12px; font-family: "Source Code Pro", ui-monospace, monospace; font-size: 10px; color: #868B91; }
-  .jot-diagram-error { padding: 8px 12px 0; font-family: "Source Code Pro", ui-monospace, monospace; font-size: 11px; color: #B32035; }
-  .jot-math-block { margin: 0 0 0.9em; }
-`
+// the rendered view uses): markdown → HTML, laid out into real pages by
+// Paged.js (Phase 9), then the browser's own print-to-PDF. Page, margins,
+// font, size, preset, page numbers and custom CSS come from the PDF options
+// card (lib/pdfOptions.ts). No code block, diagram, formula, quote or table
+// row is split across a page break; a table taller than a page continues
+// between rows with its header row repeated; a heading always travels with
+// what follows it. Tuned against docs/benchmarks/pdf-benchmark.md and
+// docs/benchmarks/farsi-mixed.md.
 
 // Only what the page needs from the app's styles: the bundled fonts
 // (offline) and KaTeX's rules. The app's own CSS stays out — it's written
@@ -150,8 +103,12 @@ function registerTableHeaders(win: Window) {
 
 // The Paged.js polyfill runs inside the print frame, so its page styles never
 // touch the app. Referenced by path: the package exports only its main entry.
-export async function exportPdf(title: string, content: string) {
-  const [body, { default: pagedUrl }] = await Promise.all([renderHtml(content, { theme: 'light' }), import('../../node_modules/pagedjs/dist/paged.polyfill.min.js?url')])
+export async function exportPdf(title: string, content: string, options: PdfOptions = PDF_DEFAULTS, dir: DirSetting = 'auto') {
+  const [body, { default: pagedUrl }] = await Promise.all([renderHtml(content, { theme: 'light', dir }), import('../../node_modules/pagedjs/dist/paged.polyfill.min.js?url')])
+  // A document that reads right-to-left as a whole numbers its pages in
+  // Persian digits (Farsi design, frame 8).
+  const rtl = dir === 'rtl' || (dir === 'auto' && directionOf(content) === 'rtl')
+  const printCss = pdfCss(options, rtl)
   // Off-screen but laid out: Paged.js measures real boxes to paginate.
   const frame = document.createElement('iframe')
   frame.style.cssText = 'position:fixed;left:-10000px;top:0;width:1000px;height:1000px;border:0;visibility:hidden'

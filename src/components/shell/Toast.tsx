@@ -1,6 +1,13 @@
 import { useEffect } from 'react'
 import { UNDO_WINDOW_MS, undoDelete } from '@/state/actions'
 import { undoApply } from '@/state/reviewActions'
+import { db, type Comparison } from '@/lib/db'
+
+// Undo a cleared comparison: put it back as it was.
+async function undoClear(c: Comparison) {
+  await db.comparisons.put(c)
+  useWorkspace.getState().showToast(null)
+}
 import { useWorkspace } from '@/state/workspace'
 
 // The one inverted surface per theme, which is what makes it read as
@@ -31,19 +38,27 @@ export function Toast() {
             <>
               deleted <span className="text-toast-muted">{toast.entry.doc.title}</span>
             </>
+          ) : toast.kind === 'cleared' ? (
+            <>comparison cleared</>
+          ) : toast.kind === 'notice' ? (
+            <>
+              {toast.lead} <span className="text-toast-muted">{toast.detail}</span>
+            </>
           ) : (
             <>
               {toast.changed} {toast.changed === 1 ? 'change' : 'changes'} applied <span className="text-toast-muted">{toast.kept} kept</span>
             </>
           )}
         </span>
+        {toast.kind !== 'notice' && (
         <button
           type="button"
-          onClick={() => (toast.kind === 'deleted' ? void undoDelete(toast.id) : undoApply(toast.documentId))}
+          onClick={() => (toast.kind === 'deleted' ? void undoDelete(toast.id) : toast.kind === 'cleared' ? void undoClear(toast.comparison) : undoApply(toast.documentId))}
           className="rounded-sm border border-(--toast-line) px-2 py-0.5 hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           undo
         </button>
+        )}
         <button type="button" aria-label="dismiss" onClick={() => showToast(null)} className="text-(--toast-line) hover:text-toast-fg">
           ×
         </button>

@@ -1,5 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { PanelRight, PanelRightDashed, Sparkles } from 'lucide-react'
+import { Check, PanelRight, PanelRightDashed, Sparkles } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { hasRtl, lineDirections, type DirSetting } from '@/lib/direction'
+import { updateDocument } from '@/lib/documents'
 import { ErrorDetail } from '@/components/review/ErrorDetail'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -29,6 +32,44 @@ function Cell({ label, value, reserve, className }: { label: string; value: stri
         <span className="font-normal text-muted-foreground">{label}</span> {value}
       </span>
     </div>
+  )
+}
+
+// Text direction (Farsi support, design frame 6): a quiet cell before the
+// cursor, shown only on a document with right-to-left text or a forced
+// direction, so an English document's bar is unchanged. In auto it says
+// what the block under the cursor resolved to. A menu, not a cycle: a
+// change reflows the whole document, so the choice is explicit. Stored with
+// the document.
+const DIR_CHOICES: { value: DirSetting; label: string; hint: string }[] = [
+  { value: 'auto', label: 'auto', hint: 'by block' },
+  { value: 'rtl', label: 'right-to-left', hint: 'rtl' },
+  { value: 'ltr', label: 'left-to-right', hint: 'ltr' },
+]
+
+function DirCell({ doc, text, line }: { doc: JotDocument; text: string; line: number }) {
+  const setting: DirSetting = doc.dir ?? 'auto'
+  if (setting === 'auto' && !hasRtl(text)) return null
+  const resolved = lineDirections(text, setting)[line - 1] ?? 'ltr'
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button type="button" title="text direction of this document" className="flex items-center px-2 hover:bg-hover-lift data-[state=open]:bg-hover-lift">
+          <span className="text-muted-foreground">dir</span>&nbsp;{setting}
+          {setting === 'auto' && <span className="text-muted-foreground">&nbsp;·&nbsp;{resolved}</span>}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" side="top" className="w-[220px]">
+        <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">direction · this document</div>
+        {DIR_CHOICES.map((c) => (
+          <DropdownMenuItem key={c.value} onSelect={() => void updateDocument(doc.id, { dir: c.value })} className={cn(c.value === setting && 'text-foreground')}>
+            <Check size={13} strokeWidth={2} className={cn('text-primary', c.value !== setting && 'invisible')} aria-hidden />
+            <span className="flex-auto">{c.label}</span>
+            <span className="font-mono text-[11px] text-muted-foreground">{c.hint}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
@@ -239,6 +280,7 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
       <div className="flex-auto" />
       {doc && (
         <>
+          <DirCell doc={doc} text={text} line={cur.line} />
           <Cell label="cursor" value={`${cur.line}:${cur.col}`} reserve="7ch" className="font-medium" />
           <Cell label="bytes" value={groupDigits(c.bytes)} />
           <Cell label="chars" value={groupDigits(c.chars)} />

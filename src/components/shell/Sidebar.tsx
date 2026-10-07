@@ -17,14 +17,14 @@ import {
   type SearchResult,
 } from '@/lib/docList'
 import { cn } from '@/lib/utils'
-import { newDocument, renameDocument } from '@/state/actions'
+import { newComparison, newDocument, renameDocument } from '@/state/actions'
 import { useNow } from '@/state/hooks'
 import { useReview } from '@/state/review'
 import { docIdOf } from '@/state/layout'
 import { cycleTheme, nextTheme, useTheme } from '@/state/theme'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 import { DocumentMenu } from './DocumentMenu'
-import { FilterIcon, PinIcon, PlusIcon, SearchIcon, SortIcon } from './icons'
+import { DiffIcon, FilterIcon, PinIcon, PlusIcon, SearchIcon, SortIcon } from './icons'
 import { tagClass } from './tagClass'
 import { TagMark } from './TagMark'
 import { Wordmark } from './Wordmark'
@@ -502,6 +502,9 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
             </span>
             <button type="button" title="new document" className={iconButton} onClick={() => void newDocument()}>
               <PlusIcon />
+            </button>
+            <button type="button" title="new comparison" aria-label="new comparison" className={iconButton} onClick={() => void newComparison()}>
+              <DiffIcon />
             </button>
             <button
               type="button"

@@ -44,8 +44,17 @@ export const sectionOf = (sections: ResolvedSection[], pos: number) =>
 // section is within the allowance).
 export const allowance = (words: number, per: number) => Math.max(1, Math.floor(words / per))
 
+// The mode-dependent rules by guide (Farsi support): the Farsi guide has the
+// same three shapes under its own ids and caps (ruleset/fa/checks.md), and
+// no em-dash rule.
+const RULES = {
+  en: { antithesis: 'T1-01', length: 'T1-08', despite: 'T1-11', tricolon: 'T2-07', caps: { instruction: 20, descriptive: 25, flavored: 35 } },
+  fa: { antithesis: 'FA-T1-23', length: 'FA-T1-20', despite: 'FA-T1-25', tricolon: 'FA-T2-07', caps: { instruction: 25, descriptive: 30, flavored: 40 } },
+} as const
+
 export function runPassB(text: string, a: PassAResult, shared: SharedResponse, sections: ResolvedSection[]): RawFlag[] {
   const out: RawFlag[] = []
+  const R = RULES[a.lang ?? 'en']
   const fixFor = (c: Candidate) => (c.fixRef ? (shared.fixes[c.fixRef] ?? null) : null)
   const byRule = (rule: Candidate['rule']) => a.candidates.filter((c) => c.rule === rule)
   const inSection = (s: ResolvedSection, pos: number) => pos >= s.start && pos < s.end
@@ -53,13 +62,13 @@ export function runPassB(text: string, a: PassAResult, shared: SharedResponse, s
   // T1-01 Antithesis — rate cap. Strict: zero allowed. Flavored: above 1 per
   // 500 words in that section; a failing section flags every instance.
   for (const s of sections) {
-    const cands = byRule('T1-01').filter((c) => inSection(s, c.start))
+    const cands = byRule(R.antithesis).filter((c) => inSection(s, c.start))
     if (!cands.length) continue
     const fails = s.mode === 'strict' || cands.length > allowance(s.words, 500)
     if (!fails) continue
     for (const c of cands) {
       out.push({
-        id: 'T1-01',
+        id: R.antithesis,
         family: 'tier1',
         start: c.start,
         end: c.end,
@@ -75,12 +84,12 @@ export function runPassB(text: string, a: PassAResult, shared: SharedResponse, s
 
   // T1-08 Sentence length — flat per sentence: strict 20 (instruction) / 25
   // (descriptive), flavored 35.
-  for (const c of byRule('T1-08')) {
+  for (const c of byRule(R.length)) {
     const s = sectionOf(sections, c.start)
-    const cap = s.mode === 'strict' ? (c.instruction ? 20 : 25) : 35
+    const cap = s.mode === 'strict' ? (c.instruction ? R.caps.instruction : R.caps.descriptive) : R.caps.flavored
     if ((c.words ?? 0) <= cap) continue
     out.push({
-      id: 'T1-08',
+      id: R.length,
       family: 'tier1',
       start: c.start,
       end: c.end,
@@ -95,14 +104,14 @@ export function runPassB(text: string, a: PassAResult, shared: SharedResponse, s
   // budget of one: the first (in document order) is allowed, every later
   // one anywhere in flavored territory fails.
   let flavoredBudget = 1
-  for (const c of byRule('T1-11').sort((x, y) => x.start - y.start)) {
+  for (const c of byRule(R.despite).sort((x, y) => x.start - y.start)) {
     const s = sectionOf(sections, c.start)
     if (s.mode === 'flavored' && flavoredBudget > 0) {
       flavoredBudget--
       continue
     }
     out.push({
-      id: 'T1-11',
+      id: R.despite,
       family: 'tier1',
       start: c.start,
       end: c.end,
@@ -164,7 +173,7 @@ export function runPassB(text: string, a: PassAResult, shared: SharedResponse, s
     if (s.mode === 'flavored' && inS.length <= allowance(s.words, 500)) continue
     for (const t of inS) {
       out.push({
-        id: 'T2-07',
+        id: R.tricolon,
         family: 'tier2',
         start: t.range.start,
         end: t.range.end,

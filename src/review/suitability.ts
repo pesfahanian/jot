@@ -10,16 +10,21 @@ export const MIN_PROSE_WORDS = 30
 
 const FENCE = /^[ \t>]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?(?:\n[ \t>]*\1[ \t]*(?=\n|$)|$(?![\s\S]))/gm
 
-// Words of prose: what's left once front matter, code, math, HTML comments
-// and bare links are taken out. A word is a run of letters, in any script.
-export function proseWords(md: string): number {
-  const text = md
+// The prose itself: front matter, code, math, HTML comments and bare links
+// taken out.
+function proseOnly(md: string): string {
+  return md
     .replace(/^---\n[\s\S]*?\n---(?:\n|$)/, ' ')
     .replace(FENCE, ' ')
     .replace(/\$\$[\s\S]*?\$\$/g, ' ')
     .replace(/`[^`\n]*`/g, ' ')
     .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/(?:https?:\/\/|www\.)\S+/g, ' ')
+}
+
+// Words of prose. A word is a run of letters, in any script.
+export function proseWords(md: string): number {
+  const text = proseOnly(md)
   return (text.match(/\p{L}[\p{L}\p{M}'’-]*/gu) ?? []).length
 }
 
@@ -33,3 +38,15 @@ export function declineReason(md: string): string | null {
   if (n === 0) return 'no prose to review'
   return `too short: ${n} word${n === 1 ? '' : 's'} of prose, a review needs ${MIN_PROSE_WORDS}`
 }
+
+// Which guide reviews a document (Farsi support, owner): the gate counts
+// the letters of each script in the prose — before any call — and the
+// majority decides. A Farsi essay with English terms, code and links is
+// Farsi; a genuinely mixed document goes to its majority language's guide.
+export function reviewLanguage(md: string): 'en' | 'fa' {
+  const text = proseOnly(md)
+  const fa = (text.match(/\p{Script=Arabic}/gu) ?? []).length
+  const latin = (text.match(/\p{Script=Latin}/gu) ?? []).length
+  return fa > latin ? 'fa' : 'en'
+}
+

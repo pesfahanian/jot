@@ -7,6 +7,28 @@
 @import "@fontsource/source-code-pro/latin-400.css";
 @import "@fontsource/source-code-pro/latin-500.css";
 @import "@fontsource/source-code-pro/latin-600.css";
+/* Source Serif 4: the PDF's "serif" choice only, never the app chrome. It
+   downloads only when a page uses it. */
+@import "@fontsource/source-serif-4/latin-400.css";
+@import "@fontsource/source-serif-4/latin-400-italic.css";
+@import "@fontsource/source-serif-4/latin-600.css";
+@import "@fontsource/source-serif-4/latin-600-italic.css";
+
+/* Farsi (Persian) text: Vazirmatn, variable 100–900, Arabic script only.
+   The unicode-range means it downloads only when Arabic-script text is on
+   the page, and it never touches Latin text — it sits behind Public Sans and
+   Source Code Pro in both stacks, so each script gets its own face. Set 8%
+   larger so its letter bodies stand level with Latin x-height (Farsi
+   design). The PDF frame copies every @font-face from here. */
+@font-face {
+    font-family: "Vazirmatn";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    size-adjust: 108%;
+    src: url("../node_modules/@fontsource-variable/vazirmatn/files/vazirmatn-arabic-wght-normal.woff2") format("woff2-variations");
+    unicode-range: U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC,U+102E0-102FB,U+10E60-10E7E,U+10EC2-10EC4,U+10EFC-10EFF,U+1EE00-1EE03,U+1EE05-1EE1F,U+1EE21-1EE22,U+1EE24,U+1EE27,U+1EE29-1EE32,U+1EE34-1EE37,U+1EE39,U+1EE3B,U+1EE42,U+1EE47,U+1EE49,U+1EE4B,U+1EE4D-1EE4F,U+1EE51-1EE52,U+1EE54,U+1EE57,U+1EE59,U+1EE5B,U+1EE5D,U+1EE5F,U+1EE61-1EE62,U+1EE64,U+1EE67-1EE6A,U+1EE6C-1EE72,U+1EE74-1EE77,U+1EE79-1EE7C,U+1EE7E,U+1EE80-1EE89,U+1EE8B-1EE9B,U+1EEA1-1EEA3,U+1EEA5-1EEA9,U+1EEAB-1EEBB,U+1EEF0-1EEF1;
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -15,8 +37,8 @@
  * --radius-lg are set there directly, not derived), so only md is mapped here.
  */
 @theme inline {
-    --font-sans: "Public Sans", Helvetica, sans-serif;
-    --font-mono: "Source Code Pro", ui-monospace, monospace;
+    --font-sans: "Public Sans", "Vazirmatn", Helvetica, sans-serif;
+    --font-mono: "Source Code Pro", "Vazirmatn", ui-monospace, monospace;
     --radius-md: var(--radius);
 
     --color-background: var(--background);
@@ -57,6 +79,8 @@
        error. */
     --color-warn: var(--flag-check);
     --color-warn-bg: var(--flag-check-bg);
+    --color-diff-del: var(--diff-del);
+    --color-diff-add: var(--diff-add);
     --color-resolved-bg: var(--resolved-bg);
     --color-proof-spelling: var(--proof-spelling);
     --color-proof-grammar: var(--proof-grammar);
@@ -314,13 +338,19 @@
     .jot-rendered h3 { font-size: 16px; }
     .jot-rendered h4, .jot-rendered h5, .jot-rendered h6 { font-size: 14.5px; }
     .jot-rendered p, .jot-rendered ul, .jot-rendered ol, .jot-rendered blockquote, .jot-rendered pre, .jot-rendered table { margin: 0 0 0.9em; }
-    .jot-rendered ul { list-style: disc; padding-left: 1.4em; }
-    .jot-rendered ol { list-style: decimal; padding-left: 1.6em; }
+    .jot-rendered ul { list-style: disc; padding-inline-start: 1.4em; }
+    .jot-rendered ol { list-style: decimal; padding-inline-start: 1.6em; }
     .jot-rendered ul ul { list-style: circle; }
     .jot-rendered li > ul, .jot-rendered li > ol { margin: 0.2em 0 0; }
     .jot-rendered li + li { margin-top: 0.2em; }
-    .jot-rendered li:has(> input[type="checkbox"]) { list-style: none; margin-left: -1.4em; }
-    .jot-rendered input[type="checkbox"] { margin: 0 0.5em 0 0; vertical-align: -1px; accent-color: var(--primary); }
+    .jot-rendered li:has(> input[type="checkbox"], > .jot-li > input[type="checkbox"]) { list-style: none; margin-inline-start: -1.4em; }
+    /* A right-to-left list counts in Persian digits; an item's own text
+       keeps the list's side whatever its direction (only top-level blocks
+       carry dir="rtl", so an rtl ancestor is the list's own direction). */
+    .jot-rendered ol[dir="rtl"], .jot-rendered [dir="rtl"] ol { list-style-type: persian; }
+    .jot-rendered .jot-li { text-align: left; }
+    .jot-rendered [dir="rtl"] li > .jot-li { text-align: right; }
+    .jot-rendered input[type="checkbox"] { margin: 0; margin-inline-end: 0.5em; vertical-align: -1px; accent-color: var(--primary); }
     .jot-rendered a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border-strong); }
     .jot-rendered a:hover { text-decoration-color: currentColor; }
     .jot-rendered strong { font-weight: 600; }
@@ -343,10 +373,60 @@
     /* Math: display formulas scroll sideways rather than overflow. */
     .jot-rendered .jot-math-block { margin: 0 0 0.9em; overflow-x: auto; overflow-y: hidden; }
     .jot-rendered .katex { font-size: 1.08em; }
-    .jot-rendered blockquote { border-left: 2px solid var(--border-strong); padding-left: 12px; color: var(--secondary-foreground); }
+    .jot-rendered blockquote { border-inline-start: 2px solid var(--border-strong); padding-inline-start: 12px; color: var(--secondary-foreground); }
     .jot-rendered hr { border: 0; border-top: 1px solid var(--border); margin: 1.6em 0; }
     .jot-rendered img { max-width: 100%; border-radius: 4px; }
     .jot-rendered table { border-collapse: collapse; display: block; overflow-x: auto; max-width: 100%; font-size: 13.5px; }
-    .jot-rendered th, .jot-rendered td { border: 1px solid var(--border); padding: 5px 10px; text-align: left; }
+    .jot-rendered th, .jot-rendered td { border: 1px solid var(--border); padding: 5px 10px; text-align: start; }
     .jot-rendered th { font-weight: 600; background: var(--inset); }
+    /* Farsi and mixed documents (Farsi design, frame 3). Blocks carry
+       dir="rtl" from lib/direction.ts; everything above mirrors through
+       logical properties. Code, formulas and bare links always read
+       left-to-right, isolated inside right-to-left text. */
+    .jot-rendered pre { direction: ltr; text-align: left; }
+    .jot-rendered :not(pre) > code, .jot-rendered .katex { direction: ltr; unicode-bidi: isolate; }
+    /* Dots and tails below the line need the room. */
+    .jot-rendered [dir="rtl"] { line-height: 1.8; }
+    .jot-rendered :is(h1, h2, h3, h4, h5, h6)[dir="rtl"] { letter-spacing: 0; line-height: 1.5; }
+    /* Emphasis by the script of the run: Farsi upright and bolder. */
+    .jot-rendered em .jot-fa { font-style: normal; font-weight: 600; }
+    .jot-rendered strong .jot-fa { font-style: normal; font-weight: 800; }
 }
+
+/* The diff checker (design in docs/design/diff-checker/): removed is the
+   destructive red, added the review's quick-fix teal (owner: not a tag
+   colour). Washes mix onto the document ground — light for a whole changed
+   line, stronger for the exact changed text. Dark mixes more to reach the
+   same visible step on a near-black ground. Removed text is never struck
+   through: a diff only reports what differs. */
+:root {
+    --diff-del: var(--destructive);
+    --diff-add: var(--flag-quick);
+    --diff-del-line: color-mix(in oklab, var(--diff-del) 9%, var(--document));
+    --diff-add-line: color-mix(in oklab, var(--diff-add) 9%, var(--document));
+    --diff-del-char: color-mix(in oklab, var(--diff-del) 24%, var(--document));
+    --diff-add-char: color-mix(in oklab, var(--diff-add) 24%, var(--document));
+}
+.dark {
+    --diff-del-line: color-mix(in oklab, var(--diff-del) 15%, var(--document));
+    --diff-add-line: color-mix(in oklab, var(--diff-add) 15%, var(--document));
+    --diff-del-char: color-mix(in oklab, var(--diff-del) 34%, var(--document));
+    --diff-add-char: color-mix(in oklab, var(--diff-add) 34%, var(--document));
+}
+.jot-diff .cm-editor .cm-changedLine, .jot-diff .cm-editor .cm-insertedLine { background: var(--diff-add-line) !important; }
+.jot-diff .cm-merge-a .cm-changedLine, .jot-diff .cm-editor .cm-deletedChunk, .jot-diff .cm-editor .cm-deletedLine { background: var(--diff-del-line) !important; }
+.jot-diff .cm-editor .cm-changedText { background: var(--diff-add-char) !important; border-radius: 2px; }
+.jot-diff .cm-merge-a .cm-changedText, .jot-diff .cm-editor .cm-deletedChunk .cm-deletedText, .jot-diff .cm-editor .cm-deletedLine del { background: var(--diff-del-char) !important; text-decoration: none !important; border-radius: 2px; }
+.jot-diff .cm-changeGutter { width: 14px; padding: 0; }
+.jot-diff .cm-changeGutter .cm-gutterElement { text-align: center; font-family: var(--font-mono); font-size: 12px; }
+.jot-diff .cm-changedLineGutter, .jot-diff .cm-deletedLineGutter, .jot-diff .cm-inlineChangedLineGutter { background: none !important; }
+.jot-diff .cm-merge-b .cm-changedLineGutter::before, .jot-diff .cm-inlineChangedLineGutter::before { content: "+"; color: var(--diff-add); }
+.jot-diff .cm-merge-a .cm-changedLineGutter::before, .jot-diff .cm-deletedLineGutter::before { content: "−"; color: var(--diff-del); }
+.jot-diff .cm-mergeView .cm-mergeViewEditors { height: 100%; }
+.jot-diff .cm-mergeViewEditor + .cm-mergeViewEditor { border-left: 1px solid var(--border); }
+.jot-diff .cm-mergeSpacer { background: var(--inset); }
+/* Hidden unchanged lines fold into a quiet band. */
+.jot-diff .cm-collapsedLines { background: var(--inset) !important; color: var(--muted-foreground); font-family: var(--font-mono); font-size: 11px; padding: 5px 12px; cursor: pointer; border-block: 1px solid var(--border-subtle); }
+.jot-diff .cm-collapsedLines:hover { color: var(--foreground); }
+.jot-diff .cm-collapsedLines::before, .jot-diff .cm-collapsedLines::after { content: none !important; }
+

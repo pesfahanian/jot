@@ -71,3 +71,14 @@ export function NoColorMark({ className }: { className?: string }) {
     />
   )
 }
+
+// The diff checker's mark (diff tabs, the new-comparison button): two
+// sides, one filled — the same glyph on the button and the tab it opens.
+export function DiffIcon({ className }: { className?: string }) {
+  return (
+    <span aria-hidden className={cn('flex h-[10px] w-[12px] flex-none gap-[2px]', className)}>
+      <span className="flex-1 rounded-[1.5px] border-[1.5px] border-current" />
+      <span className="flex-1 rounded-[1.5px] bg-current" />
+    </span>
+  )
+}

@@ -24,6 +24,13 @@ export const renderTab = (docId: string) => RENDER + docId
 export const isRenderTab = (tabId: string | null | undefined) => !!tabId?.startsWith(RENDER)
 export const docIdOf = (tabId: string) => (tabId.startsWith(RENDER) ? tabId.slice(RENDER.length) : tabId)
 
+// A diff tab ("diff:" + comparison id) shows a comparison, not a document:
+// docIdOf leaves its id as is, and no document has that id.
+const DIFF = 'diff:'
+export const diffTab = (comparisonId: string) => DIFF + comparisonId
+export const isDiffTab = (tabId: string | null | undefined) => !!tabId?.startsWith(DIFF)
+export const comparisonIdOf = (tabId: string) => tabId.slice(DIFF.length)
+
 export interface DraggedTab {
   // The tab's id: a document id, or a rendered view's "render:" id.
   docId: string
