@@ -65,7 +65,16 @@ def greet(name):
 - Right-click a document to tag it with a colour, rename, pin or delete it. Double-click it to rename.
 - Drag tabs to reorder them, or onto another pane. Drop one on a pane's left or right edge for a new column, or on its top or bottom edge to stack two panes, up to three columns of two. Documents drag in from the sidebar too.
 - Drag the gaps between panes to resize them. Double-click a gap to even it out.
-- Drop .md files anywhere to import them. The **export** menu saves Markdown, plain text or PDF, and, set apart below those, the whole workspace as one .zip.
+- Drop .md files anywhere to import them. The **export** menu saves Markdown, plain text or PDF (with page, font and colour options), and, set apart below those, the whole workspace as one .zip.
+- The **+** at the end of the tabs makes a new document, as in a browser.
+
+## comparing
+
+To see what changed between two texts, right-click a document and choose **compare with…**, or press the two-panel icon at the top of the sidebar. Each side can be a document or pasted text. Both sides stay editable, and the differences update as you type.
+
+## writing in farsi
+
+Farsi works as naturally as English. Each paragraph, list or table reads right-to-left or left-to-right by its own majority script, while code, links and formulas inside Farsi text keep reading left-to-right. When a document has Farsi in it, the **dir** cell in the bar at the bottom shows the direction, and can set the whole document right-to-left or left-to-right instead. For a diagram that flows right-to-left, write **flowchart RL**.
 
 ## the style review
 
@@ -75,7 +84,7 @@ jot can review your prose against a style guide, using your own AI key.
 2. Press **review style** in the bar at the bottom.
 3. Click each marked passage to accept, reject or rewrite it. Nothing changes until you press **apply**.
 
-The **?** beside the review's colour key explains each kind of suggestion. Very short documents, or ones that are all code, are skipped; **review anyway** overrides that.
+The review reads English and Farsi, each against its own style guide. The **?** beside the review's colour key explains each kind of suggestion. Very short documents, or ones that are all code, are skipped; **review anyway** overrides that.
 
 ## where your writing lives
 

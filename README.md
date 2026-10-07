@@ -15,8 +15,10 @@ Open it and write. There's no account and no server. Your documents stay on your
 
 ## What it does
 
-- Renders LaTeX math and Mermaid diagrams in the preview and in exported PDFs
-- An optional AI style review that suggests edits and changes nothing until you say so
+- Renders LaTeX math and Mermaid diagrams in the preview and in exported PDFs, with page, font and colour options for the PDF
+- Writes Farsi and mixed Farsi/English properly: right-to-left by paragraph, in the editor, preview and PDF
+- Compares two documents, or pasted text, side by side
+- An optional AI style review, for English and Farsi, that suggests edits and changes nothing until you say so
 
 ## Privacy
 
