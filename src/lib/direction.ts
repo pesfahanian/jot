@@ -65,6 +65,12 @@ const QUOTE = /^ {0,3}>/
 const MATH = /^ {0,3}\$\$/
 const BLANK = /^\s*$/
 
+// A list item's type: its bullet character, or the ordered delimiter.
+function markerOf(line: string): string {
+  const m = line.match(LIST_ITEM)
+  return m ? (/\d/.test(m[1]) ? m[1].slice(-1) : m[1]) : ''
+}
+
 type Kind = 'code' | 'math' | 'heading' | 'list' | 'quote' | 'para' | 'front'
 
 interface Block {
@@ -73,9 +79,10 @@ interface Block {
   to: number // last line, inclusive
 }
 
-// Splits markdown into top-level blocks by line. Lists and blockquotes run
-// on across blank lines while the next line still belongs to them, so a
-// loose list stays one block.
+// Splits markdown into top-level blocks by line. A list runs on across
+// blank lines while the next line still belongs to it, so a loose list stays
+// one block; as in markdown, a different bullet (or `1)` after `1.`) starts
+// a new list, and a blank line ends a blockquote.
 export function blocksOf(lines: string[]): Block[] {
   const blocks: Block[] = []
   let i = 0
@@ -115,24 +122,28 @@ export function blocksOf(lines: string[]): Block[] {
       continue
     }
     const kind: Kind = LIST_ITEM.test(line) ? 'list' : QUOTE.test(line) ? 'quote' : 'para'
+    const marker = kind === 'list' ? markerOf(line) : ''
+    // A top-level item of another list type starts a new list.
+    const otherList = (l: string) => LIST_ITEM.test(l) && markerOf(l) !== marker
     let j = i + 1
     for (; j < lines.length; j++) {
       const next = lines[j]
       if (FENCE.test(next) || HEADING.test(next)) break
       if (BLANK.test(next)) {
-        // A blank line ends a paragraph; a list or quote continues if the
+        // A blank line ends a paragraph or a quote; a list continues if the
         // next non-blank line still belongs to it.
-        if (kind === 'para') break
+        if (kind !== 'list') break
         let k = j + 1
         while (k < lines.length && BLANK.test(lines[k])) k++
         const after = lines[k]
-        const continues = after !== undefined && (kind === 'list' ? LIST_ITEM.test(after) || /^\s{2,}\S/.test(after) : QUOTE.test(after))
+        const continues = after !== undefined && ((LIST_ITEM.test(after) && !otherList(after)) || /^\s{2,}\S/.test(after))
         if (!continues) break
         j = k - 1
         continue
       }
       if (kind === 'para' && (LIST_ITEM.test(next) || QUOTE.test(next))) break
       if (kind === 'quote' && !QUOTE.test(next)) break
+      if (kind === 'list' && otherList(next)) break
     }
     blocks.push({ kind, from: i, to: j - 1 })
     i = j

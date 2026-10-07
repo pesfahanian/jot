@@ -33,6 +33,10 @@ describe('blocks', () => {
     const md = ['- one', '', '- two', '  more', '', '> a', '> b', '', '| a | b |', '|---|---|', '| 1 | 2 |'].join('\n')
     expect(blocksOf(md.split('\n')).map((b) => `${b.kind}:${b.from}-${b.to}`)).toEqual(['list:0-3', 'quote:5-6', 'para:8-10'])
   })
+  it('ends a quote at a blank line, and starts a new list at a new bullet', () => {
+    const md = ['> a', '', '> b', '', '- one', '', '- two', '', '* three', '1. four', '1) five'].join('\n')
+    expect(blocksOf(md.split('\n')).map((b) => `${b.kind}:${b.from}-${b.to}`)).toEqual(['quote:0-0', 'quote:2-2', 'list:4-6', 'list:8-8', 'list:9-9', 'list:10-10'])
+  })
   it('treats fenced code and math blocks as their own blocks', () => {
     const md = ['text', '```js', 'x', '```', '$$', 'a', '$$', '$$ b $$'].join('\n')
     expect(blocksOf(md.split('\n')).map((b) => `${b.kind}:${b.from}-${b.to}`)).toEqual(['para:0-0', 'code:1-3', 'math:4-6', 'math:7-7'])
@@ -43,6 +47,10 @@ describe('lineDirections', () => {
   it('gives a whole list one direction, even with an English item', () => {
     const md = ['- کامپوننت‌ها قطعه‌های مستقل رابط هستند', '- `props`', '- React'].join('\n')
     expect(lineDirections(md)).toEqual(['rtl', 'rtl', 'rtl'])
+  })
+  it('gives an English quote or list after a Farsi one its own direction', () => {
+    const md = ['> نقل‌قول فارسی', '', '> An English quote', '', '- مورد فارسی', '', '* An English list'].join('\n')
+    expect(lineDirections(md)).toEqual(['rtl', 'rtl', 'ltr', 'ltr', 'rtl', 'rtl', 'ltr'])
   })
   it('lets a block with no letters inherit from the one before', () => {
     const md = ['# راهنمای انتشار', '', '---', '', '12345'].join('\n')

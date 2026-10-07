@@ -374,8 +374,8 @@ https://jot.software
        - گلوله‌ای درون آن
 - مورد پایانی سطح یک
 
-- An English list inside a Farsi document
-- Its bullets sit on the left
+* An English list inside a Farsi document (a new bullet, so a new list)
+* Its bullets sit on the left
 
 ---
 
