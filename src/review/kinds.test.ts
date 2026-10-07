@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { FlagFamily, ReviewFlag } from '@/lib/db'
-import { kindCounts, kindOf } from './kinds'
+import { kindCounts, kindOf, ruleName } from './kinds'
 
 const flag = (family: FlagFamily, extra: Partial<ReviewFlag> = {}): ReviewFlag => ({
   key: Math.random().toString(36),
@@ -33,5 +33,14 @@ describe('flag kinds', () => {
       { kind: 'quick', total: 2, pending: 1 },
       { kind: 'call', total: 1, pending: 1 },
     ])
+  })
+})
+
+describe('Farsi rule names', () => {
+  it('reads every Farsi rule its plain name from the guide', () => {
+    const flag = (id: string, family: 'tier1' | 'tier1b' | 'tier2') => ({ key: id, id, family, kind: family === 'tier2' ? 'flag' : 'replace', spanStart: 0, spanEnd: 1, before: 'x', after: family === 'tier2' ? null : 'y', rationale: '', status: 'pending' }) as const
+    expect(ruleName(flag('FA-T1-01', 'tier1'))).toBe('Half-space after می')
+    expect(ruleName(flag('FA-T1b-07', 'tier1b'))).toBeTruthy()
+    expect(ruleName(flag('FA-T2-12', 'tier2'))).toBeTruthy()
   })
 })

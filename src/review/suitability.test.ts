@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { declineReason, MIN_PROSE_WORDS, proseWords } from './suitability'
+import { declineReason, MIN_PROSE_WORDS, proseWords, reviewLanguage } from './suitability'
 
 // The review declines text there's nothing to judge in: too little prose,
 // or only code. Code, math and links don't count as prose.
@@ -38,5 +38,14 @@ describe('declineReason', () => {
   it('declines a document that is all code', () => {
     expect(declineReason('```ts\nconst a = 1\n```')).toBe('only code, no prose to review')
     expect(declineReason('--- *** ---')).toBe('no prose to review')
+  })
+})
+
+describe('reviewLanguage', () => {
+  it('sends a Farsi document — English terms, code and links included — to the Farsi guide', () => {
+    expect(reviewLanguage('React یک کتابخانه است که برای ساختن رابط کاربری به کار می‌رود. دستور `npm install react --save` را اجرا کنید و https://react.dev/learn را بخوانید.')).toBe('fa')
+  })
+  it('keeps an English document with a Farsi phrase on the English guide', () => {
+    expect(reviewLanguage('The Farsi word for library is «کتابخانه», and it names this whole section of the guide.')).toBe('en')
   })
 })

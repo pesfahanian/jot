@@ -4,6 +4,9 @@ import { runPassA } from './passA'
 import { resolveSections, runPassB } from './passB'
 import { RULESET_VERSION } from './ruleset'
 import { runSharedCall } from './sharedCall'
+import { runPassAFa } from './fa/passA'
+import { RULESET_VERSION_FA } from './fa/ruleset'
+import { reviewLanguage } from './suitability'
 
 // The full flag-production pipeline (checks.md "Execution model"):
 //   Pass A (client) → one shared provider call → Pass B (client) → assemble
@@ -18,11 +21,11 @@ export async function produceReview(
   signal?: AbortSignal,
   force = false,
 ): Promise<ReviewSession | { skipped: string }> {
-  const a = runPassA(text)
+  const a = reviewLanguage(text) === 'fa' ? runPassAFa(text) : runPassA(text)
   const { response, model } = await runSharedCall(provider, chain, key, text, a, signal, !force)
   if (response.skip) return { skipped: response.skip }
   const sections = resolveSections(text, a, response.sections)
   const b = runPassB(text, a, response, sections)
   const flags = assembleFlags(text, a, response, b)
-  return { documentId, rulesetVersion: RULESET_VERSION, model: `${provider}:${model}`, source: text, createdAt: Date.now(), flags }
+  return { documentId, rulesetVersion: a.lang === 'fa' ? RULESET_VERSION_FA : RULESET_VERSION, model: `${provider}:${model}`, source: text, createdAt: Date.now(), flags }
 }

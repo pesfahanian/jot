@@ -3,6 +3,7 @@ import { chat } from './providers'
 import { ReviewRequestError, type ChatMessage } from './request'
 import type { Family, PassAResult } from './passA'
 import { ruleset } from './ruleset'
+import { rulesetFa } from './fa/ruleset'
 
 // T5.10 — the one shared call per document (to whichever AI provider is
 // selected). Everything that needs judgment,
@@ -51,6 +52,7 @@ export interface SharedRequest {
 // allowSkip: whether the model may decline the document; off for "review
 // anyway".
 export function buildSharedRequest(text: string, a: PassAResult, allowSkip = true): SharedRequest {
+  if (a.lang === 'fa') return buildSharedRequestFa(text, a, allowSkip)
   const includesDashSteps = a.dashGatePassed && a.dashes.length > 0
   const includesSemicolonStep = a.semicolons.length > 0
 
@@ -126,6 +128,71 @@ export function buildSharedRequest(text: string, a: PassAResult, allowSkip = tru
     ],
     includesDashSteps,
     includesSemicolonStep,
+    fixRefs: a.fixRequests.map((f) => f.ref),
+  }
+}
+
+// The same call for a Farsi document, against the Farsi guide (ruleset/fa/):
+// no proofing pass and no dash or semicolon steps — every objective error is
+// a fixed client-side rule there (checks.md, "Execution model").
+function buildSharedRequestFa(text: string, a: PassAResult, allowSkip: boolean): SharedRequest {
+  const system = [
+    'You are the judge for a machine-verifiable prose style guide for Farsi (Persian) writing. The complete guide follows; apply it exactly as written.',
+    'A client-side pass has already run every Tier 1 detection and the mechanical Tier 1b rules (FA-T1b-01 to FA-T1b-08), including all orthography and punctuation. Never re-decide whether those rules fired, and never flag spelling, grammar or punctuation; only do the tasks listed in the user message.',
+    'Quote spans verbatim from the document — exact characters, including the half-space (U+200C) and the ezafe mark (U+0654); copy them, never retype them. A quote that does not match the document exactly is discarded.',
+    'Write every replacement in Farsi. Write rationales in English, quoting the Farsi where needed.',
+    'Respond with one JSON object and nothing else.',
+    '',
+    '===== RULES.md =====',
+    rulesetFa.rules,
+    '===== checks.md =====',
+    rulesetFa.checks,
+    '===== modes.md =====',
+    rulesetFa.modes,
+    '===== output-schema.md =====',
+    rulesetFa.outputSchema,
+    '===== examples/tier1-examples.md =====',
+    rulesetFa.tier1Examples,
+    '===== examples/tier2-examples.md =====',
+    rulesetFa.tier2Examples,
+  ].join('\n')
+
+  const tasks: string[] = []
+  if (allowSkip)
+    tasks.push(
+      '0. FIRST decide whether this document is prose the guide can meaningfully apply to. If it is not — gibberish or random characters, placeholder text, a data dump, a list of links or identifiers, or almost entirely code — return exactly {"skip": "<the reason in under 12 words, lowercase, in English>"} and nothing else. Otherwise do not include "skip" at all. Rough, informal or short writing is still prose: review it.',
+    )
+  tasks.push(
+    '1. "sections" — FIRST, split the document into sections by what each part does and assign each a mode per modes.md. Each entry: {"start": "<verbatim quote of where the section begins, at least 6 words or the whole first line>", "mode": "strict"|"flavored"}. In document order; the first starts at the beginning of the document.',
+  )
+  tasks.push(
+    '2. "flags" — FA-T1b-09 (one name per entity, with fixes), and every Tier 2 rule except FA-T2-07 (FA-T2-01…FA-T2-06, FA-T2-08…FA-T2-12: detection and rationale; after is always null). Each flag: {"id","family","span","after","rationale"}. No spelling, grammar or punctuation flags.',
+  )
+  tasks.push(
+    '3. "tricolons" — every decorative rule-of-three (FA-T2-07 judge question; necessary enumeration of named things never counts): {"span","rationale"}. Report every decorative instance; the frequency cap is applied elsewhere.',
+  )
+  if (a.fixRequests.length) {
+    tasks.push(
+      '4. "fixes" — for each confirmed span below, write only the replacement text for that exact span, in Farsi, following its instruction and the guide (it must read correctly in place, keep the author\'s facts, and not be empty). Object keyed by ref: {"f1": "…"}.\n' +
+        a.fixRequests.map((f) => `- ${f.ref} [${f.ruleId}] instruction: ${f.instruction}\n  span: ${JSON.stringify(f.span)}`).join('\n'),
+    )
+  }
+  const user = [
+    'Tasks:',
+    tasks.join('\n\n'),
+    '',
+    `Return: {"sections": [...], "flags": [...], "tricolons": [...]${a.fixRequests.length ? ', "fixes": {...}' : ''}}`,
+    '',
+    '===== DOCUMENT =====',
+    text,
+  ].join('\n')
+  return {
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ],
+    includesDashSteps: false,
+    includesSemicolonStep: false,
     fixRefs: a.fixRequests.map((f) => f.ref),
   }
 }

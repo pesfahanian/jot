@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import type { JotDocument, ReviewFlag, ReviewSession } from '@/lib/db'
 import { cn } from '@/lib/utils'
 import { applyPlan, canApply, counts, describe } from '@/review/model'
-import { RULESET_NAME, RULESET_VERSION } from '@/review/ruleset'
+import { RULESET_NAME } from '@/review/ruleset'
 import { useReview } from '@/state/review'
 import { applyReview } from '@/state/reviewActions'
 import { Bubble, KindMark, KindSample } from './Bubble'
@@ -258,8 +258,10 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
         </div>
         <div className={cn(toolbarCell, 'border-r text-ink-tertiary @max-[1040px]:hidden')}>
           <span className="text-muted-foreground">ruleset</span>
+          {/* The guide this review ran on: the English one, or the Farsi
+              one ("fa rev 1"). */}
           <span className="text-foreground">{RULESET_NAME}</span>
-          <span className="text-muted-foreground">{RULESET_VERSION}</span>
+          <span className="text-muted-foreground">{session.rulesetVersion}</span>
         </div>
         <div className="flex-auto" />
         <div className={cn(toolbarCell, 'gap-3.5 border-l')}>
