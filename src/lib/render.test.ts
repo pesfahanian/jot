@@ -33,6 +33,22 @@ describe('rendered blocks', () => {
   })
 })
 
+describe('list items', () => {
+  it('read in their own direction inside a list that takes one', async () => {
+    const html = await renderHtml(['1. سند طراحی، ۱۴۰۵.', '2. Designing Data-Intensive Applications, O\'Reilly.', '3. Stream processing, chapter 11.'].join('\n'))
+    expect(html).toContain('<li><div class="jot-li" dir="rtl">سند طراحی')
+    expect(html).toContain('<li><div class="jot-li" dir="ltr">Designing')
+    expect(html).toMatch(/^<ol>/) // the list itself: left-to-right, most of it English
+  })
+  it('leave nested lists outside the item\'s own text, and follow a forced direction', async () => {
+    const md = ['- مورد فارسی', '  - English child'].join('\n')
+    expect(await renderHtml(md)).toMatch(/<div class="jot-li" dir="rtl">مورد فارسی\s*<\/div><ul>/)
+    expect(await renderHtml(md, { dir: 'ltr' })).not.toContain('jot-li')
+    const withCode = ['1. نوشتن دوگانه را روشن کنید:', '   ```bash', '   ledger-sync config set dual_write=true --region eu-central-1', '   ```'].join('\n')
+    expect(await renderHtml(withCode)).toContain('<div class="jot-li" dir="rtl">')
+  })
+})
+
 describe('code colouring', () => {
   it('colours fenced code by its language, with the editor\'s groups', async () => {
     const html = await renderHtml('```js\n// hi\nconst x = "s" + 1\n```')

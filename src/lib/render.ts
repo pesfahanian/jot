@@ -1,7 +1,7 @@
 import { highlightCode, tagHighlighter } from '@lezer/highlight'
 import type { Marked, Token, TokensList } from 'marked'
 import { CODE_GROUPS, findCodeLanguage } from './code'
-import { lineDirections, type DirSetting } from './direction'
+import { directionOf, lineDirections, type DirSetting } from './direction'
 import { diagramHtml, loadDiagrams, type DiagramTheme } from './diagrams'
 import { loadMath, mathExtension } from './math'
 
@@ -32,6 +32,9 @@ let instance: Promise<Marked> | undefined
 // The theme diagrams are drawn in for the render in progress (set just
 // before each synchronous parse).
 let theme: DiagramTheme = 'light'
+// Whether list items lay out their own text by their own script (direction
+// "auto"); a forced document direction applies to every item instead.
+let itemDirs = true
 
 export interface RenderOptions {
   // Diagram colours: the rendered view follows the app theme; print is light.
@@ -92,6 +95,20 @@ function load(): Promise<Marked> {
           )
           return `<pre><code${cls}>${html}</code></pre>\n`
         },
+        // A whole list takes one direction, which puts every marker on one
+        // side; each item's own text still reads in its own direction, so a
+        // Farsi item in an English list ends with its full stop on the left.
+        // The item's direction goes on a wrapper, not the li, so the marker
+        // stays put; nested lists sit outside it and decide their own.
+        listitem(item) {
+          if (!itemDirs) return false
+          const own = item.tokens.filter((t) => t.type !== 'list')
+          // Code blocks inside an item don't vote, as everywhere else.
+          const dir = directionOf(own.filter((t) => t.type !== 'code').map((t) => t.raw).join(''))
+          if (!dir) return false
+          const nested = item.tokens.filter((t) => t.type === 'list')
+          return `<li><div class="jot-li" dir="${dir}">${this.parser.parse(own)}</div>${this.parser.parse(nested)}</li>\n`
+        },
         em({ tokens }) {
           return `<em>${markFarsiRuns(this.parser.parseInline(tokens))}</em>`
         },
@@ -134,6 +151,7 @@ export async function renderBlocks(md: string, opts: RenderOptions = {}): Promis
   // Set in the same synchronous stretch as the parse, so a concurrent render
   // in the other theme can't interleave.
   theme = opts.theme ?? 'light'
+  itemDirs = (opts.dir ?? 'auto') === 'auto'
   const tokens = m.lexer(md)
   const dirs = lineDirections(md, opts.dir ?? 'auto')
   const out: RenderedBlock[] = []

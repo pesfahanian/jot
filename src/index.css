@@ -343,7 +343,13 @@
     .jot-rendered ul ul { list-style: circle; }
     .jot-rendered li > ul, .jot-rendered li > ol { margin: 0.2em 0 0; }
     .jot-rendered li + li { margin-top: 0.2em; }
-    .jot-rendered li:has(> input[type="checkbox"]) { list-style: none; margin-inline-start: -1.4em; }
+    .jot-rendered li:has(> input[type="checkbox"], > .jot-li > input[type="checkbox"]) { list-style: none; margin-inline-start: -1.4em; }
+    /* A right-to-left list counts in Persian digits; an item's own text
+       keeps the list's side whatever its direction (only top-level blocks
+       carry dir="rtl", so an rtl ancestor is the list's own direction). */
+    .jot-rendered ol[dir="rtl"], .jot-rendered [dir="rtl"] ol { list-style-type: persian; }
+    .jot-rendered .jot-li { text-align: left; }
+    .jot-rendered [dir="rtl"] li > .jot-li { text-align: right; }
     .jot-rendered input[type="checkbox"] { margin: 0; margin-inline-end: 0.5em; vertical-align: -1px; accent-color: var(--primary); }
     .jot-rendered a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border-strong); }
     .jot-rendered a:hover { text-decoration-color: currentColor; }

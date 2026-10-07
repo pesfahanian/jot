@@ -118,6 +118,8 @@ const PRESETS: Record<Preset, string> = {
     /* Farsi: never justified or hyphenated, never italic. */
     [dir="rtl"], [dir="rtl"] p { text-align: start; hyphens: manual; }
     h2[dir="rtl"], blockquote[dir="rtl"], [dir="rtl"] th { font-style: normal; }
+    /* A Farsi item's paragraphs keep the list's side, never justified. */
+    .jot-li[dir="rtl"] p { text-align: inherit; }
   `,
 }
 
@@ -148,7 +150,9 @@ export function pdfCss(o: PdfOptions, rtl = false): string {
   p { orphans: 3; widows: 3; }
   p, ul, ol, blockquote, pre, table { margin: 0 0 0.9em; }
   ul { list-style: disc; padding-inline-start: 1.4em; } ol { list-style: decimal; padding-inline-start: 1.6em; }
-  li:has(> input[type="checkbox"]) { list-style: none; margin-inline-start: -1.4em; }
+  li:has(> input[type="checkbox"], > .jot-li > input[type="checkbox"]) { list-style: none; margin-inline-start: -1.4em; }
+  ol[dir="rtl"], [dir="rtl"] ol { list-style-type: persian; }
+  .jot-li { text-align: left; } [dir="rtl"] li > .jot-li { text-align: right; }
   input[type="checkbox"] { margin: 0; margin-inline-end: 0.5em; }
   strong { font-weight: 600; }
   code, pre { font-family: ${MONO}; font-size: 0.86em; }
