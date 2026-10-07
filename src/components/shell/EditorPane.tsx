@@ -100,10 +100,31 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
   const renderTitle = rendered ? 'close the rendered view' : 'show this document rendered, beside it'
   // The PDF options card opens where the export menu was, anchored to the
   // same button, once the menu has closed.
+  //
+  // Opened only once the menu has finished closing — never sooner. The menu
+  // hands focus back to its button when its close animation ends; if the
+  // card were already open, that focus would land "outside" it and close it
+  // again (on a large document, the animation ends late enough to lose that
+  // race). So choosing PDF only asks, and the menu's own close opens the card.
   const [pdfOpen, setPdfOpen] = useState(false)
-  const openPdf = () => setTimeout(() => setPdfOpen(true))
+  const pdfAsked = useRef(false)
+  const openPdf = () => {
+    pdfAsked.current = true
+  }
+  const menuClosed = (e: Event) => {
+    if (!pdfAsked.current) return
+    pdfAsked.current = false
+    e.preventDefault()
+    setPdfOpen(true)
+  }
   const pdfCard = doc && (
-    <PopoverContent align="end" className="w-auto p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+    <PopoverContent
+      align="end"
+      className="w-auto p-0"
+      onOpenAutoFocus={(e) => e.preventDefault()}
+      // Focus returning to the export / ⋯ button is not "leaving" the card.
+      onFocusOutside={(e) => (e.target as Element).closest?.('[data-pdf-anchor]') && e.preventDefault()}
+    >
       <PdfOptionsCard doc={doc} text={() => liveText(doc)} onDone={() => setPdfOpen(false)} />
     </PopoverContent>
   )
@@ -127,13 +148,13 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
           <DropdownMenu>
             <PopoverAnchor asChild>
               <DropdownMenuTrigger asChild>
-                <button type="button" className={control} disabled={!doc} title="more">
+                <button type="button" className={control} disabled={!doc} title="more" data-pdf-anchor="">
                   ⋯
                 </button>
               </DropdownMenuTrigger>
             </PopoverAnchor>
             {doc && (
-              <DropdownMenuContent align="end" className="w-[232px]" onCloseAutoFocus={(e) => pdfOpen && e.preventDefault()}>
+              <DropdownMenuContent align="end" className="w-[232px]" onCloseAutoFocus={menuClosed}>
                 <DropdownMenuItem disabled={!canRender} title={renderTitle} onSelect={toggleRender}>
                   {rendered ? 'close render' : 'render'}
                 </DropdownMenuItem>
@@ -166,13 +187,13 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
           <PopoverAnchor asChild>
             <DropdownMenuTrigger asChild>
               {/* Held while the card is open: the card stands in for this menu. */}
-              <button type="button" className={cn(control, pdfOpen && 'text-foreground')} disabled={!doc} data-state={pdfOpen ? 'open' : undefined}>
+              <button type="button" className={cn(control, pdfOpen && 'text-foreground')} disabled={!doc} data-pdf-anchor="">
                 export <span className="text-muted-foreground">▾</span>
               </button>
             </DropdownMenuTrigger>
           </PopoverAnchor>
           {doc && (
-            <DropdownMenuContent align="end" className="w-[232px]" onCloseAutoFocus={(e) => pdfOpen && e.preventDefault()}>
+            <DropdownMenuContent align="end" className="w-[232px]" onCloseAutoFocus={menuClosed}>
               <ExportItems doc={doc} onPdf={openPdf} />
             </DropdownMenuContent>
           )}
