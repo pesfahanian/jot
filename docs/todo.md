@@ -20,6 +20,8 @@ Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first im
 ## Checks still open
 
 - **Model decline, live** (open-decisions #27): the AI half of the review opt-out has only been unit-tested. Next time a real key is at hand, review a gibberish document (30+ words) once and confirm the "skipped" chip shows the model's reason.
+- **Live Farsi review** with a real key: a Farsi document's review runs against the Farsi guide end to end only in tests so far (provider stubbed). Calibrate the provisional thresholds (sentence caps 25/30/40, variance floor 4, hedge cap 2) on real writing.
+- **Farsi PDF in Firefox and Safari:** Paged.js with right-to-left text is barely tested anywhere; check a long mixed paragraph across a page break and the Persian page numbers.
 - **Cross-browser pass** (a QA chat with Computer Use; prompt on request): Safari and Firefox haven't been tried. Includes the storage bar in real Safari and on iPad, Firefox's persistence prompt, a workspace .zip round-trip, and the "can't save documents here" screen under Safari's Lockdown Mode (it couldn't be forced in the Chromium preview).
 
 ## Built: data safety (owner, locked 2026-09-30, after research; built 2026-10-04)
@@ -48,9 +50,9 @@ The browser's storage is the only copy of a person's writing, and browsers treat
 
 - **Visitor counter.** Something as basic as Cloudflare's own analytics or Google Analytics, enough to know "5 people from the UK visited today". Touches the privacy promise (README, ADR-004) and the CSP.
 
-## Next round: design first (owner)
+## Built: diff checker, Farsi, PDF options (owner's design round, built 2026-10-07)
 
-**Design status (2026-10-05): all three designs accepted** — diff checker, Farsi, PDF options. The owner's Farsi style-guide session is done too (`src/review/ruleset/fa/`). **Next: build all three together.**
+**Built 2026-10-07** on branch `diff-farsi-pdf` (not pushed): the new-tab +, Farsi in the editor / rendered view / PDF with the dir cell, PDF options, the diff checker, the Farsi style review, and the README / welcome updates. Designs, decisions and hand-offs for each stay below for reference.
 
 **Also in this build round (owner, 2026-10-06):** a **+** at the end of each pane's tab strip, as in a browser's tab bar, doing exactly what "new document" does, in that pane. (Seen in testing: a friend reached for it out of browser habit.)
 
