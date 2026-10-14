@@ -102,8 +102,11 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
           new LanguageSupport(markdownWithCode),
           EditorView.lineWrapping,
           // Real contenteditable text, so the OS/browser spellchecker attaches
-          // to it directly — the reason for CM6 over Monaco (ADR-002).
-          EditorView.contentAttributes.of({ spellcheck: 'true', autocorrect: 'on', autocapitalize: 'off' }),
+          // to it directly — the reason for CM6 over Monaco (ADR-002). Writing
+          // suggestions too (CodeMirror turns them off): Safari shows the
+          // Mac's inline predictions; other browsers get theirs if they add
+          // any (owner, 2026-10-14: on everywhere, to see what happens).
+          EditorView.contentAttributes.of({ spellcheck: 'true', autocorrect: 'on', autocapitalize: 'off', writingsuggestions: 'true' }),
           keymap.of(editorKeymap),
           jotEditorTheme,
           minimapCompartment.of(minimapFor(minimapRef.current)),
