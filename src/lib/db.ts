@@ -115,6 +115,8 @@ export interface Workspace {
   panes: PaneLayout[]
   focusedPaneId: string
   sidebarWidth: number
+  // Absent in layouts saved before the sidebar could collapse: open.
+  sidebarOpen?: boolean
   sort: 'date' | 'name'
 }
 

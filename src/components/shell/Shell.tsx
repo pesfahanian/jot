@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { importFiles, newDocument } from '@/state/actions'
 import { useWorkspace } from '@/state/workspace'
 import { KeyPanel } from '@/components/review/KeyPanel'
+import { useReview } from '@/state/review'
 import { PaneEmpty } from './EditorPane'
 import { PaneGrid } from './PaneGrid'
 import { Sidebar } from './Sidebar'
@@ -58,6 +59,13 @@ function FirstRun() {
 
 export function Shell({ docs }: { docs: JotDocument[] }) {
   const panes = useWorkspace((s) => s.panes)
+  const sidebarOpen = useWorkspace((s) => s.sidebarOpen)
+  // The key panel opens beside the sidebar's key row, so asking for a key
+  // brings a hidden sidebar back.
+  const keyPanelOpen = useReview((s) => s.keyPanel.open)
+  useEffect(() => {
+    if (keyPanelOpen && !useWorkspace.getState().sidebarOpen) useWorkspace.getState().toggleSidebar()
+  }, [keyPanelOpen])
   const docsById = useMemo(() => new Map(docs.map((d) => [d.id, d])), [docs])
   const [dropping, setDropping] = useState(false)
 
@@ -67,6 +75,9 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
   //   Cmd/Ctrl+Shift+V  toggles the rendered view, as VSCode's preview
   //                     (replaces Chrome's "paste as plain text", which a
   //                     plain-text editor never needs)
+  //   Cmd/Ctrl+B        hides or shows the sidebar, as VS Code (the vscode
+  //                     keymap leaves it free; Firefox's bookmarks sidebar
+  //                     gives way)
   useEffect(() => {
     const save = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey) || e.altKey) return
@@ -75,6 +86,10 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
       if (key === 'v' && e.shiftKey) {
         e.preventDefault()
         useWorkspace.getState().toggleRender()
+      }
+      if (key === 'b' && !e.shiftKey) {
+        e.preventDefault()
+        useWorkspace.getState().toggleSidebar()
       }
     }
     window.addEventListener('keydown', save, { capture: true })
@@ -120,11 +135,15 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
       <StorageWarning />
       <div className="flex min-h-0 flex-auto">
         {/* The key panel opens beside the sidebar's key row, over the panes. */}
-        <div className="relative flex min-h-0">
-          <Sidebar docs={docs} />
-          <KeyPanel />
-        </div>
-        <SidebarHandle />
+        {sidebarOpen && (
+          <>
+            <div className="relative flex min-h-0">
+              <Sidebar docs={docs} />
+              <KeyPanel />
+            </div>
+            <SidebarHandle />
+          </>
+        )}
         <div className="relative flex min-w-0 flex-auto">
           {docs.length === 0 ? <FirstRun /> : <PaneGrid panes={panes} docsById={docsById} />}
           <Toast />

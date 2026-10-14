@@ -37,6 +37,7 @@ interface WorkspaceState {
   panes: PaneLayout[]
   focusedPaneId: string
   sidebarWidth: number
+  sidebarOpen: boolean
   sort: SortMode
   colorFilter: ReadonlySet<TagColor>
   searchOpen: boolean
@@ -64,6 +65,8 @@ interface WorkspaceState {
   closeDocumentEverywhere(documentId: string): DeletedEntry['placements']
   restorePlacements(documentId: string, placements: DeletedEntry['placements']): void
   setSidebarWidth(px: number): void
+  // Hides the sidebar entirely, or brings it back (Cmd+B, as VS Code).
+  toggleSidebar(): void
   toggleSort(): void
   toggleColor(color: TagColor): void
   clearColorFilter(): void
@@ -83,6 +86,7 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   panes: [],
   focusedPaneId: '',
   sidebarWidth: SIDEBAR_DEFAULT,
+  sidebarOpen: true,
   sort: 'date',
   colorFilter: new Set(),
   searchOpen: false,
@@ -119,6 +123,7 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
       panes,
       focusedPaneId,
       sidebarWidth: clampWidth(ws?.sidebarWidth ?? SIDEBAR_DEFAULT),
+      sidebarOpen: ws?.sidebarOpen ?? true,
       sort: ws?.sort ?? 'date',
     })
   },
@@ -264,6 +269,7 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   },
 
   setSidebarWidth: (px) => set({ sidebarWidth: clampWidth(px) }),
+  toggleSidebar: () => set({ sidebarOpen: !get().sidebarOpen }),
   toggleSort: () => set({ sort: get().sort === 'date' ? 'name' : 'date' }),
   toggleColor(color) {
     const next = new Set(get().colorFilter)
@@ -283,11 +289,11 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
 let saveTimer: ReturnType<typeof setTimeout> | undefined
 useWorkspace.subscribe((s, prev) => {
   if (!s.loaded) return
-  if (s.panes === prev.panes && s.focusedPaneId === prev.focusedPaneId && s.sidebarWidth === prev.sidebarWidth && s.sort === prev.sort) return
+  if (s.panes === prev.panes && s.focusedPaneId === prev.focusedPaneId && s.sidebarWidth === prev.sidebarWidth && s.sidebarOpen === prev.sidebarOpen && s.sort === prev.sort) return
   clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
-    const { panes, focusedPaneId, sidebarWidth, sort } = useWorkspace.getState()
-    void db.workspace.put({ id: 'workspace', panes, focusedPaneId, sidebarWidth, sort })
+    const { panes, focusedPaneId, sidebarWidth, sidebarOpen, sort } = useWorkspace.getState()
+    void db.workspace.put({ id: 'workspace', panes, focusedPaneId, sidebarWidth, sidebarOpen, sort })
   }, 200)
 })
 
