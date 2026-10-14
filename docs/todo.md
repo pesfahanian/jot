@@ -19,11 +19,11 @@ Phase 14 runs as two parallel tracks — building the quick items while the desi
 | Phase | Contents | Needs |
 |---|---|---|
 | **14a: Bugs and quick wins** (build now) | PDF filename; Farsi in the review view (then a look at the Farsi flag counts); sidebar collapse with Cmd+B (button placed provisionally — design may move it); double-click empty space → new document; bulk import (multi-file and folder pickers, entry placed provisionally); diff overview ruler; auto-title for new documents; writing suggestions (done). Owner: Cloudflare's challenge setting | Nothing |
-| **14b: Design round** (Claude Design, in parallel) | One round on the app's shape: shell layout (sidebar collapse, where every control lives); Settings modal; motion spec; AI mode — entry and its animation, chat area, AI notes vs personal notes, the results screen with its review / diff switch, the translation flow; the right-click menu on selected text; highlights, underline and notes in the editor; the PDF options "annotations" row and the markdown export choice | A brief (I write it) |
-| **15: Shell** | Settings modal (AI provider moves in; theme, motion, editor, storage and backup, about); motion as designed, off in Settings and under reduced motion; the controls moved to their designed places | 14b |
+| **14b: Design round** (Claude Design, in parallel) | One round on the app's shape: shell layout (sidebar collapse, where every control lives); Settings modal; motion spec; AI mode — entry and its animation, chat area, AI notes vs personal notes, the results screen with its review / diff switch, the translation flow; the right-click menu on selected text; highlights, underline and notes in the editor; the PDF options "annotations" row and the markdown export choice; **command palette and the shortcut editor** (owner, 2026-10-14: in this round — the palette lets some controls drop their buttons and gives AI mode's actions a home) | A brief (I write it) |
+| **15: Shell** | Settings modal (AI provider moves in; theme, motion, editor, storage and backup, about); motion as designed, off in Settings and under reduced motion; the controls moved to their designed places; **command palette** (every action registered as a command; later phases add theirs); **shortcut editor** in Settings (remaps checked live against the vscode keymap and browser shortcuts — `scripts/keymap-collisions.mjs`'s logic) | 14b |
 | **16: Annotations and writing help** (normal mode, no AI) | Annotations stored beside the document (new table, re-anchored as text changes), shown in the editor and rendered view; the right-click menu (highlight, underline, translate, note); translate a selection via Google Translate (own key, kept in Settings; new `connect-src` host); annotation exports (zip always, PDF row, markdown choice); auto-fix spelling, off by default, English first | 14b; small research: dictionary (licence, size), Google Translate from the browser (key restrictions, CORS, pricing) |
 | **17: AI mode** | The mode and its transition; chat with local per-document history (deleted with the document, kept through undo; in the zip — lean yes); AI notes queued and sent Claude Design style, personal notes by switch; a proposals prompt (edits anchored like review flags) and one results screen for every run, the style review folded in, with the review / diff switch (as decided / all accepted); full translation to a new side-by-side document | 14b, 16 (notes); prompt work: proposals and translation (Farsi ↔ English), token budgets for document + history |
-| **Later** | Telemetry (own chat); premium tier (own big decision — needs a backend); Jot's own autocomplete; command palette and customisable shortcuts (own design round) | — |
+| **Later** | Telemetry (own chat); premium tier (own big decision — needs a backend); Jot's own autocomplete | — |
 
 ## Done from testing after Phases 12–13
 
@@ -120,6 +120,7 @@ These four touch each other, so they get a design round together before any buil
 - Open question: does the app chrome (menus, labels) also need a Farsi translation, or only the content?
 
 ### Command palette and customisable keyboard shortcuts
+- **Started by the owner, 2026-10-14:** designed in the 14b round, built in Phase 15 (see the phased plan).
 - A full command palette plus user-remappable shortcuts.
 - ADR-010's removal was a planning expedient, not the owner's position (see its amendment). Wanted; just not yet.
 
