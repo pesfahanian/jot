@@ -115,20 +115,34 @@ export async function exportPdf(title: string, content: string, options: PdfOpti
   document.body.appendChild(frame)
   const doc = frame.contentDocument!
   const win = frame.contentWindow! as Window & { PagedConfig?: object }
-  const safeTitle = exportFilename(title, 'pdf').replace(/\.pdf$/, '').replace(/</g, '&lt;')
+  const name = exportFilename(title, 'pdf').replace(/\.pdf$/, '')
+  const safeTitle = name.replace(/</g, '&lt;')
   doc.open()
   doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>${safeTitle}</title><style>${printStyles()}</style><style>${printCss}</style></head><body>${body}</body></html>`)
   doc.close()
   keepHeadingsWithNext(doc)
-  win.addEventListener('afterprint', () => setTimeout(() => frame.remove(), 500))
+  // Chrome names the saved PDF after the top page's title, not the print
+  // frame's — so for the print, the app takes the document's name.
+  const appTitle = document.title
+  const restoreTitle = () => {
+    document.title = appTitle
+  }
+  win.addEventListener('afterprint', () => {
+    restoreTitle()
+    setTimeout(() => frame.remove(), 500)
+  })
   // Fonts first (Paged.js measures text), then paginate, then print.
   await (doc.fonts?.ready ?? Promise.resolve())
   win.PagedConfig = {
     auto: true,
     before: () => registerTableHeaders(win),
     after: () => {
+      document.title = name
       win.focus()
       win.print()
+      // print() returns once the dialog closes (afterprint may not fire
+      // everywhere).
+      restoreTitle()
     },
   }
   const script = doc.createElement('script')
