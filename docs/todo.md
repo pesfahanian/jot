@@ -48,7 +48,7 @@ Friends are using Jot heavily; feedback so far all positive. Grouped and discuss
 
 **D. Writing assistance**
 - **Auto-fix spelling behind the cursor** (owner: as recommended). A bundled dictionary (Hunspell via e.g. nspell, ~1 MB English) since pages can't read the browser's spellchecker. Off by default; only unambiguous typos (one clear suggestion); acts once the cursor is a couple of words past; skips code, URLs and capitalised names; each fix flashes briefly and is its own undo step. English first. The first feature that changes text without a decision — opt-in, so ADR-009's review rule isn't touched.
-- **Autocomplete:** CodeMirror sets `writingsuggestions="false"` on the editor; turning it back on may give Safari's inline predictions for free — test in Safari (CodeMirror may have disabled it for a reason). Nothing equivalent in Chrome; AI ghost text with the person's key belongs to the AI suite.
+- **Autocomplete — done (2026-10-14):** CodeMirror set `writingsuggestions="false"`; now on in every browser. Owner tested: **Safari only** shows suggestions (the Mac's inline predictions); Chrome and Firefox show nothing. Autocomplete everywhere would mean Jot's own: AI ghost text with the person's key (cost, latency, text sent on every pause — an AI mode or Settings option), or local word completion (weak). Not decided; later.
 
 **E. Annotations and AI mode** (shaped with the owner step by step, 2026-10-14)
 - **Right-click on selected text:** highlight, underline, translate, add a note. Owner: fine to replace the browser's menu there (loses its spelling suggestions, Look Up and services on selected text).
