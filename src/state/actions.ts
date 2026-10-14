@@ -91,6 +91,32 @@ export async function importFiles(files: FileList | File[]): Promise<number> {
   return count
 }
 
+// Import from a picker (bulk import): several files at once, or a whole
+// folder — its .md / .markdown / .txt files and workspace .zips, at any
+// depth; everything else is skipped. A folder picker is a plain file input
+// (webkitdirectory, in every browser), not the File System Access API
+// (ADR-003). Documents import alongside, as a drop does.
+export function pickImport(kind: 'files' | 'folder'): void {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.multiple = true
+  if (kind === 'folder') input.webkitdirectory = true
+  else input.accept = '.md,.markdown,.txt,.zip'
+  input.addEventListener('change', async () => {
+    const files = [...(input.files ?? [])]
+    if (!files.length) return
+    const count = await importFiles(files)
+    const skipped = files.filter((f) => !IMPORTABLE.test(f.name) && !/\.zip$/i.test(f.name)).length
+    useWorkspace.getState().showToast({
+      kind: 'notice',
+      id: Date.now(),
+      lead: `imported ${count} document${count === 1 ? '' : 's'}${skipped ? ';' : ''}`,
+      detail: skipped ? `${skipped} other file${skipped === 1 ? '' : 's'} skipped` : '',
+    })
+  })
+  input.click()
+}
+
 // The whole workspace as one .zip download (lib/backup.ts). Open documents
 // are taken as they stand in the editor, ahead of autosave.
 export async function exportWorkspace(): Promise<void> {

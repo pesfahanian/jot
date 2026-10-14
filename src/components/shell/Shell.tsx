@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { JotDocument } from '@/lib/db'
 import { shortcutKey } from '@/lib/keys'
 import { cn } from '@/lib/utils'
-import { importFiles, newDocument } from '@/state/actions'
+import { importFiles, newDocument, pickImport } from '@/state/actions'
 import { useWorkspace } from '@/state/workspace'
 import { KeyPanel } from '@/components/review/KeyPanel'
 import { useReview } from '@/state/review'
@@ -50,7 +50,12 @@ function FirstRun() {
           >
             new document
           </button>
-          <span className="font-mono text-[11.5px] text-muted-foreground">or drop .md files anywhere</span>
+          <span className="font-mono text-[11.5px] text-muted-foreground">
+            or drop .md files anywhere, or{' '}
+            <button type="button" onClick={() => pickImport('files')} className="underline underline-offset-2 hover:text-foreground">
+              import…
+            </button>
+          </span>
         </div>
       </PaneEmpty>
     </section>

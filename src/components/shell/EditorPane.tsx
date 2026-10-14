@@ -12,7 +12,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type DiffSide, type JotDocument, type PaneLayout } from '@/lib/db'
 import { exportMarkdown, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
-import { exportWorkspace, newComparison, newDocument } from '@/state/actions'
+import { exportWorkspace, newComparison, newDocument, pickImport } from '@/state/actions'
 import { useReview } from '@/state/review'
 import { useDocuments } from '@/state/hooks'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
@@ -83,6 +83,16 @@ function WorkspaceExport() {
           all {count} document{count === 1 ? '' : 's'}
         </span>
         <span className="font-mono text-[11px] text-muted-foreground">.zip</span>
+      </DropdownMenuItem>
+      {/* Import sits beside its counterpart for now; the design round
+          decides where it lives. */}
+      <DropdownMenuSeparator />
+      <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">import</div>
+      <DropdownMenuItem onSelect={() => pickImport('files')} title=".md, .txt or a workspace .zip — several at once">
+        files…
+      </DropdownMenuItem>
+      <DropdownMenuItem onSelect={() => pickImport('folder')} title="every .md and .txt in a folder, and its subfolders">
+        a folder…
       </DropdownMenuItem>
     </>
   )
