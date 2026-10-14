@@ -17,42 +17,49 @@ Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first im
 - "saves as <title>.*" dropped from the export menu.
 - AI Provider panel footer moved into a "?" tooltip in the panel header.
 
-## Checks still open
+## Checks
 
-- **Model decline, live** (open-decisions #27): the AI half of the review opt-out has only been unit-tested. Next time a real key is at hand, review a gibberish document (30+ words) once and confirm the "skipped" chip shows the model's reason.
-- **Live Farsi review** with a real key: a Farsi document's review runs against the Farsi guide end to end only in tests so far (provider stubbed). Calibrate the provisional thresholds (sentence caps 25/30/40, variance floor 4, hedge cap 2) on real writing.
-- **Farsi PDF in Firefox and Safari:** Paged.js with right-to-left text is barely tested anywhere; check a long mixed paragraph across a page break and the Persian page numbers.
-- **Cross-browser pass** (a QA chat with Computer Use; prompt on request): Safari and Firefox haven't been tried. Includes the storage bar in real Safari and on iPad, Firefox's persistence prompt, a workspace .zip round-trip, and the "can't save documents here" screen under Safari's Lockdown Mode (it couldn't be forced in the Chromium preview).
-
-## Built: data safety (owner, locked 2026-09-30, after research; built 2026-10-04)
-
-The browser's storage is the only copy of a person's writing, and browsers treat site storage as clearable. Research (30 Sep 2026, summarised below) settled the plan; build before Jot is shared.
-
-**Research findings that shaped it**
-- Safari deletes all script-written storage, IndexedDB included, after 7 days of Safari use with no click, tap or keypress in the site (ITP). A visit alone doesn't reset it; writing in Jot does.
-- It's the WebKit engine, not the Safari brand: every browser on iPad (Chrome, Firefox, Edge) behaves the same, and so does Orion on Mac.
-- `navigator.storage.persist()` protects against disk-pressure eviction in Chrome, Edge and Firefox, but is not documented to exempt a site from Safari's 7-day rule. Assume it doesn't.
-- Installed web apps have their own separate, initially empty storage. Home Screen apps (iPad) are documented as exempt from the 7-day rule; Mac Dock apps are not documented and may not report `display-mode: standalone`.
-- Safari's Lockdown Mode turns IndexedDB off entirely.
-- Unverified on purpose (needs 8+ days on real devices; the plan doesn't depend on it): whether persistence exempts, whether Dock apps skip the rule, whether iPad Chrome really deletes.
-
-**What was built**
-1. **Warning bar, amber, full width above the panels.** Shown in any WebKit-engine browser (`navigator.vendor === 'Apple Computer, Inc.'`): Safari on Mac, every iPad browser, Orion. Not in Chromium browsers or Firefox. Hidden only in an installed iPad Home Screen app (`navigator.standalone` / `display-mode: standalone` on iPadOS). Never hidden because persistence was granted. Dismissible; returns after 7 days. Its button: **export workspace**.
-   - Mac: "Safari deletes jot's documents after 7 days of using Safari without typing or clicking in jot. Everything jot saves lives only in this browser. For writing you want to keep, use Chrome, Firefox or Edge — and export a backup now and then."
-   - iPad (WebKit with touch, `maxTouchPoints > 1`): "On iPad, every browser deletes jot's documents after 7 days of use without typing or clicking in jot. Add jot to your Home Screen to keep them there. It starts empty, so export your workspace here first and import it in the app."
-2. **Workspace export and import (.zip).** A separated "whole workspace" section in the export menu, "all N documents .zip". One `.md` per document (duplicate titles numbered, a `/` in a title becomes a folder) plus `jot-workspace.json` with tags, pins and dates. Never keys, settings or review sessions. File `jot-workspace-YYYY-MM-DD.zip`; a small zip library loaded on use. Dropping the .zip restores the workspace, added alongside existing documents, never replacing.
-3. **Persistent storage.** Ask on an explicit action — new document or import — not while typing (Firefox prompts). At most once per session, skipped if already granted; asking again in a later session is fine (Chrome re-evaluates).
-4. **Storage-unavailable screen.** When IndexedDB can't be opened (e.g. Lockdown Mode), a plain full-screen message like the narrow-window one: jot can't save documents in this browser's current mode.
-5. **Welcome document and README** (with the update banked above): each browser, profile and installed app keeps its own separate workspace; clearing site data or a "delete data on close" setting erases it; export is the backup.
-6. No backup reminder for now.
+All run by the owner (2026-10-08): the live model decline, a live Farsi review, Farsi PDFs in Firefox and Safari, and the cross-browser pass. One finding came out of them: the review view lays Farsi out left-to-right (next round, A). Calibrating the Farsi thresholds waits on that fix.
 
 ## Later (owner: its own fresh chat)
 
-- **Visitor counter.** Something as basic as Cloudflare's own analytics or Google Analytics, enough to know "5 people from the UK visited today". Touches the privacy promise (README, ADR-004) and the CSP.
+- **Telemetry** (was "visitor counter"; widened by the owner 2026-10-11). Any tracking that shows how the app is doing — from Cloudflare's own analytics up to usage events. Touches the privacy promise (README, ADR-004) and the CSP; how much to measure is the chat's main question.
+
+## Next round: ideas from use (owner and friends, collected 2026-10-11)
+
+Friends are using Jot heavily; feedback so far all positive. Grouped and discussed with the owner; implementation detail, design / research needs and a phased plan still to come. The AI suite and translation wait on the owner's thinking.
+
+**A. Bugs**
+- **PDF saves as `jot.pdf`.** Chrome names the PDF after the top page's title, not the print frame's. Swap `document.title` to the document's name while printing, restore after.
+- **Farsi in the review view** (owner's screenshot, 2026-10-11): the locked original and the preview lay every line out left-to-right — `#` / `**` on the wrong end, full stops at line starts, struck / inserted fix text scrambled. Wire them to `lib/direction.ts` like the editor, rendered view and PDF; bubbles anchor to a right-to-left span's start (Farsi design). Then look at what the flags are (127 on one document, 85 quick fixes) before calling the Farsi thresholds calibrated.
+- **Cloudflare's "not a robot" page.** A Cloudflare dashboard setting (Bot Fight Mode / security level / a challenge rule), not code; a static site doesn't need it. Owner changes it, guided.
+
+**B. Small, no design**
+- **Close the sidebar:** a collapse button and Cmd+B (VS Code's toggle), state remembered. Today it only resizes.
+- **Double-click empty space → new document**, in the tab strip and below the sidebar rows (observed habit).
+- **Bulk import:** an "import…" entry with a multi-file picker (.md / .txt / .zip) and a folder picker (`webkitdirectory` — every browser; not the File System Access API). Imports alongside, as drop does.
+- **Diff overview ruler** (VS Code's name): a strip beside each side's scrollbar with a tick per change in the diff colours; click to jump.
+- **Auto-title, like Apple Notes:** the title follows the first line (markdown marks stripped) until the person renames it. **New documents only** (owner) — existing ones keep their titles.
+
+**C. Needs design** (one round together, after the AI suite is shaped — it decides where things go)
+- **Settings modal:** AI provider moves here; theme, animations, auto-fix, autocomplete, editor (minimap…), storage and backup, about; room for the future shortcut editor.
+- **Animations:** restrained (diff checker opening, review entering, panes and tabs); a short motion spec; off via Settings, and always off under `prefers-reduced-motion`.
+- **UI reshuffle:** where the diff checker, style review and other controls live — one AI entry point.
+
+**D. Writing assistance**
+- **Auto-fix spelling behind the cursor** (owner: as recommended). A bundled dictionary (Hunspell via e.g. nspell, ~1 MB English) since pages can't read the browser's spellchecker. Off by default; only unambiguous typos (one clear suggestion); acts once the cursor is a couple of words past; skips code, URLs and capitalised names; each fix flashes briefly and is its own undo step. English first. The first feature that changes text without a decision — opt-in, so ADR-009's review rule isn't touched.
+- **Autocomplete:** CodeMirror sets `writingsuggestions="false"` on the editor; turning it back on may give Safari's inline predictions for free — test in Safari (CodeMirror may have disabled it for a reason). Nothing equivalent in Chrome; AI ghost text with the person's key belongs to the AI suite.
+
+**E. Annotations and the AI suite** (owner thinking; to discuss)
+- **Right-click on selected text:** highlight, underline, translate, add a note. Owner: fine to replace the browser's menu there (loses its spelling suggestions, Look Up and services on selected text).
+- **Annotations** (highlights and comments) stored beside the document, not in the markdown, re-anchored as the text changes (the review's mechanism). **Exports (owner, 2026-10-14):** the workspace .zip always keeps them (in `jot-workspace.json`); the PDF options card gets "annotations: off / highlights / highlights + comments" (highlights marked through the renderer — split per block, whole-block inside code / math / diagrams; comments as Paged.js page footnotes, no margin balloons); markdown export offers clean (default) or with annotations (`==highlight==`, comments as `[^n]` footnotes); plain text stays text only. The rendered view shows highlights through the same path.
+- **The AI suite:** comments and highlights as instructions ("address my comments"), free instructions on a selection or the document, proposals decided like review flags (nothing auto-applies), full translation (e.g. a linked document side by side). Open: comments for self vs for the AI, chat or not, translation output, languages.
+
+**Dropped:** SVG in markdown (owner, 2026-10-14).
 
 ## Built: diff checker, Farsi, PDF options (owner's design round, built 2026-10-07)
 
-**Built 2026-10-07** on branch `diff-farsi-pdf` (not pushed): the new-tab +, Farsi in the editor / rendered view / PDF with the dir cell, PDF options, the diff checker, the Farsi style review, and the README / welcome updates. Designs, decisions and hand-offs for each stay below for reference.
+**Built 2026-10-07, shipped in PR #4** (merged and deployed; the owner ran the open checks): the new-tab +, Farsi in the editor / rendered view / PDF with the dir cell, PDF options, the diff checker, the Farsi style review, and the README / welcome updates. Designs, decisions and hand-offs for each stay below for reference.
 
 **Also in this build round (owner, 2026-10-06):** a **+** at the end of each pane's tab strip, as in a browser's tab bar, doing exactly what "new document" does, in that pane. (Seen in testing: a friend reached for it out of browser habit.)
 
@@ -102,3 +109,4 @@ These four touch each other, so they get a design round together before any buil
 
 ### One-click PDF (Typst)
 - A direct `.pdf` download, no print dialog, identical in every browser: markdown converted to Typst and typeset by Typst compiled to WebAssembly, in the browser. Native math, themeable. Costs a few MB loaded on first export and a markdown→Typst converter to maintain. Revisit after Phase 10's options on the print pipeline.
+- **Leaning parked (discussed 2026-10-08):** the print dialog's preview is worth keeping (owner), and Typst would mean a second layout engine beside the shared renderer, losing the custom-CSS box. Cheaper alternatives if cross-browser printing disappoints: a one-time hint about the browser's headers / footers, and PDF bookmarks from headings if Paged.js can produce them.
