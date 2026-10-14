@@ -522,7 +522,15 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
           </>
         )}
       </header>
-      <div className="flex min-h-0 flex-auto flex-col overflow-y-auto">{body}</div>
+      {/* Double-click the empty space below the rows: a new document. */}
+      <div
+        className="flex min-h-0 flex-auto flex-col overflow-y-auto"
+        onDoubleClick={(e) => {
+          if (e.target === e.currentTarget && !search) void newDocument()
+        }}
+      >
+        {body}
+      </div>
       <div className="flex h-[30px] flex-none items-stretch border-t border-border">
         <KeyFooter />
         <GuideButton />

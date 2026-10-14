@@ -423,12 +423,15 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
           <PlusIcon />
         </button>
       </div>
-      {/* The rest of the bar: a drop target at the end of the strip, and
-          right-click for a new document or a new comparison in this pane. */}
+      {/* The rest of the bar: a drop target at the end of the strip,
+          double-click for a new document (a browser habit friends reached
+          for), and right-click for a new document or a new comparison in
+          this pane. */}
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <div
             className="min-w-0 flex-auto"
+            onDoubleClick={() => void newDocument()}
             onDragOver={(e) => {
               if (!dragging) return
               e.preventDefault()
