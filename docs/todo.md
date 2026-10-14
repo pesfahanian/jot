@@ -10,6 +10,20 @@ Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first im
 |---|---|
 | 12: AI providers ✓ | OpenAI and Anthropic alongside OpenRouter and Google; provider dropdown; model picker suggesting from the provider's model list; per-provider fallback chain; new hosts in `public/_headers` connect-src |
 | 13: Layout 2.0 ✓ | Tab drag part B: top/bottom splits, up to a 2×3 grid, resizable dividers; the status bar stays global |
+| Diff / Farsi / PDF options ✓ | Shipped in PR #4 (2026-10-08) |
+
+### Phased plan for the next round (agreed with the owner, 2026-10-14)
+
+Phase 14 runs as two parallel tracks — building the quick items while the design round runs in Claude Design. Phases 15–17 build what the design round settles, in order, each its own PR. Items are detailed under "Next round" below.
+
+| Phase | Contents | Needs |
+|---|---|---|
+| **14a: Bugs and quick wins** (build now) | PDF filename; Farsi in the review view (then a look at the Farsi flag counts); sidebar collapse with Cmd+B (button placed provisionally — design may move it); double-click empty space → new document; bulk import (multi-file and folder pickers, entry placed provisionally); diff overview ruler; auto-title for new documents; writing suggestions (done). Owner: Cloudflare's challenge setting | Nothing |
+| **14b: Design round** (Claude Design, in parallel) | One round on the app's shape: shell layout (sidebar collapse, where every control lives); Settings modal; motion spec; AI mode — entry and its animation, chat area, AI notes vs personal notes, the results screen with its review / diff switch, the translation flow; the right-click menu on selected text; highlights, underline and notes in the editor; the PDF options "annotations" row and the markdown export choice | A brief (I write it) |
+| **15: Shell** | Settings modal (AI provider moves in; theme, motion, editor, storage and backup, about); motion as designed, off in Settings and under reduced motion; the controls moved to their designed places | 14b |
+| **16: Annotations and writing help** (normal mode, no AI) | Annotations stored beside the document (new table, re-anchored as text changes), shown in the editor and rendered view; the right-click menu (highlight, underline, translate, note); translate a selection via Google Translate (own key, kept in Settings; new `connect-src` host); annotation exports (zip always, PDF row, markdown choice); auto-fix spelling, off by default, English first | 14b; small research: dictionary (licence, size), Google Translate from the browser (key restrictions, CORS, pricing) |
+| **17: AI mode** | The mode and its transition; chat with local per-document history (deleted with the document, kept through undo; in the zip — lean yes); AI notes queued and sent Claude Design style, personal notes by switch; a proposals prompt (edits anchored like review flags) and one results screen for every run, the style review folded in, with the review / diff switch (as decided / all accepted); full translation to a new side-by-side document | 14b, 16 (notes); prompt work: proposals and translation (Farsi ↔ English), token budgets for document + history |
+| **Later** | Telemetry (own chat); premium tier (own big decision — needs a backend); Jot's own autocomplete; command palette and customisable shortcuts (own design round) | — |
 
 ## Done from testing after Phases 12–13
 
