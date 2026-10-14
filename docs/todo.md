@@ -62,7 +62,7 @@ Friends are using Jot heavily; feedback so far all positive. Grouped and discuss
     - **Full translation:** the one action whose result is a new document, not proposals. Its own prompt; markdown, code, maths and links kept; long documents translated section by section; the new document ("title (فارسی)") opens side by side with the original. No decisions (a fresh draft — polish it in AI mode with that language's style review); no syncing (translate again); never in place.
     - **One results screen** for every run: the review view to decide (nothing auto-applies — "acts" always means proposes), and a switch to the diff view to look — showing the result as decided so far, or with everything accepted (both; owner: intuitive and easy).
 - **Later: a premium tier** with AI mode's full force behind it (owner). Its own big decision: Jot supplying the AI means a backend, accounts and payments, against ADR-004 and the zero-backend rule. Nothing designed now should make it harder.
-- **Open, still to talk through:** how AI notes and personal notes look apart; whether the chat and its history are kept per document; where AI mode's entry sits (part of the design round with Settings and the UI reshuffle).
+- **Owner, 2026-10-14:** AI notes and personal notes look different (how: design). Chats and their history are local, attached to their document, and deleted with it (they come back if the delete is undone; gone once the undo window passes); whether the workspace .zip carries them — lean yes. Where AI mode's entry, the sidebar's collapse button and the rest live: the design round, which now covers Settings, motion, AI mode and its entry, the shell's layout and the two kinds of notes.
 
 **Dropped:** SVG in markdown (owner, 2026-10-14).
 
