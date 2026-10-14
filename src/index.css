@@ -389,6 +389,8 @@
     .jot-rendered [dir="rtl"] { line-height: 1.8; }
     .jot-rendered :is(h1, h2, h3, h4, h5, h6)[dir="rtl"] { letter-spacing: 0; line-height: 1.5; }
     /* Emphasis by the script of the run: Farsi upright and bolder. */
+    /* The review's replacement arrow points the way its line reads. */
+    [dir="rtl"] > [data-arrow-for] { display: inline-block; transform: scaleX(-1); }
     .jot-rendered em .jot-fa { font-style: normal; font-weight: 600; }
     .jot-rendered strong .jot-fa { font-style: normal; font-weight: 800; }
 }

@@ -203,7 +203,11 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
       const o = layer.getBoundingClientRect()
       const r = el.getBoundingClientRect()
       const h = layer.querySelector<HTMLElement>('[data-review-bubble]')?.offsetHeight ?? 180
-      const left = Math.round(Math.max(12, Math.min(r.left - o.left, o.width - 432)))
+      // Anchored to the span's start: its left edge, or its right edge in a
+      // right-to-left line (Farsi design).
+      const w = layer.querySelector<HTMLElement>('[data-review-bubble]')?.offsetWidth ?? 420
+      const start = el.closest('[dir="rtl"]') ? r.right - o.left - w : r.left - o.left
+      const left = Math.round(Math.max(12, Math.min(start, o.width - w - 12)))
       const below = r.bottom - o.top + 8
       const above = r.top - o.top - 8 - h
       return { left, top: Math.round(below + h > o.height - 8 && above >= 8 ? above : below) }
@@ -340,7 +344,7 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
         <section className="flex min-w-0 flex-1 flex-col bg-document" data-review-original="">
           <PaneHeader title="original" note="locked while review is open" />
           <div ref={left} className={textPane}>
-            <OriginalText source={session.source} flags={flags} activeKey={activeKey} />
+            <OriginalText source={session.source} flags={flags} activeKey={activeKey} dir={doc.dir} />
           </div>
         </section>
         <div className="w-px flex-none bg-border" />
@@ -348,7 +352,7 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
           <PaneHeader title="result — preview" note={c.decided ? `${c.decided} of ${c.proposed} decided` : 'click a span to decide'} accent />
           <div className="relative flex min-h-0 flex-auto flex-col">
             <div ref={right} className={textPane}>
-              <PreviewText source={session.source} flags={flags} activeKey={activeKey} onOpen={setActive} />
+              <PreviewText source={session.source} flags={flags} activeKey={activeKey} onOpen={setActive} dir={doc.dir} />
               {c.proposed === 0 && (
                 <div className="mt-6 font-sans text-[13px] whitespace-normal text-muted-foreground">Nothing to flag — this document passes every rule.</div>
               )}
