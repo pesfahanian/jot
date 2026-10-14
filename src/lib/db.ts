@@ -16,6 +16,9 @@ export interface JotDocument {
   // Text direction (Farsi support): auto, by block — or forced for the
   // whole document. Missing means auto.
   dir?: 'auto' | 'ltr' | 'rtl'
+  // The title follows the first line (lib/autoTitle.ts) until the person
+  // renames it. Set on new documents only; missing means a fixed title.
+  autoTitle?: boolean
 }
 
 export type Provider = 'openrouter' | 'google' | 'openai' | 'anthropic'

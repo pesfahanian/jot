@@ -11,28 +11,33 @@ import { requestPersistence } from '@/lib/storage'
 export const UNDO_WINDOW_MS = 8000
 
 // New-document flow (T3.8): the + button creates "untitled" (or the next
-// free "untitled-N"), opens it as a new tab in the focused pane, and puts its
-// sidebar row straight into rename. Search's "new document "q"" passes the
-// query as the title instead, and skips rename — the name is already chosen.
+// free "untitled-N") and opens it as a new tab in the focused pane. Its
+// title then follows its first line, as Apple Notes (owner, 2026-10-14) —
+// so no rename prompt: you just start writing. Search's "new document "q""
+// passes the query as the title instead — the name is already chosen.
 export async function newDocument(title?: string): Promise<JotDocument> {
   void requestPersistence()
   const docs = await listDocuments()
-  const doc = await createDocument({ title: title?.trim() || uniqueTitle('untitled', docs) })
+  const doc = await createDocument(title?.trim() ? { title: title.trim() } : { title: uniqueTitle('untitled', docs), autoTitle: true })
   const ws = useWorkspace.getState()
   ws.openDocument(doc.id)
   if (!title) {
-    // Its row has to be visible to rename it: an untagged new document would
-    // be hidden by an active color filter or an open search.
+    // Its row should be visible: an untagged new document would be hidden
+    // by an active color filter or an open search.
     ws.clearColorFilter()
     ws.setSearch(false)
-    ws.setRenaming(doc.id)
   }
   return doc
 }
 
+// A rename fixes the title: it stops following the first line. Confirming
+// the name unchanged leaves an auto title as it is.
 export async function renameDocument(id: string, title: string): Promise<void> {
   const next = title.trim()
-  if (next) await updateDocument(id, { title: next })
+  if (!next) return
+  const doc = await db.documents.get(id)
+  if (doc && next === doc.title) return
+  await updateDocument(id, { title: next, autoTitle: false })
 }
 
 // One color per document; assigning replaces (ADR-007). null clears it.
