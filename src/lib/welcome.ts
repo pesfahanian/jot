@@ -58,21 +58,23 @@ def greet(name):
 | Cmd/Ctrl + Shift + V | rendered view |
 | Cmd/Ctrl + Shift + I | format the document |
 | Cmd/Ctrl + F | find and replace |
+| Cmd/Ctrl + K | the command palette: every command, and any document by name |
 | Cmd/Ctrl + B | hide or show the sidebar |
 
 ## organising
 
-- The sidebar holds your documents. **+** makes a new one, and the icons beside it sort, filter by colour tag and search. Cmd/Ctrl + B hides the sidebar, or brings it back.
+- The sidebar holds your documents. **+** makes a new one; beside it are search, and one button to sort and filter by colour tag. The last icon (or Cmd/Ctrl + B) hides the sidebar, or brings it back.
+- **settings** at the bottom of the sidebar (Cmd/Ctrl + ,) holds your AI provider, the theme, animations, keyboard shortcuts and your storage. Every shortcut can be changed there.
 - A new document names itself after its first line as you write. Rename it and the name stays.
 - Right-click a document to tag it with a colour, rename, pin or delete it. Double-click it to rename.
 - Drag tabs to reorder them, or onto another pane. Drop one on a pane's left or right edge for a new column, or on its top or bottom edge to stack two panes, up to three columns of two. Documents drag in from the sidebar too.
 - Drag the gaps between panes to resize them. Double-click a gap to even it out.
-- Drop .md files anywhere to import them, or pick files or a whole folder from **import** at the bottom of the **export** menu. That menu saves Markdown, plain text or PDF (with page, font and colour options), and, set apart below those, the whole workspace as one .zip.
+- Drop .md files anywhere to import them, or pick files or a whole folder from **import…** at the bottom of the sidebar. The **export** menu saves Markdown, plain text or PDF (with page, font and colour options), and, set apart below those, the whole workspace as one .zip.
 - The **+** at the end of the tabs makes a new document, as in a browser. So does double-clicking the empty space beside the tabs, or below the documents in the sidebar.
 
 ## comparing
 
-To see what changed between two texts, right-click a document and choose **compare with…**, or press the two-panel icon at the top of the sidebar. Each side can be a document or pasted text. Both sides stay editable, and the differences update as you type.
+To see what changed between two texts, right-click a document and choose **compare with…**, or right-click the tabs and choose **new comparison**. Each side can be a document or pasted text. Both sides stay editable, and the differences update as you type.
 
 ## writing in farsi
 
@@ -82,7 +84,7 @@ Farsi works as naturally as English. Each paragraph, list or table reads right-t
 
 jot can review your prose against a style guide, using your own AI key.
 
-1. Click **AI Provider** at the bottom of the sidebar, pick a provider (OpenRouter, Google AI Studio, OpenAI or Anthropic) and add your key. Below the key you can choose the model, and fallbacks to try if it's busy.
+1. Open **settings** at the bottom of the sidebar, pick a provider (OpenRouter, Google AI Studio, OpenAI or Anthropic) and add your key. Below the key you can choose the model, and fallbacks to try if it's busy.
 2. Press **review style** in the bar at the bottom.
 3. Click each marked passage to accept, reject or rewrite it. Nothing changes until you press **apply**.
 

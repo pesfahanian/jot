@@ -150,6 +150,7 @@ const isMac = /Mac|iPhone|iPad/.test(navigator.platform)
 const MOD = isMac ? '⌘' : 'Ctrl'
 const SHIFT = isMac ? '⇧' : 'Shift'
 const GUIDE: { keys: string[]; does: string }[] = [
+  { keys: [MOD, 'K'], does: 'command palette' },
   { keys: [MOD, SHIFT, 'V'], does: 'rendered view' },
   { keys: [MOD, SHIFT, 'I'], does: 'format the document' },
   { keys: [MOD, 'F'], does: 'find and replace' },
