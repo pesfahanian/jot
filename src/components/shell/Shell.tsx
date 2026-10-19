@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { importFiles, newDocument, pickImport } from '@/state/actions'
 import { useWorkspace } from '@/state/workspace'
 import { SettingsModal } from '@/components/settings/SettingsModal'
+import { CommandPalette } from './CommandPalette'
 import { PaneEmpty } from './EditorPane'
 import { PaneGrid } from './PaneGrid'
 import { Sidebar } from './Sidebar'
@@ -145,6 +146,7 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
         <StatusBar docsById={docsById} />
       </div>
       <SettingsModal />
+      <CommandPalette />
     </div>
   )
 }
