@@ -563,6 +563,9 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
   const focused = useWorkspace((s) => s.focusedPaneId === pane.id)
   const focusPane = useWorkspace((s) => s.focusPane)
   const sidebarOpen = useWorkspace((s) => s.sidebarOpen)
+  // A pane opened after the first second fades in as it arrives (motion
+  // spec); the layout restored on load just appears.
+  const [fresh] = useState(() => performance.now() > 1500)
   const first = useWorkspace((s) => columnsOf(s.panes)[0]?.[0]?.id === pane.id)
   const self = useRef<HTMLElement>(null)
   const [narrow, setNarrow] = useState(false)
@@ -592,7 +595,7 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
       ref={self}
       onMouseDownCapture={() => focusPane(pane.id)}
       style={{ ...density[columnCount], ...style }}
-      className="absolute flex min-h-0 min-w-0 flex-col overflow-hidden rounded-(--radius-panel) border border-border-strong bg-document"
+      className={cn('jot-pane absolute flex min-h-0 min-w-0 flex-col overflow-hidden rounded-(--radius-panel) border border-border-strong bg-document', fresh && 'jot-pane-new')}
     >
       {!reviewHere && <DropZones paneId={pane.id} />}
       <div className="flex h-[38px] flex-none items-stretch border-b border-border bg-card">

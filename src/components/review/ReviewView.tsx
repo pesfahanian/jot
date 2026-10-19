@@ -253,8 +253,8 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
   }
 
   return (
-    <div className="@container relative flex min-h-0 flex-auto flex-col" data-review-view="">
-      <div className="flex h-[34px] flex-none items-stretch border-b border-border bg-background font-mono text-[11.5px]">
+    <div className="@container jot-results relative flex min-h-0 flex-auto flex-col" data-review-view="">
+      <div className="jot-results-bar flex h-[34px] flex-none items-stretch border-b border-border bg-background font-mono text-[11.5px]">
         {/* In a narrow (split) pane the path and ruleset cells give way; the
             counts, log toggle and apply always stay. */}
         <div className={cn(toolbarCell, 'min-w-0 border-r text-secondary-foreground @max-[860px]:hidden')}>

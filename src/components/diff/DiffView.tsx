@@ -327,7 +327,7 @@ function ResultEditors({
   }
 
   return (
-    <div className="flex min-h-0 flex-auto">
+    <div className="jot-results flex min-h-0 flex-auto">
       <div ref={host} className="jot-diff min-h-0 min-w-0 flex-auto overflow-auto [&_.cm-mergeView]:min-h-full" />
       {ticks.length > 0 && <OverviewRuler ticks={ticks} onJump={jump} />}
     </div>
