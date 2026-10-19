@@ -1,5 +1,5 @@
 import { bannedWords, firstWordFingerprints, nominalizations, phrasalVerbs } from './ruleset'
-import { analyzeProse, capitalize, countWords, nextWord, type Prose, type Sentence } from './text'
+import { analyzeProse, capitalize, countWords, monotonousRuns, nextWord, runRationale, type Prose, type Sentence } from './text'
 
 // Pass A (T5.9, checks.md "Execution model"): all client-side detection,
 // before any model call. Mode-independent rules finish here — verdict and,
@@ -412,32 +412,13 @@ export function runPassA(text: string): PassAResult {
     })
   }
 
-  // T1-09 Sentence-length variance — std dev below 4 words over any run of
-  // 5+ sentences in a (heading) section. Aggregate, generative fix each.
-  const bySection = new Map<number, Sentence[]>()
-  for (const s of prose.sentences) {
-    if (s.block.kind === 'heading') continue
-    bySection.set(s.block.headingSection, [...(bySection.get(s.block.headingSection) ?? []), s])
-  }
-  const flatSentences = new Set<Sentence>()
-  for (const list of bySection.values()) {
-    for (let i = 0; i + 5 <= list.length; i++) {
-      const win = list.slice(i, i + 5)
-      const mean = win.reduce((a, s) => a + s.words, 0) / 5
-      const sd = Math.sqrt(win.reduce((a, s) => a + (s.words - mean) ** 2, 0) / 5)
-      if (sd < 4) win.forEach((s) => flatSentences.add(s))
-    }
-  }
-  for (const s of flatSentences) {
-    requestFix({
-      ruleId: 'T1-09',
-      family: 'tier1',
-      start: s.from,
-      end: s.to,
-      span: text.slice(s.from, s.to),
-      instruction: 'This sentence is part of a run of near-identical sentence lengths. Rewrite it to vary the rhythm (shorter or longer), keeping the content.',
-      rationale: 'Sentence-length variance below 4 words across a run of 5+ sentences. Flagged as part of that run.',
-    })
+  // T1-09 Sentence-length variance — one finding per monotonous stretch of
+  // paragraph sentences (text.ts), no generated fix: the stretch can cross
+  // paragraphs, so where to vary it is the writer's call.
+  for (const run of monotonousRuns(prose.sentences)) {
+    const start = run[0].from
+    const end = run[run.length - 1].to
+    flags.push({ id: 'T1-09', family: 'tier1', start, end, span: text.slice(start, end), after: null, rationale: runRationale(run) })
   }
 
   // T1-10 List-item length variance — 4+ items all within a 20% band.

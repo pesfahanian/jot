@@ -14,7 +14,7 @@ Three places this actually runs — and one of them runs twice, which matters.
 - T1b-05's structural-repetition and motivation steps, only for documents where the density pre-check already passed.
 - T1b-06's relatedness judgment, only for semicolons where both sides already passed the independent-clause check.
 - All of Tier 2, detection and rationale together, as specified below.
-- Fix generation for the Tier 1 rules detected deterministically but needing rewriting, not substitution: T1-01, T1-04, T1-05, T1-07, T1-08, T1-09, T1-10, T1-11.
+- Fix generation for the Tier 1 rules detected deterministically but needing rewriting, not substitution: T1-01, T1-04, T1-05, T1-07, T1-08, T1-10, T1-11.
 
 **Client-side, Pass B: mode reconciliation, after the shared call returns.** Local arithmetic only, no model call. Takes `sections` from the shared call and the raw candidates from Pass A, and finalizes pass/fail for whichever rules Pass A couldn't resolve alone. See "Two-pass reconciliation," directly below.
 
@@ -53,7 +53,7 @@ T1b-01 and T1b-02 need coreference resolution specifically because the question 
 
 T1-03 (frequency per paragraph), T1-09 and T1-10 (variance floors), T1-11 and T2-07 (frequency caps on decorative use), and T1b-05's density step all fail on a document-wide count or measurement, not on one self-contained span. None of these has a single instance that "is" the violation — the violation is the aggregate.
 
-Rule: when one of these fails, every contributing instance gets its own flag record — its own `span`, the shared `id`/`family`, and a `rationale` stating the aggregate finding, since there is no per-instance justification to give. Five em dashes against a cap of two produce five flag records, not one. The person needs to see all of them to decide which to cut, and the schema requires one record per clickable item regardless of why the rule fired.
+Rule: when one of these fails, every contributing instance gets its own flag record — its own `span`, the shared `id`/`family`, and a `rationale` stating the aggregate finding, since there is no per-instance justification to give. Five em dashes against a cap of two produce five flag records, not one. The person needs to see all of them to decide which to cut, and the schema requires one record per clickable item regardless of why the rule fired. **Exception: T1-09** (owner, 2026-10-19) — its instances are consecutive sentences, so a monotonous stretch is one flag over the whole stretch.
 
 ## Tier 1 — pattern match
 
@@ -73,7 +73,7 @@ Rule: when one of these fails, every contributing instance gets its own flag rec
 
 **T1-08 Sentence-length cap** — word count per sentence. Strict: fail above 20 words (instruction) or 25 (descriptive). Flavored: flag above 35. Fix: generative, shared call.
 
-**T1-09 Sentence-length variance** — standard deviation of sentence length across a section. Flag if it drops below 4 words over any span of 5+ sentences. Fix: generative, shared call.
+**T1-09 Sentence-length variance** — standard deviation of sentence length across a section. Flag if it drops below 4 words over any span of 5+ sentences. Only sentences in paragraphs count (not list items, headings or table rows), and overlapping spans merge: one flag per monotonous stretch, spanning it (owner, 2026-10-19). No fix: where to vary the rhythm is the writer's call.
 
 **T1-10 List-item length variance** — for lists of four or more items, flag if every item falls within a 20% character-count band of the others. Fix: generative, shared call.
 
