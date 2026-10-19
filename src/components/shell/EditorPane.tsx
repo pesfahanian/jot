@@ -12,7 +12,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type DiffSide, type JotDocument, type PaneLayout } from '@/lib/db'
 import { exportMarkdown, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
-import { exportWorkspace, newComparison, newDocument, pickImport } from '@/state/actions'
+import { exportWorkspace, newComparison, newDocument } from '@/state/actions'
 import { useReview } from '@/state/review'
 import { useDocuments } from '@/state/hooks'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
@@ -25,6 +25,9 @@ import { DocumentMenu } from './DocumentMenu'
 import { DiffIcon, PlusIcon, SplitIcon } from './icons'
 import { QuietButton } from './Sidebar'
 import { TagMark } from './TagMark'
+import { useUi } from '@/state/ui'
+import { SidebarToggle } from './SidebarToggle'
+import { Wordmark } from './Wordmark'
 
 // The diff checker loads the first time a comparison opens.
 const DiffView = lazy(() => import('@/components/diff/DiffView').then((m) => ({ default: m.DiffView })))
@@ -84,21 +87,11 @@ function WorkspaceExport() {
         </span>
         <span className="font-mono text-[11px] text-muted-foreground">.zip</span>
       </DropdownMenuItem>
-      {/* Import sits beside its counterpart for now; the design round
-          decides where it lives. */}
-      <DropdownMenuSeparator />
-      <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">import</div>
-      <DropdownMenuItem onSelect={() => pickImport('files')} title=".md, .txt or a workspace .zip — several at once">
-        files…
-      </DropdownMenuItem>
-      <DropdownMenuItem onSelect={() => pickImport('folder')} title="every .md and .txt in a folder, and its subfolders">
-        a folder…
-      </DropdownMenuItem>
     </>
   )
 }
 
-function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: boolean }) {
+function PaneControls({ paneId, doc, narrow }: { paneId: string; doc: JotDocument | undefined; narrow: boolean }) {
   const split = useWorkspace((s) => s.split)
   const toggleRender = useWorkspace((s) => s.toggleRender)
   const edge = useWorkspace((s) => splitEdge(s.panes, s.focusedPaneId))
@@ -117,6 +110,13 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
   // again (on a large document, the animation ends late enough to lose that
   // race). So choosing PDF only asks, and the menu's own close opens the card.
   const [pdfOpen, setPdfOpen] = useState(false)
+  // ⇧⌘E and the palette's "export as pdf…" open this pane's card.
+  const pdfRequest = useUi((s) => s.pdfRequest)
+  const [seenRequest, setSeenRequest] = useState(pdfRequest?.nonce)
+  if (pdfRequest && pdfRequest.nonce !== seenRequest) {
+    setSeenRequest(pdfRequest.nonce)
+    if (pdfRequest.paneId === paneId && doc) setPdfOpen(true)
+  }
   const pdfAsked = useRef(false)
   const openPdf = () => {
     pdfAsked.current = true
@@ -562,6 +562,8 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
   const columnCount = useWorkspace((s) => columnsOf(s.panes).length)
   const focused = useWorkspace((s) => s.focusedPaneId === pane.id)
   const focusPane = useWorkspace((s) => s.focusPane)
+  const sidebarOpen = useWorkspace((s) => s.sidebarOpen)
+  const first = useWorkspace((s) => columnsOf(s.panes)[0]?.[0]?.id === pane.id)
   const self = useRef<HTMLElement>(null)
   const [narrow, setNarrow] = useState(false)
   useEffect(() => {
@@ -594,11 +596,21 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
     >
       {!reviewHere && <DropZones paneId={pane.id} />}
       <div className="flex h-[38px] flex-none items-stretch border-b border-border bg-card">
+        {/* With the sidebar hidden, its toggle and the wordmark start the
+            first pane's tab strip, so the app is still named (round 4, 2). */}
+        {first && !sidebarOpen && (
+          <div className="flex flex-none items-center gap-1 border-r border-border pr-2 pl-2.5">
+            <SidebarToggle />
+            <span className="pl-1 text-foreground">
+              <Wordmark />
+            </span>
+          </div>
+        )}
         <TabStrip pane={pane} tabs={tabs} focused={focused} />
         {/* Controls sit on the focused pane only (6f). */}
         {focused && (
           <div className="flex flex-none items-center gap-1.5 border-l border-border pr-2 pl-3">
-            <PaneControls doc={doc} narrow={narrow} />
+            <PaneControls paneId={pane.id} doc={doc} narrow={narrow} />
           </div>
         )}
       </div>

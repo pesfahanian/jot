@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Check, PanelLeft, PanelLeftDashed, PanelRight, PanelRightDashed, Sparkles } from 'lucide-react'
+import { Check, PanelRight, PanelRightDashed, Sparkles } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { hasRtl, lineDirections, type DirSetting } from '@/lib/direction'
 import { updateDocument } from '@/lib/documents'
@@ -228,33 +228,9 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
   return <div className="flex min-w-0 flex-auto items-center px-[5px] whitespace-nowrap">{body}</div>
 }
 
-// The left block never shrinks below what the sidebar and minimap toggles
-// and the review control's widest state ("review outdated", the skipped
-// chip) need.
-const LEFT_BLOCK_MIN = 240
-
-// Sidebar shown / hidden (Cmd+B). Placed here provisionally: the next design
-// round decides where it lives. The status bar is always there, so the
-// button is reachable in both states.
-function SidebarToggle() {
-  const open = useWorkspace((s) => s.sidebarOpen)
-  const toggle = useWorkspace((s) => s.toggleSidebar)
-  return (
-    <button
-      type="button"
-      aria-pressed={open}
-      aria-label="sidebar"
-      title={`${open ? 'hide' : 'show'} the sidebar (${navigator.platform.startsWith('Mac') ? '⌘' : 'Ctrl+'}B)`}
-      onClick={toggle}
-      className={cn(
-        'flex w-[30px] flex-none items-center justify-center border-r border-border-subtle hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
-        open ? 'text-secondary-foreground' : 'text-ink-dim',
-      )}
-    >
-      {open ? <PanelLeft size={13} strokeWidth={1.75} aria-hidden /> : <PanelLeftDashed size={13} strokeWidth={1.75} aria-hidden />}
-    </button>
-  )
-}
+// The left block never shrinks below what the review control's widest
+// state ("review outdated", the skipped chip) needs.
+const LEFT_BLOCK_MIN = 210
 
 // Minimap on/off (Phase 8; in the status bar since the owner moved it), one
 // setting for every editor. Lit while on. With three columns open the
@@ -270,7 +246,7 @@ function MinimapToggle() {
       title={`minimap: ${on ? 'on' : 'off'}${on && crowded ? ' (hidden with three columns)' : ''} — click to ${on ? 'hide' : 'show'}`}
       onClick={() => void updateSettings({ minimap: !on })}
       className={cn(
-        'flex w-[30px] flex-none items-center justify-center border-r border-border-subtle hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+        'flex w-[30px] flex-none items-center justify-center border-l border-border-subtle hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
         on ? 'text-secondary-foreground' : 'text-ink-dim',
       )}
     >
@@ -298,8 +274,6 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
       <div className="flex flex-none items-stretch border-r border-border-subtle" style={{ width: Math.max(sidebarWidth - 1, LEFT_BLOCK_MIN) }}>
         {/* With no document there is nothing to review or count (6d): only
             global state remains. */}
-        <SidebarToggle />
-        <MinimapToggle />
         {doc && <ReviewControl doc={doc} text={text} />}
       </div>
       <div className="flex-auto" />
@@ -314,6 +288,8 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
           <Cell label="paras" value={groupDigits(c.paras)} className="pr-2.5" />
         </>
       )}
+      {/* The minimap toggle, at the far right (round 4). */}
+      <MinimapToggle />
     </footer>
   )
 }

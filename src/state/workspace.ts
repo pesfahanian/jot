@@ -57,6 +57,7 @@ interface WorkspaceState {
   closeTab(paneId: string, documentId: string): void
   focusPane(paneId: string): void
   split(): void
+  openBeside(documentId: string): void
   toggleRender(): void
   setDragTab(tab: DraggedTab | null): void
   dropTabOnStrip(to: string, index: number): void
@@ -179,6 +180,17 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     // A comparison stays in one tab.
     if (!current || !edge || isDiffTab(current)) return
     const pane: PaneLayout = { id: newPaneId(), tabs: [current], active: current }
+    const next = insertPane(panes, focusedPaneId, edge, pane)
+    if (next) set({ panes: next, focusedPaneId: pane.id })
+  },
+
+  // Opens a document beside the focused pane (the palette's ⌘↵): where
+  // split would put it, or in the focused pane when the grid is full.
+  openBeside(documentId) {
+    const { panes, focusedPaneId } = get()
+    const edge = splitEdge(panes, focusedPaneId)
+    if (!edge) return get().openDocument(documentId)
+    const pane: PaneLayout = { id: newPaneId(), tabs: [documentId], active: documentId }
     const next = insertPane(panes, focusedPaneId, edge, pane)
     if (next) set({ panes: next, focusedPaneId: pane.id })
   },

@@ -63,4 +63,9 @@ const listEnter: StateCommand = (target) => inListItem(target) && continueList(t
 
 export const listContinuation: readonly KeyBinding[] = [{ key: 'Enter', run: listEnter }]
 
-export const editorKeymap: readonly KeyBinding[] = [...listContinuation, ...vscodeKeymap, ...supplementKeymap, ...escapeFallback]
+// The vscode keymap's ⌘K chords give way to the command palette (owner,
+// round 4): fold all, unfold all, and the chord forms of comment and
+// uncomment. ⌘/ stays the comment toggle.
+const withoutChords = vscodeKeymap.filter((b) => ![b.key, b.mac, b.win, b.linux].some((k) => k && /^(Mod|Cmd|Ctrl)-k /i.test(k)))
+
+export const editorKeymap: readonly KeyBinding[] = [...listContinuation, ...withoutChords, ...supplementKeymap, ...escapeFallback]

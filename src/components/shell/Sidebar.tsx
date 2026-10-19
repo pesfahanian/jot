@@ -1,10 +1,7 @@
-import { useLiveQuery } from 'dexie-react-hooks'
-import { Check, CircleHelp, KeyRound, Monitor, Moon, Sun, X } from 'lucide-react'
+import { Settings2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { JotDocument } from '@/lib/db'
-import { getSettings, providerKey } from '@/lib/settings'
-import { PROVIDERS } from '@/review/providers'
 import { welcomeDocumentId } from '@/lib/welcome'
 import { Keycap, KeycapPanel } from '@/components/review/Keycap'
 import {
@@ -17,20 +14,26 @@ import {
   type SearchResult,
 } from '@/lib/docList'
 import { cn } from '@/lib/utils'
-import { newComparison, newDocument, renameDocument } from '@/state/actions'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { formatKey } from '@/lib/shortcuts'
+import { newDocument, pickImport, renameDocument } from '@/state/actions'
 import { useNow } from '@/state/hooks'
-import { useReview } from '@/state/review'
+import { useUi } from '@/state/ui'
 import { docIdOf } from '@/state/layout'
-import { cycleTheme, nextTheme, useTheme } from '@/state/theme'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 import { DocumentMenu } from './DocumentMenu'
-import { DiffIcon, FilterIcon, PinIcon, PlusIcon, SearchIcon, SortIcon } from './icons'
+import { FilterIcon, PinIcon, PlusIcon, SearchIcon } from './icons'
+import { SidebarToggle } from './SidebarToggle'
 import { tagClass } from './tagClass'
 import { TagMark } from './TagMark'
 import { Wordmark } from './Wordmark'
 
+// Header icons (round 4): plain 24 × 20 marks in the secondary ink, a lift on
+// hover.
 const iconButton =
-  'flex h-5 w-6 flex-none items-center justify-center rounded-md border border-border bg-control text-secondary-foreground hover:text-foreground hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:text-ink-mute'
+  'flex h-5 w-6 flex-none items-center justify-center rounded-sm text-secondary-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:text-ink-mute data-[state=open]:bg-hover-lift data-[state=open]:text-foreground'
+const footButton =
+  'flex h-[22px] items-center gap-1.5 rounded-md px-[7px] hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[state=open]:bg-hover-lift data-[state=open]:text-foreground'
 
 // Secondary text button used by the empty states (6d).
 export function QuietButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
@@ -140,32 +143,6 @@ function FileRow({ doc, selected, now }: { doc: JotDocument; selected: boolean; 
   )
 }
 
-// The AI provider's home (moved from the status bar, which holds only
-// per-document state): one row pinned to the sidebar's foot. Named for the
-// provider role, not OpenRouter, since more providers are planned. Two
-// states — key set (tick) or not set (cross); the panel has the details.
-// Theme (3f, moved here in Phase 7: the status bar is per-document, this
-// foot is the app's own settings). One icon showing the current mode —
-// sun, moon, or monitor for system — and a click cycles light → dark →
-// system. The tooltip says what system resolves to and what's next.
-const themeIcon = { light: Sun, dark: Moon, system: Monitor } as const
-function ThemeButton() {
-  const { preference, resolved } = useTheme()
-  const Icon = themeIcon[preference]
-  const now = preference === 'system' ? `system (now ${resolved})` : preference
-  return (
-    <button
-      type="button"
-      aria-label={`theme: ${now}`}
-      title={`theme: ${now} — click for ${nextTheme(preference)}`}
-      onClick={() => void cycleTheme(preference)}
-      className="flex w-[34px] flex-none items-center justify-center border-l border-border text-secondary-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
-    >
-      <Icon size={13} strokeWidth={1.75} aria-hidden />
-    </button>
-  )
-}
-
 // The guide card (Phase 10): the shortcuts worth knowing, as keycaps, and a
 // quiet way back to the welcome document — the person's own copy if it
 // still exists, else a fresh one (lib/welcome.ts).
@@ -192,9 +169,9 @@ function GuideButton() {
           type="button"
           aria-label="guide"
           title="guide"
-          className="flex w-[34px] flex-none items-center justify-center border-l border-border text-secondary-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring data-[state=open]:bg-popover data-[state=open]:text-foreground"
+          className={iconButton}
         >
-          <CircleHelp size={13} strokeWidth={1.75} aria-hidden />
+          ?
         </button>
       </PopoverTrigger>
       <PopoverContent side="right" align="end" sideOffset={12} className="w-[340px] border-0 bg-transparent p-0 shadow-none">
@@ -228,37 +205,11 @@ function GuideButton() {
   )
 }
 
-function KeyFooter() {
-  const settings = useLiveQuery(() => getSettings(), [])
-  const provider = PROVIDERS[settings?.provider ?? 'openrouter']
-  const key = settings ? providerKey(settings).key : null
-  const open = useReview((s) => s.keyPanel.open)
-  const openKeyPanel = useReview((s) => s.openKeyPanel)
-  const closeKeyPanel = useReview((s) => s.closeKeyPanel)
-  const set = !!key
-  return (
-    <button
-      type="button"
-      data-key-cell=""
-      title={`AI provider: ${provider.label} — ${set ? 'key set' : 'no key set'}`}
-      onClick={() => (open ? closeKeyPanel() : openKeyPanel('cell'))}
-      className={cn(
-        'flex min-w-0 flex-auto items-center gap-2 pr-3 pl-3.5 font-mono text-[11.5px] text-secondary-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
-        open && 'bg-popover text-foreground',
-      )}
-    >
-      <KeyRound size={13} strokeWidth={1.75} aria-hidden />
-      <span className="flex-auto text-left">AI Provider</span>
-      {set ? (
-        <Check size={13} strokeWidth={2.25} className="text-primary" aria-label="set" />
-      ) : (
-        <X size={13} strokeWidth={2} className="text-muted-foreground" aria-label="not set" />
-      )}
-    </button>
-  )
-}
-
-function FilterBox({ docs }: { docs: JotDocument[] }) {
+// Sort and colour filter share one button and one menu (round 4). The face
+// is three falling lines; while a filter is on it shows what's filtered.
+function SortFilterBox({ docs }: { docs: JotDocument[] }) {
+  const sort = useWorkspace((s) => s.sort)
+  const toggleSort = useWorkspace((s) => s.toggleSort)
   const colorFilter = useWorkspace((s) => s.colorFilter)
   const toggleColor = useWorkspace((s) => s.toggleColor)
   const clear = useWorkspace((s) => s.clearColorFilter)
@@ -268,17 +219,38 @@ function FilterBox({ docs }: { docs: JotDocument[] }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button
-          type="button"
-          title="filter by color"
-          disabled={docs.length === 0}
-          className={cn(iconButton, active.length && 'border-foreground bg-hover-lift hover:border-foreground')}
-        >
-          <FilterIcon active={active} muted={docs.length === 0} />
+        <button type="button" title="sort and filter" disabled={docs.length === 0} className={cn(iconButton, active.length && 'bg-hover-lift')}>
+          {active.length ? (
+            <FilterIcon active={active} />
+          ) : (
+            <span className="flex flex-col items-center gap-0.5" aria-hidden>
+              <span className="h-[1.5px] w-2.5 bg-current" />
+              <span className="h-[1.5px] w-[7px] bg-current" />
+              <span className="h-[1.5px] w-1 bg-current" />
+            </span>
+          )}
         </button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[150px] overflow-hidden">
-        <div className="grid grid-cols-2 p-[5px]">
+      <PopoverContent align="end" className="w-[176px] overflow-hidden">
+        <div className="px-[9px] pt-2 pb-1 font-mono text-[11px] text-muted-foreground">sort</div>
+        <div className="flex gap-1 px-[5px] pb-1.5">
+          {(['date', 'name'] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              aria-pressed={sort === m}
+              onClick={() => sort !== m && toggleSort()}
+              className={cn(
+                'flex h-[22px] flex-1 items-center justify-center rounded-md border font-mono text-[11px]',
+                sort === m ? 'border-ink-tertiary bg-hover-lift text-foreground' : 'border-border bg-background text-secondary-foreground hover:text-foreground',
+              )}
+            >
+              {m === 'date' ? 'newest' : 'a to z'}
+            </button>
+          ))}
+        </div>
+        <div className="border-t border-border-subtle px-[9px] pt-2 pb-1 font-mono text-[11px] text-muted-foreground">filter by colour</div>
+        <div className="grid grid-cols-2 px-[5px] pb-[5px]">
           {TAG_SLOTS.map((c) => {
             const selected = colorFilter.has(c)
             // A 0-count swatch can't be picked — it could only ever empty the list.
@@ -410,7 +382,7 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
   const now = useNow()
   const width = useWorkspace((s) => s.sidebarWidth)
   const sort = useWorkspace((s) => s.sort)
-  const toggleSort = useWorkspace((s) => s.toggleSort)
+  const openSettings = useUi((s) => s.openSettings)
   const colorFilter = useWorkspace((s) => s.colorFilter)
   const clearColorFilter = useWorkspace((s) => s.clearColorFilter)
   const searchOpen = useWorkspace((s) => s.searchOpen)
@@ -492,7 +464,7 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
       style={{ width }}
       className="flex min-h-0 flex-none flex-col overflow-hidden rounded-(--radius-panel) border border-border-strong bg-card"
     >
-      <header className="flex h-[38px] flex-none items-center gap-[5px] border-b border-border pr-2 pl-3.5">
+      <header className="flex h-[38px] flex-none items-center gap-0.5 border-b border-border pr-1.5 pl-3.5">
         {searchOpen ? (
           <SearchField />
         ) : (
@@ -500,41 +472,57 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
             <span className="flex flex-auto items-center text-foreground">
               <Wordmark />
             </span>
-            <button type="button" title="new document" className={iconButton} onClick={() => void newDocument()}>
+            <button type="button" title={`new document (${formatKey('Mod-Alt-n')})`} className={iconButton} onClick={() => void newDocument()}>
               <PlusIcon />
             </button>
-            <button type="button" title="new comparison" aria-label="new comparison" className={iconButton} onClick={() => void newComparison()}>
-              <DiffIcon />
-            </button>
-            <button
-              type="button"
-              title={sort === 'date' ? 'sorted newest first — click for A to Z' : 'sorted A to Z — click for newest first'}
-              disabled={empty}
-              className={iconButton}
-              onClick={toggleSort}
-            >
-              <SortIcon mode={sort} />
-            </button>
-            <FilterBox docs={docs} />
-            <button type="button" title="search" disabled={empty} className={iconButton} onClick={() => setSearch(true)}>
+            <button type="button" title={`search (${formatKey('Mod-Shift-f')})`} disabled={empty} className={iconButton} onClick={() => setSearch(true)}>
               <SearchIcon />
             </button>
+            <SortFilterBox docs={docs} />
+            <span className="mx-[3px] h-3.5 w-px bg-border" />
+            <SidebarToggle />
           </>
         )}
       </header>
-      {/* Double-click the empty space below the rows: a new document. */}
+      {/* Double-click the empty space below the rows: a new document. A
+          faint hint says so while the list has room (round 4). */}
       <div
         className="flex min-h-0 flex-auto flex-col overflow-y-auto"
         onDoubleClick={(e) => {
-          if (e.target === e.currentTarget && !search) void newDocument()
+          if ((e.target === e.currentTarget || (e.target as Element).hasAttribute('data-list-hint')) && !search) void newDocument()
         }}
       >
         {body}
+        {!search && !empty && (
+          <span data-list-hint="" className="flex min-h-0 flex-auto items-end justify-center overflow-hidden pb-2.5 font-mono text-[11px] text-ink-dim select-none">
+            double-click for a new document
+          </span>
+        )}
       </div>
-      <div className="flex h-[30px] flex-none items-stretch border-t border-border">
-        <KeyFooter />
+      {/* The foot (round 4): settings, import, the guide. The AI provider
+          and the theme live in settings now. */}
+      <div className="flex h-[34px] flex-none items-center gap-0.5 border-t border-border pr-1.5 pl-2 font-mono text-[11px] text-secondary-foreground">
+        <button type="button" onClick={() => openSettings()} className={footButton} title="settings">
+          <Settings2 size={13} strokeWidth={1.75} aria-hidden />
+          settings
+        </button>
+        <span className="flex-auto text-ink-dim">{formatKey('Mod-,')}</span>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button type="button" className={footButton} title="import documents">
+              import…
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="top">
+            <DropdownMenuItem onSelect={() => pickImport('files')} title=".md, .txt or a workspace .zip — several at once">
+              files…
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => pickImport('folder')} title="every .md and .txt in a folder, and its subfolders">
+              a folder…
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <GuideButton />
-        <ThemeButton />
       </div>
     </aside>
   )

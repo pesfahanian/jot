@@ -463,3 +463,13 @@
 [data-motion="off"] *, [data-motion="off"] *::before, [data-motion="off"] *::after {
     animation-duration: 0s !important; transition-duration: 0s !important;
 }
+/* Modals and the palette: opacity and scale .98 → 1 from the top centre,
+   160 in, 110 out; the scrim fades with them. */
+@keyframes jot-pop-in { from { opacity: 0; scale: .98; } }
+@keyframes jot-pop-out { to { opacity: 0; scale: .98; } }
+@keyframes jot-fade-in { from { opacity: 0; } }
+@keyframes jot-fade-out { to { opacity: 0; } }
+.jot-modal[data-state="open"], .jot-palette[data-state="open"] { animation: jot-pop-in var(--motion-base) var(--ease-enter); transform-origin: top center; }
+.jot-modal[data-state="closed"], .jot-palette[data-state="closed"] { animation: jot-pop-out calc(var(--motion-base) * .7) var(--ease-exit); }
+.jot-modal-overlay[data-state="open"] { animation: jot-fade-in var(--motion-base) var(--ease-enter); }
+.jot-modal-overlay[data-state="closed"] { animation: jot-fade-out calc(var(--motion-base) * .7) var(--ease-exit); }

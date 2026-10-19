@@ -47,6 +47,10 @@ export interface Settings {
   // Animations (round 4, motion spec); on unless turned off. The system's
   // reduced-motion request turns them off regardless.
   animations?: boolean
+  // The person's own keyboard shortcuts (round 4): command id → keys, an
+  // empty list for none. Missing commands keep their defaults
+  // (state/commands.ts).
+  shortcuts?: Record<string, string[]>
   // First run (Phase 10): when the welcome document was created (or the
   // workspace was found already in use), and which document it is.
   welcomedAt: number | null

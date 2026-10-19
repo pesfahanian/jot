@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { JotDocument } from '@/lib/db'
-import { shortcutKey } from '@/lib/keys'
+import { isCommandKey, keyOfEvent, normKey } from '@/lib/shortcuts'
+import { commandContext, commandForKey } from '@/state/commands'
+import { useUi } from '@/state/ui'
 import { cn } from '@/lib/utils'
 import { importFiles, newDocument, pickImport } from '@/state/actions'
 import { useWorkspace } from '@/state/workspace'
-import { KeyPanel } from '@/components/review/KeyPanel'
-import { useReview } from '@/state/review'
+import { SettingsModal } from '@/components/settings/SettingsModal'
 import { PaneEmpty } from './EditorPane'
 import { PaneGrid } from './PaneGrid'
 import { Sidebar } from './Sidebar'
@@ -65,40 +66,29 @@ function FirstRun() {
 export function Shell({ docs }: { docs: JotDocument[] }) {
   const panes = useWorkspace((s) => s.panes)
   const sidebarOpen = useWorkspace((s) => s.sidebarOpen)
-  // The key panel opens beside the sidebar's key row, so asking for a key
-  // brings a hidden sidebar back.
-  const keyPanelOpen = useReview((s) => s.keyPanel.open)
-  useEffect(() => {
-    if (keyPanelOpen && !useWorkspace.getState().sidebarOpen) useWorkspace.getState().toggleSidebar()
-  }, [keyPanelOpen])
   const docsById = useMemo(() => new Map(docs.map((d) => [d.id, d])), [docs])
   const [dropping, setDropping] = useState(false)
 
-  // App-wide keys, captured before anything else sees them, wherever focus is:
-  //   Cmd/Ctrl+S        does nothing — every edit already persists (ADR-008),
-  //                     and the browser's "Save as" would only save the page
-  //   Cmd/Ctrl+Shift+V  toggles the rendered view, as VSCode's preview
-  //                     (replaces Chrome's "paste as plain text", which a
-  //                     plain-text editor never needs)
-  //   Cmd/Ctrl+B        hides or shows the sidebar, as VS Code (the vscode
-  //                     keymap leaves it free; Firefox's bookmarks sidebar
-  //                     gives way)
+  // App-wide keys, captured before anything else sees them, wherever focus
+  // is — so a command's key wins over the editor's (the shortcut editor
+  // warns before taking one of its keys). Cmd/Ctrl+S does nothing: every
+  // edit already persists (ADR-008), and the browser's "Save as" would only
+  // save the page. Every other key comes from the command registry
+  // (state/commands.ts), with the person's own choices.
   useEffect(() => {
-    const save = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey) || e.altKey) return
-      const key = shortcutKey(e)
-      if (key === 's' && !e.shiftKey) e.preventDefault()
-      if (key === 'v' && e.shiftKey) {
-        e.preventDefault()
-        useWorkspace.getState().toggleRender()
-      }
-      if (key === 'b' && !e.shiftKey) {
-        e.preventDefault()
-        useWorkspace.getState().toggleSidebar()
-      }
+    const onKey = (e: KeyboardEvent) => {
+      if (useUi.getState().recordingKey) return
+      const key = keyOfEvent(e)
+      if (!key || !isCommandKey(key)) return
+      if (key === normKey('Mod-s')) return e.preventDefault()
+      const command = commandForKey(key)
+      if (!command || (command.enabled && !command.enabled(commandContext(undefined)))) return
+      e.preventDefault()
+      e.stopPropagation()
+      command.run()
     }
-    window.addEventListener('keydown', save, { capture: true })
-    return () => window.removeEventListener('keydown', save, { capture: true })
+    window.addEventListener('keydown', onKey, { capture: true })
+    return () => window.removeEventListener('keydown', onKey, { capture: true })
   }, [])
 
   // Drop .md files anywhere to import them (6d).
@@ -142,10 +132,7 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
         {/* The key panel opens beside the sidebar's key row, over the panes. */}
         {sidebarOpen && (
           <>
-            <div className="relative flex min-h-0">
-              <Sidebar docs={docs} />
-              <KeyPanel />
-            </div>
+            <Sidebar docs={docs} />
             <SidebarHandle />
           </>
         )}
@@ -157,6 +144,7 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
       <div className="relative flex-none">
         <StatusBar docsById={docsById} />
       </div>
+      <SettingsModal />
     </div>
   )
 }
