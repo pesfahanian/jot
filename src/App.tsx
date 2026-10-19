@@ -7,6 +7,7 @@ import { useDocuments } from '@/state/hooks'
 import { useReview } from '@/state/review'
 import { docIdOf, isDiffTab } from '@/state/layout'
 import { useApplyTheme, useTheme } from '@/state/theme'
+import { useApplyMotion } from '@/lib/motion'
 import { useWorkspace } from '@/state/workspace'
 
 // Desktop only (ADR-011): below 1000px nothing of the app mounts — only the
@@ -101,6 +102,7 @@ function App() {
   const isWide = useSyncExternalStore(subscribeWidth, () => wide.matches)
   const theme = useTheme()
   useApplyTheme(theme.resolved)
+  useApplyMotion()
   useFaviconStatus()
   const storageOk = useStorageOk()
   if (!isWide) return <TooNarrow />

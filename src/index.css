@@ -432,3 +432,34 @@
 .jot-diff .cm-collapsedLines:hover { color: var(--foreground); }
 .jot-diff .cm-collapsedLines::before, .jot-diff .cm-collapsedLines::after { content: none !important; }
 
+
+/* Motion (round 4, frame 18): two curves, three durations, no springs, no
+   overshoot, no stagger. Enter on --ease-enter; leaving takes 70% of the
+   enter time on --ease-exit. With motion off — settings → appearance, or
+   the system asking for reduced motion — every duration is 0 (lib/motion.ts
+   sets data-motion="off"); the auto-fix flash keeps a static wash. */
+:root {
+    --motion-fast: 100ms; /* menus, popovers, tooltips */
+    --motion-base: 160ms; /* palette, panes, results */
+    --motion-mode: 240ms; /* entering ai mode only */
+    --ease-enter: cubic-bezier(.2, 0, 0, 1);
+    --ease-exit: cubic-bezier(.4, 0, 1, 1);
+}
+/* Menus and popovers: opacity and 4px from their anchor, 100 in / 70 out. */
+[data-slot="dropdown-menu-content"], [data-slot="dropdown-menu-sub-content"], [data-slot="context-menu-content"], [data-slot="context-menu-sub-content"], [data-slot="popover-content"] {
+    --tw-enter-translate-y: 0; --tw-exit-translate-y: 0;
+}
+:is([data-slot="dropdown-menu-content"], [data-slot="dropdown-menu-sub-content"], [data-slot="context-menu-content"], [data-slot="context-menu-sub-content"], [data-slot="popover-content"])[data-state="open"] {
+    animation-duration: var(--motion-fast); animation-timing-function: var(--ease-enter);
+}
+:is([data-slot="dropdown-menu-content"], [data-slot="dropdown-menu-sub-content"], [data-slot="context-menu-content"], [data-slot="context-menu-sub-content"], [data-slot="popover-content"])[data-state="closed"] {
+    animation-duration: calc(var(--motion-fast) * .7); animation-timing-function: var(--ease-exit);
+}
+:is([data-slot="dropdown-menu-content"], [data-slot="popover-content"])[data-side="bottom"] { --tw-enter-translate-y: -4px; --tw-exit-translate-y: -4px; }
+:is([data-slot="dropdown-menu-content"], [data-slot="popover-content"])[data-side="top"] { --tw-enter-translate-y: 4px; --tw-exit-translate-y: 4px; }
+/* The right-click menu has no travel: it must feel like the OS one. */
+[data-slot="context-menu-content"], [data-slot="context-menu-sub-content"] { --tw-enter-translate-y: 0 !important; }
+[data-motion="off"] { --motion-fast: 0ms; --motion-base: 0ms; --motion-mode: 0ms; }
+[data-motion="off"] *, [data-motion="off"] *::before, [data-motion="off"] *::after {
+    animation-duration: 0s !important; transition-duration: 0s !important;
+}
