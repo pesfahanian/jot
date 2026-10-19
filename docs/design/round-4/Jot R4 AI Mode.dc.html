@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="width: 1280px; height: 780px; display: flex; flex-direction: column; gap: 8px; padding: 8px; background: var(--canvas); border: 1px solid var(--hair); border-radius: 20px; color: var(--ink); font-family: 'Public Sans', 'Jot Farsi', sans-serif; overflow: hidden">
+  <div style="flex: 1 1 auto; min-height: 0; display: flex; gap: 8px">
+    <div style="flex: 0 0 360px; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--edge); border-radius: 12px; overflow: hidden">
+      <div style="flex: 0 0 38px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 14px; border-bottom: 1px solid var(--hair)">
+        <span style="font-size: 13px; font-weight: 600">ai mode</span>
+        <span dir="auto" style="flex: 1 1 auto; font-size: 13px; color: var(--ink3); overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{ docTitle }}</span>
+        <span style="display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2)">leave <span style="color: var(--faint)">esc</span></span>
+      </div>
+      <div style="flex: 0 0 auto; display: flex; flex-wrap: wrap; gap: 5px; padding: 8px 12px; border-bottom: 1px solid var(--rule); font-family: 'Source Code Pro', monospace; font-size: 11px">
+        <span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid {{ styleChipBorder }}; background: {{ styleChipBg }}; border-radius: 6px; color: var(--ink)">review style</span>
+        <span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid {{ trChipBorder }}; background: {{ trChipBg }}; border-radius: 6px; color: var(--ink)">translate document</span>
+        <span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; color: var(--ink2)">history</span>
+      </div>
+      <div style="flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; padding: 14px; overflow: hidden; font-size: 13px; line-height: 1.55">
+        <sc-if value="{{ mChat }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="align-self: flex-end; max-width: 280px; padding: 8px 11px; background: var(--elev); border: 1px solid var(--hair); border-radius: 8px">Does the writing section match the intro's tone? Don't change anything.</div>
+            <div style="display: flex; flex-direction: column; gap: 6px; text-wrap: pretty"><span>Mostly. The intro talks to the reader as "you" and stays short; the writing section does too, until the last sentence of line 7, which gets wordier.</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">answer only · nothing proposed</span></div>
+            <div style="align-self: flex-end; max-width: 280px; display: flex; flex-direction: column; gap: 6px; padding: 8px 11px; background: var(--elev); border: 1px solid var(--hair); border-radius: 8px"><span>Then tighten it, and the list below.</span><span style="display: flex; gap: 4px"><span style="display: flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; background: var(--ink); color: var(--doc); border-radius: 8px; font-family: 'Source Code Pro', monospace; font-size: 10px; font-weight: 600">1</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">1 ai note · 2 personal notes as context</span></span></div>
+            <div style="display: flex; flex-direction: column; gap: 8px; text-wrap: pretty"><span>Four proposals: line 3 per note 1, line 7 trimmed, and two list items made parallel.</span>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--elev); border: 1px solid var(--edge); border-radius: 8px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="flex: 1 1 auto; color: var(--ink2)">4 proposals · 0 decided</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--ink); background: var(--ink); border-radius: 6px; color: var(--doc)">open results</span></div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ mResults }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="align-self: flex-end; max-width: 280px; display: flex; flex-direction: column; gap: 6px; padding: 8px 11px; background: var(--elev); border: 1px solid var(--hair); border-radius: 8px"><span>Then tighten it, and the list below.</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">1 ai note · 2 personal notes as context</span></div>
+            <div style="display: flex; flex-direction: column; gap: 8px; text-wrap: pretty"><span>Four proposals: line 3 per note 1, line 7 trimmed, and two list items made parallel.</span>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--elev); border: 2px solid var(--accent); border-radius: 8px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="flex: 1 1 auto; color: var(--ink2)">4 proposals · 2 decided</span><span style="color: var(--ink3)">open →</span></div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ mStyle }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="align-self: flex-end; display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--elev); border: 1px solid var(--hair); border-radius: 8px; font-family: 'Source Code Pro', monospace; font-size: 11px">review style <span style="color: var(--faint)">· action</span></div>
+            <div style="display: flex; flex-direction: column; gap: 8px"><span>Style review done. Seven findings across 72 lines.</span>
+              <div style="display: flex; flex-direction: column; gap: 6px; padding: 9px 10px; background: var(--elev); border: 2px solid var(--accent); border-radius: 8px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2)">
+                <span style="display: flex; align-items: center; gap: 7px"><span style="width: 8px; height: 8px; background: var(--teal)"></span><span style="flex: 1 1 auto">quick fix</span><span style="color: var(--ink)">3</span></span>
+                <span style="display: flex; align-items: center; gap: 7px"><span style="width: 8px; height: 8px; background: var(--amber)"></span><span style="flex: 1 1 auto">check fix</span><span style="color: var(--ink)">2</span></span>
+                <span style="display: flex; align-items: center; gap: 7px"><span style="width: 8px; height: 8px; background: var(--violet)"></span><span style="flex: 1 1 auto">your call</span><span style="color: var(--ink)">2</span></span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ mTranslate }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="align-self: flex-end; max-width: 280px; padding: 8px 11px; background: var(--elev); border: 1px solid var(--hair); border-radius: 8px">Translate this into Farsi. Keep code and shortcuts as they are.</div>
+            <div style="display: flex; flex-direction: column; gap: 8px"><span>Writing a new document, <span dir="rtl">welcome to jot (فارسی)</span>. The original stays as it is.</span>
+              <div style="display: flex; flex-direction: column; gap: 7px; padding: 9px 10px; background: var(--elev); border: 1px solid var(--edge); border-radius: 8px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2)">
+                <span style="display: flex; align-items: center; gap: 8px"><span style="flex: 1 1 auto; color: var(--ink)">{{ trStatus }}</span><span>{{ trCount }}</span></span>
+                <span style="display: flex; gap: 2px; height: 4px"><span style="flex: 1 1 0; background: var(--ink2); border-radius: 1px"></span><span style="flex: 1 1 0; background: var(--ink2); border-radius: 1px"></span><span style="flex: 1 1 0; background: {{ trBar3 }}; border-radius: 1px"></span><span style="flex: 1 1 0; background: {{ trBar4 }}; border-radius: 1px"></span><span style="flex: 1 1 0; background: {{ trBar4 }}; border-radius: 1px"></span><span style="flex: 1 1 0; background: {{ trBar4 }}; border-radius: 1px"></span></span>
+                <span style="display: flex; align-items: center; gap: 8px"><span style="flex: 1 1 auto; color: var(--ink3)">{{ trNote }}</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px">{{ trBtn }}</span></span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ mFarsi }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="align-self: flex-end; max-width: 290px; display: flex; flex-direction: column; gap: 6px; padding: 8px 11px; background: var(--elev); border: 1px solid var(--hair); border-radius: 8px"><span>Is this sentence too formal for a welcome page?</span><span dir="rtl" style="padding: 4px 8px; border-right: 2px solid var(--hair); font-size: 13px; color: var(--ink2); line-height: 1.8">دکمه‌ی ذخیره‌ای وجود ندارد و Cmd/Ctrl + S عمداً کاری نمی‌کند.</span></div>
+            <div style="display: flex; flex-direction: column; gap: 6px; text-wrap: pretty"><span>A little. <span dir="rtl">عمداً</span> is fine, but <span dir="rtl">وجود ندارد</span> reads like a manual. A welcome page would usually say <span dir="rtl">دکمه‌ی ذخیره نداریم</span>.</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">answer only · nothing proposed</span></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ eKey }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--elev); border: 1px solid var(--edge); border-radius: 8px">
+            <span style="font-weight: 600">No AI key yet</span>
+            <span style="color: var(--ink2); text-wrap: pretty">AI mode talks to your own provider with your own key. Add one in settings; it stays in this browser.</span>
+            <span style="display: flex; gap: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="display: flex; align-items: center; height: 24px; padding: 0 9px; border: 1px solid var(--accent); background: var(--accent); border-radius: 6px; color: var(--on-accent); font-weight: 600">open settings</span><span style="display: flex; align-items: center; height: 24px; padding: 0 9px; color: var(--ink2)">which provider?</span></span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ eProv }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="align-self: flex-end; max-width: 280px; padding: 8px 11px; background: var(--elev); border: 1px solid var(--hair); border-radius: 8px">Make the intro friendlier.</div>
+            <div style="display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px solid var(--edge); border-radius: 8px; background: var(--elev)">
+              <span style="display: flex; align-items: center; gap: 8px; font-weight: 500"><span style="width: 6px; height: 6px; border-radius: 50%; background: var(--err)"></span>The provider didn't answer</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; line-height: 1.6; color: var(--ink3)">openrouter · 502 bad gateway<br>tried claude-sonnet-4.5, then gemini-2.5-pro</span>
+              <span style="color: var(--ink2); font-size: 12.5px">Your message and notes are kept. Nothing was sent twice.</span>
+              <span style="display: flex; gap: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--ink); background: var(--ink); border-radius: 6px; color: var(--doc)">retry</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; color: var(--ink2)">provider status</span></span>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ eDecline }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="align-self: flex-end; max-width: 280px; padding: 8px 11px; background: var(--elev); border: 1px solid var(--hair); border-radius: 8px">Rewrite the medication section as dosing instructions.</div>
+            <div style="display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px solid var(--edge); border-radius: 8px; background: var(--elev)">
+              <span style="display: flex; align-items: center; gap: 8px; font-weight: 500"><span style="width: 6px; height: 6px; border-radius: 50%; background: var(--amber)"></span>The model declined</span>
+              <span style="padding-left: 9px; border-left: 2px solid var(--hair); color: var(--ink2); font-size: 12.5px; text-wrap: pretty">"I can't write specific dosing instructions. I can tighten the wording without changing any amounts."</span>
+              <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">claude-sonnet-4.5 · nothing proposed</span>
+              <span style="display: flex; gap: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; color: var(--ink2)">edit message</span><span style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; color: var(--ink2)">try another model <span style="color: var(--faint)">▾</span></span></span>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid var(--hair)">
+        <sc-if value="{{ showQueue }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; border: 1px solid var(--hair); border-radius: 8px; background: var(--elev); overflow: hidden">
+            <div style="display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid var(--rule); font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)"><span style="flex: 1 1 auto">2 ai notes go with your next message</span><span>clear</span></div>
+            <sc-for list="{{ queue }}" as="q" hint-placeholder-count="2">
+              <div style="display: flex; align-items: flex-start; gap: 8px; padding: 7px 10px; border-bottom: 1px solid var(--rule)">
+                <span style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; margin-top: 1px; padding: 0 4px; background: var(--ink); color: var(--doc); border-radius: 8px; font-family: 'Source Code Pro', monospace; font-size: 10px; font-weight: 600">{{ q.n }}</span>
+                <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span dir="{{ q.dir }}" style="font-family: 'Source Code Pro', 'Jot Farsi', monospace; font-size: 11px; color: var(--ink3); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: left">{{ q.quote }}</span><span style="font-size: 12.5px">{{ q.text }}</span></span>
+                <span style="font-family: 'Source Code Pro', monospace; font-size: 12px; color: var(--dim)">×</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="display: flex; flex-direction: column; gap: 8px; padding: 9px 10px; background: var(--doc); border: 1px solid {{ inputBorder }}; border-radius: 8px">
+          <span style="min-height: 38px; font-size: 13px; color: {{ inputInk }}">{{ inputText }}</span>
+          <div style="display: flex; align-items: center; gap: 8px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2)">
+            <span style="display: flex; align-items: center; gap: 6px"><span style="display: flex; align-items: center; width: 22px; height: 12px; padding: 1px; border-radius: 6px; background: {{ swBg }}; justify-content: {{ swAlign }}"><span style="width: 10px; height: 10px; border-radius: 50%; background: var(--doc)"></span></span>my notes as context <span style="color: var(--faint)">2</span></span>
+            <span style="flex: 1 1 auto"></span>
+            <span style="display: flex; align-items: center; height: 24px; padding: 0 9px; border: 1px solid {{ sendBorder }}; background: {{ sendBg }}; border-radius: 6px; color: {{ sendInk }}; font-weight: 600">send ↵</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; background: var(--doc); border: 1px solid var(--edge); border-radius: 12px; overflow: hidden">
+      <div style="flex: 0 0 38px; display: flex; align-items: stretch; background: var(--panel); border-bottom: 1px solid var(--hair)">
+        <div style="display: flex; align-items: center; gap: 9px; padding: 0 12px 0 16px; background: var(--doc); border-top: 2px solid var(--accent); border-right: 1px solid var(--hair); margin-bottom: -1px; border-radius: 0 6px 0 0"><span dir="auto" style="font-size: 13px; font-weight: 500">{{ docTitle }}</span></div>
+        <div style="flex: 1 1 auto"></div>
+        <div style="display: flex; align-items: center; gap: 5px; padding: 0 8px; border-left: 1px solid var(--hair); font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2)">
+          <span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px">render</span>
+          <span style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px">export <span style="color: var(--faint)">▾</span></span>
+        </div>
+      </div>
+      <sc-if value="{{ showResultsBar }}" hint-placeholder-val="{{ false }}">
+        <div style="flex: 0 0 40px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-bottom: 1px solid var(--hair); background: var(--elev); font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2)">
+          <span style="font-family: 'Public Sans', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--ink)">{{ resultsTitle }}</span>
+          <span style="display: flex; padding: 2px; gap: 2px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 7px">
+            <span style="display: flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 5px; background: {{ vRevBg }}; color: {{ vRevInk }}; font-weight: 500">review</span>
+            <span style="display: flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 5px; background: {{ vDiffBg }}; color: {{ vDiffInk }}; font-weight: 500">diff</span>
+          </span>
+          <sc-if value="{{ isDiff }}" hint-placeholder-val="{{ false }}">
+            <span style="display: flex; align-items: center; gap: 6px"><span style="color: var(--ink3)">show</span><span style="display: flex; padding: 2px; gap: 2px; border: 1px solid var(--ink3); background: var(--canvas); border-radius: 7px">
+              <span style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px; border-radius: 5px; background: {{ dDecBg }}; color: {{ dDecInk }}; font-weight: 500">as decided <span style="opacity: .7">1</span></span>
+              <span style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px; border-radius: 5px; background: {{ dAllBg }}; color: {{ dAllInk }}; font-weight: 500">if all accepted <span style="opacity: .7">4</span></span>
+            </span></span>
+          </sc-if>
+          <span style="flex: 1 1 auto"></span>
+          <span>{{ decided }}</span>
+          <span style="display: flex; align-items: center; height: 24px; padding: 0 9px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; color: var(--ink3)">apply</span>
+          <span style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; color: var(--ink3)">×</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ docNotes }}" hint-placeholder-val="{{ true }}">
+        <div style="flex: 1 1 auto; padding: 16px 0; font-family: 'Source Code Pro', monospace; font-size: 13px; line-height: 1.75">
+          <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">1</span><span style="padding-left: 20px; color: var(--sxh); font-weight: 600"># welcome to jot</span></div>
+          <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">2</span></div>
+          <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">3</span><span style="padding: 0 20px">A quiet place to write markdown. <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; margin-right: 3px; vertical-align: 1px; background: var(--ink); color: var(--doc); border-radius: 8px; font-size: 10px; font-weight: 600; line-height: 1">1</span><span style="padding: 1px 2px; border: 1px solid var(--ink2); border-radius: 3px">This document is a short tour, and it's yours</span>: edit it, keep it, or delete it.</span></div>
+          <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">4</span></div>
+          <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">5</span><span style="padding-left: 20px; color: var(--sxh); font-weight: 600">## writing</span></div>
+          <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">6</span></div>
+          <div style="display: flex"><span style="position: relative; flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">7<span style="position: absolute; right: -4px; top: 9px; width: 7px; height: 7px; background: var(--ink2); border-radius: 1px"></span></span><span style="padding: 0 20px">Everything is saved as you type. There's no save button, and <span style="text-decoration: underline dotted var(--ink2); text-decoration-thickness: 1.5px; text-underline-offset: 4px">Cmd/Ctrl + S does nothing on purpose</span>.</span></div>
+          <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">8</span></div>
+          <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">9</span><span style="padding-left: 20px"><span style="color: var(--sxp)">-</span> Lists continue when you press Enter.</span></div>
+          <div style="display: flex"><span style="position: relative; flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">10<span style="position: absolute; right: -4px; top: 9px; width: 7px; height: 7px; background: var(--ink2); border-radius: 1px"></span></span><span style="padding-left: 20px"><span style="color: var(--sxp)">-</span> Numbered items <span style="text-decoration: underline dotted var(--ink2); text-decoration-thickness: 1.5px; text-underline-offset: 4px">count up by themselves</span>.</span></div>
+          <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">11</span><span style="padding-left: 20px"><span style="color: var(--sxp)">-</span> <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; margin-right: 3px; vertical-align: 1px; background: var(--ink); color: var(--doc); border-radius: 8px; font-size: 10px; font-weight: 600; line-height: 1">2</span><span style="padding: 1px 2px; border: 1px solid var(--ink2); border-radius: 3px">Enter on an empty item ends the list</span>.</span></div>
+          <div style="display: flex; gap: 20px; margin: 22px 0 0 66px; font-size: 11px; color: var(--ink3)"><span style="display: flex; align-items: center; gap: 6px"><span style="display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; background: var(--ink); color: var(--doc); border-radius: 8px; font-size: 10px; font-weight: 600">1</span><span style="padding: 0 3px; border: 1px solid var(--ink2); border-radius: 3px; color: var(--ink)">ai note</span> instruction, queued</span><span style="display: flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; background: var(--ink2); border-radius: 1px"></span><span style="text-decoration: underline dotted var(--ink2); text-decoration-thickness: 1.5px; text-underline-offset: 4px; color: var(--ink)">personal note</span> yours, never sent unless switched on</span></div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ docReview }}" hint-placeholder-val="{{ false }}">
+        <div style="flex: 1 1 auto; min-height: 0; display: flex">
+          <div style="flex: 1 1 auto; min-width: 0; padding: 16px 0; font-family: 'Source Code Pro', 'Jot Farsi', monospace; font-size: 13px; line-height: 1.85">
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="11">
+              <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">{{ r.n }}</span><span dir="{{ r.dir }}" style="flex: 1 1 auto; padding: 0 20px; text-align: {{ r.align }}; color: {{ r.color }}; font-weight: {{ r.weight }}">{{ r.pre }}<sc-if value="{{ r.has }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; margin: 0 3px; vertical-align: 1px; background: {{ r.pill }}; color: var(--doc); border-radius: 8px; font-family: 'Source Code Pro', monospace; font-size: 10px; font-weight: 600; line-height: 1; outline: {{ r.ring }}; outline-offset: 1px">{{ r.num }}</span></sc-if><span style="text-decoration: line-through; color: var(--faint); background: {{ r.delBg }}">{{ r.del }}</span><span style="background: {{ r.insBg }}; text-decoration: underline solid {{ r.mk }}; text-decoration-thickness: 2px; text-underline-offset: 4px">{{ r.ins }}</span>{{ r.post }}</span></div>
+            </sc-for>
+          </div>
+          <div style="flex: 0 0 260px; display: flex; flex-direction: column; gap: 8px; padding: 12px 10px; border-left: 1px solid var(--rule); background: var(--doc)">
+            <sc-for list="{{ bubbles }}" as="b" hint-placeholder-count="4">
+              <div style="display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; background: var(--elev); border: {{ b.border }}; border-radius: 8px; opacity: {{ b.op }}">
+                <div style="display: flex; align-items: center; gap: 7px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)"><span style="width: 8px; height: 8px; background: {{ b.kc }}"></span><span style="flex: 1 1 auto">{{ b.label }}</span><span>line {{ b.line }}</span></div>
+                <div dir="{{ b.dir }}" style="display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; line-height: 1.5"><span style="color: var(--faint); text-decoration: line-through">{{ b.old }}</span><span>{{ b.neu }}</span></div>
+                <sc-if value="{{ b.why }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; line-height: 1.45; color: var(--ink3)">{{ b.why }}</span></sc-if>
+                <sc-if value="{{ b.pending }}" hint-placeholder-val="{{ true }}"><div style="display: flex; gap: 5px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="display: flex; align-items: center; height: 24px; padding: 0 8px; border: 1px solid var(--ink); background: var(--ink); border-radius: 6px; color: var(--doc)">accept</span><span style="display: flex; align-items: center; height: 24px; padding: 0 8px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; color: var(--ink2)">reject</span><span style="display: flex; align-items: center; height: 24px; padding: 0 8px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; color: var(--ink2)">edit</span></div></sc-if>
+                <sc-if value="{{ b.done }}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2)"><span style="flex: 1 1 auto">{{ b.state }}</span><span style="text-decoration: underline; text-underline-offset: 3px">undo</span></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isDiff }}" hint-placeholder-val="{{ false }}">
+        <div style="flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column">
+          <div style="flex: 0 0 30px; display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--hair); font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)"><span style="display: flex; align-items: center; gap: 8px; padding: 0 12px; border-right: 1px solid var(--hair)">original<span style="color: var(--faint)">· before this run</span></span><span style="display: flex; align-items: center; gap: 8px; padding: 0 12px">{{ diffRight }}</span></div>
+          <div style="flex: 1 1 auto; display: grid; grid-template-columns: 1fr 1fr; font-family: 'Source Code Pro', monospace; font-size: 12.5px; line-height: 1.7">
+            <div style="display: flex; flex-direction: column; padding: 10px 0; border-right: 1px solid var(--hair)">
+              <sc-for list="{{ diff }}" as="d" hint-placeholder-count="11">
+                <div style="display: flex; background: {{ d.lbg }}"><span style="flex: 0 0 38px; padding-right: 8px; text-align: right; color: var(--dim)">{{ d.n }}</span><span style="flex: 0 0 14px; color: var(--err)">{{ d.lm }}</span><span style="padding-right: 12px">{{ d.pre }}<span style="background: {{ d.lcb }}">{{ d.del }}</span>{{ d.post }}</span></div>
+              </sc-for>
+            </div>
+            <div style="display: flex; flex-direction: column; padding: 10px 0">
+              <sc-for list="{{ diff }}" as="d" hint-placeholder-count="11">
+                <div style="display: flex; background: {{ d.rbg }}"><span style="flex: 0 0 38px; padding-right: 8px; text-align: right; color: var(--dim)">{{ d.n }}</span><span style="flex: 0 0 14px; color: var(--teal)">{{ d.rm }}</span><span style="padding-right: 12px">{{ d.pre }}<span style="background: {{ d.rcb }}">{{ d.ins }}</span>{{ d.post }}</span></div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ docPlain }}" hint-placeholder-val="{{ false }}">
+        <div style="flex: 1 1 auto; padding: 16px 0; font-family: 'Source Code Pro', monospace; font-size: 13px; line-height: 1.65">
+          <sc-for list="{{ plain }}" as="p" hint-placeholder-count="12">
+            <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">{{ p.n }}</span><span style="padding: 0 20px; color: {{ p.color }}; font-weight: {{ p.weight }}">{{ p.t }}</span></div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ showTrPane }}" hint-placeholder-val="{{ false }}">
+      <div style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; background: var(--doc); border: 1px solid var(--edge); border-radius: 12px; overflow: hidden">
+        <div style="flex: 0 0 38px; display: flex; align-items: stretch; background: var(--panel); border-bottom: 1px solid var(--hair)">
+          <div style="display: flex; align-items: center; gap: 9px; padding: 0 12px 0 16px; background: var(--doc); border-top: 2px solid var(--hair); border-right: 1px solid var(--hair); margin-bottom: -1px"><span style="font-size: 13px; font-weight: 500">welcome to jot <span dir="rtl">(فارسی)</span></span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">{{ trTabNote }}</span></div>
+          <div style="flex: 1 1 auto"></div>
+        </div>
+        <div style="flex: 1 1 auto; padding: 16px 0; font-family: 'Source Code Pro', 'Jot Farsi', monospace; font-size: 13px; line-height: 1.65">
+          <sc-for list="{{ fa }}" as="f" hint-placeholder-count="12">
+            <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">{{ f.n }}</span><span dir="rtl" style="flex: 1 1 auto; display: flex; padding: 0 20px; color: {{ f.color }}; font-weight: {{ f.weight }}"><span>{{ f.t }}</span><sc-if value="{{ f.bar }}" hint-placeholder-val="{{ false }}"><span style="width: {{ f.w }}; height: 9px; margin-top: 7px; background: var(--hover); border-radius: 2px"></span></sc-if></span></div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+  <div style="flex: 0 0 28px; display: flex; align-items: center; gap: 14px; padding: 0 8px; background: var(--panel); border: 1px solid var(--edge); border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: var(--ink3)">
+    <span style="display: flex; align-items: center; gap: 7px; height: 20px; padding: 0 8px; border: 1px solid var(--ink3); background: var(--hover); border-radius: 5px; color: var(--ink)"><span style="width: 6px; height: 6px; border-radius: 50%; background: {{ keyDot }}"></span>ai mode<span style="color: var(--faint)">esc to leave</span></span>
+    <span>{{ modelLine }}</span>
+    <span style="flex: 1 1 auto"></span>
+    <sc-if value="{{ farsi }}" hint-placeholder-val="{{ false }}"><span>dir <span style="color: var(--ink)">rtl</span></span></sc-if>
+    <span>cursor <span style="color: var(--ink); font-weight: 500">7:24</span></span>
+    <span>words <span style="color: var(--ink)">552</span></span>
+    <span>notes <span style="color: var(--ink)">2</span></span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1300,&quot;height&quot;:800},&quot;view&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;chat&quot;,&quot;review&quot;,&quot;diff-decided&quot;,&quot;diff-all&quot;,&quot;style&quot;,&quot;translate&quot;,&quot;translate-done&quot;,&quot;farsi&quot;,&quot;err-key&quot;,&quot;err-provider&quot;,&quot;err-decline&quot;],&quot;default&quot;:&quot;chat&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const v = this.props.view ?? 'chat';
+    const isDiff = v === 'diff-decided' || v === 'diff-all';
+    const all = v === 'diff-all';
+    const style = v === 'style';
+    const farsi = v === 'farsi';
+    const review = v === 'review' || style || farsi;
+    const tr = v === 'translate' || v === 'translate-done';
+    const trDone = v === 'translate-done';
+    const err = v.startsWith('err');
+    const H = { color: 'var(--sxh)', weight: 600 };
+    const N = { color: 'var(--ink)', weight: 400 };
+    const row = (n, o) => Object.assign({ n, dir: 'ltr', align: 'left', pre: '', del: '', ins: '', post: '', has: false, num: '', pill: 'var(--ink)', ring: 'none', mk: 'transparent', delBg: 'transparent', insBg: 'transparent' }, N, o);
+    const kT = 'var(--teal)', kA = 'var(--amber)', kV = 'var(--violet)', kN = 'var(--ink2)';
+    let rows, bubbles;
+    if (farsi) {
+      const r = o => row(o.n, Object.assign({ dir: 'rtl', align: 'right' }, o));
+      rows = [
+        r(Object.assign({ n: 1, pre: '# به jot خوش آمدید' }, H)), r({ n: 2 }),
+        r({ n: 3, pre: 'جایی آرام برای نوشتن مارک‌داون. ', has: true, num: '1', del: 'این سند یک گردش کوتاه است و مال شماست', ins: 'این گردش کوتاه مال شماست', mk: kN, post: '.' }),
+        r({ n: 4 }), r(Object.assign({ n: 5, pre: '## نوشتن' }, H)), r({ n: 6 }),
+        r({ n: 7, pre: 'همه‌چیز همان‌طور که می‌نویسید ذخیره می‌شود. ', has: true, num: '2', ring: '2px solid var(--accent)', del: 'دکمه‌ی ذخیره‌ای وجود ندارد', ins: 'دکمه‌ی ذخیره نداریم', mk: kN, post: ' و Cmd/Ctrl + S عمداً کاری نمی‌کند.' }),
+        r({ n: 8 }), r({ n: 9, pre: '- فهرست‌ها با زدن Enter ادامه پیدا می‌کنند.' }),
+        r({ n: 10, pre: '- موارد شماره‌دار ', del: 'خودشان', ins: 'خودبه‌خود', mk: kN, post: ' شماره می‌خورند.' })
+      ];
+      bubbles = [
+        { line: 3, label: 'from ai note 1', kc: kN, dir: 'rtl', old: 'این سند یک گردش کوتاه است و مال شماست', neu: 'این گردش کوتاه مال شماست', why: '', pending: false, done: true, state: 'accepted', border: '1px solid var(--edge)', op: 0.75 },
+        { line: 7, label: 'from ai note 2', kc: kN, dir: 'rtl', old: 'دکمه‌ی ذخیره‌ای وجود ندارد', neu: 'دکمه‌ی ذخیره نداریم', why: 'Less formal, as the note asked.', pending: true, done: false, border: '2px solid var(--accent)', op: 1 },
+        { line: 10, label: 'from chat', kc: kN, dir: 'rtl', old: 'خودشان', neu: 'خودبه‌خود', why: '', pending: true, done: false, border: '1px solid var(--edge)', op: 1 }
+      ];
+    } else {
+      const k = style ? [kV, kA, kT, kT] : [kN, kN, kN, kN];
+      const lab = style ? ['your call', 'check fix', 'quick fix', 'quick fix'] : ['from ai note 1', 'from chat', 'from chat', 'from ai note 2'];
+      rows = [
+        row(1, Object.assign({ pre: '# welcome to jot' }, H)), row(2, {}),
+        row(3, { pre: 'A quiet place to write markdown. ', has: true, num: '1', pill: k[0], del: 'This document is a short tour, and it\u2019s yours', ins: 'This short tour is yours', mk: k[0], post: ': edit it, keep it, or delete it.' }),
+        row(4, {}), row(5, Object.assign({ pre: '## writing' }, H)), row(6, {}),
+        row(7, { pre: 'Everything is saved as you type. ', has: true, num: '2', pill: k[1], ring: '2px solid var(--accent)', del: 'There\u2019s no save button, and Cmd/Ctrl + S does nothing on purpose.', ins: 'There\u2019s no save button; Cmd/Ctrl + S does nothing.', mk: k[1] }),
+        row(8, {}), row(9, { pre: '- Lists continue when you press Enter.' }),
+        row(10, { pre: '- Numbered items ', has: true, num: '3', pill: k[2], del: 'count up by themselves', ins: 'number themselves', mk: k[2], post: '.' }),
+        row(11, { pre: '- ', has: true, num: '4', pill: k[3], del: 'Enter on an empty item ends the list', ins: 'Press Enter on an empty item to end the list', mk: k[3], post: '.' })
+      ];
+      const B = (i, line, old, neu, why, st) => ({ line, label: lab[i], kc: k[i], dir: 'ltr', old, neu, why, pending: !st, done: !!st, state: st || '', border: i === 1 ? '2px solid var(--accent)' : '1px solid var(--edge)', op: st ? 0.75 : 1 });
+      bubbles = [
+        B(0, 3, 'This document is a short tour, and it\u2019s yours', 'This short tour is yours', '', 'accepted'),
+        B(1, 7, '\u2026, and Cmd/Ctrl + S does nothing on purpose.', '\u2026; Cmd/Ctrl + S does nothing.', style ? 'Two clauses joined by "and"; check the meaning survives.' : 'Shorter; "on purpose" was the only loss.', ''),
+        B(2, 10, 'count up by themselves', 'number themselves', '', 'rejected'),
+        B(3, 11, 'Enter on an empty item ends the list', 'Press Enter on an empty item to end the list', '', '')
+      ];
+    }
+    const del = 'var(--del)', add = 'var(--add)', delc = 'var(--delc)', addc = 'var(--addc)', T = 'transparent';
+    const D = (n, pre, d, i, post, on) => on ? { n, pre, del: d, ins: i, post, lbg: del, rbg: add, lcb: delc, rcb: addc, lm: '−', rm: '+' } : { n, pre: pre + d + post, del: '', ins: '', post: '', lbg: T, rbg: T, lcb: T, rcb: T, lm: '', rm: '' };
+    const diffOrig = (n, t) => ({ n, pre: t, del: '', ins: '', post: '', lbg: T, rbg: T, lcb: T, rcb: T, lm: '', rm: '' });
+    const diff = [
+      diffOrig(1, '# welcome to jot'), diffOrig(2, ''),
+      { n: 3, pre: 'A quiet place to write markdown. ', del: 'This document is a short tour, and it\u2019s', ins: 'This short tour is', post: ' yours: \u2026', lbg: del, rbg: add, lcb: delc, rcb: addc, lm: '−', rm: '+' },
+      diffOrig(4, ''), diffOrig(5, '## writing'), diffOrig(6, ''),
+      all ? { n: 7, pre: 'Everything is saved as you type. There\u2019s no save button', del: ', and', ins: ';', post: ' Cmd/Ctrl + S does nothing' + (all ? '' : '') + '\u2026', lbg: del, rbg: add, lcb: delc, rcb: addc, lm: '−', rm: '+' } : diffOrig(7, 'Everything is saved as you type. There\u2019s no save button, and \u2026'),
+      diffOrig(8, ''), diffOrig(9, '- Lists continue when you press Enter.'),
+      all ? { n: 10, pre: '- Numbered items ', del: 'count up by', ins: 'number', post: ' themselves.', lbg: del, rbg: add, lcb: delc, rcb: addc, lm: '−', rm: '+' } : diffOrig(10, '- Numbered items count up by themselves.'),
+      all ? { n: 11, pre: '- ', del: 'Enter', ins: 'Press Enter', post: ' on an empty item \u2026', lbg: del, rbg: add, lcb: delc, rcb: addc, lm: '−', rm: '+' } : diffOrig(11, '- Enter on an empty item ends the list.')
+    ];
+    const P = (n, t, h) => ({ n, t, color: h ? 'var(--sxh)' : 'var(--ink)', weight: h ? 600 : 400 });
+    const plain = [P(1, '# welcome to jot', 1), P(2, ''), P(3, 'A quiet place to write markdown. This document'), P('', 'is a short tour, and it\u2019s yours.'), P(4, ''), P(5, '## writing', 1), P(6, ''), P(7, 'Everything is saved as you type. There\u2019s no'), P('', 'save button, and Cmd/Ctrl + S does nothing.'), P(8, ''), P(9, '## seeing it rendered', 1), P(10, ''), P(11, 'Press Cmd/Ctrl + Shift + V to open the rendered'), P('', 'view beside this one.'), P(12, ''), P(13, '## exporting', 1)];
+    const F = (n, t, h, bar, w) => ({ n, t, color: h ? 'var(--sxh)' : 'var(--ink)', weight: h ? 600 : 400, bar: !!bar, w: w || '0' });
+    const fa = [F(1, '# به jot خوش آمدید', 1), F(2, ''), F(3, 'جایی آرام برای نوشتن مارک‌داون. این سند'), F('', 'یک گردش کوتاه است و مال شماست.'), F(4, ''), F(5, '## نوشتن', 1), F(6, ''), F(7, 'همه‌چیز همان‌طور که می‌نویسید ذخیره می‌شود.'), F('', 'دکمه‌ی ذخیره‌ای وجود ندارد و Cmd/Ctrl + S کاری نمی‌کند.'), F(8, '')];
+    if (trDone) fa.push(F(9, '## دیدن نسخه‌ی نهایی', 1), F(10, ''), F(11, 'برای باز کردن نمای نهایی Cmd/Ctrl + Shift + V را'), F('', 'بزنید.'), F(12, ''), F(13, '## خروجی گرفتن', 1));
+    else fa.push(F(9, '', 0, 1, '160px'), F(10, ''), F(11, '', 0, 1, '300px'), F('', '', 0, 1, '120px'), F(12, ''), F(13, '', 0, 0));
+    const selBg = 'var(--ink)', selInk = 'var(--doc)';
+    const sendOn = v === 'chat' || farsi;
+    return {
+      docTitle: farsi ? 'سفرنامه' : 'welcome to jot', farsi,
+      mChat: v === 'chat', mResults: v === 'review' || isDiff, mStyle: style, mTranslate: tr, mFarsi: farsi,
+      eKey: v === 'err-key', eProv: v === 'err-provider', eDecline: v === 'err-decline',
+      styleChipBorder: style ? 'var(--ink3)' : 'var(--hair)', styleChipBg: style ? 'var(--hover)' : 'var(--canvas)',
+      trChipBorder: tr ? 'var(--ink3)' : 'var(--hair)', trChipBg: tr ? 'var(--hover)' : 'var(--canvas)',
+      trStatus: trDone ? 'done · 6 of 6 sections' : 'translating section 3 of 6', trCount: trDone ? '1m 52s' : '~1 min left',
+      trBar3: trDone ? 'var(--ink2)' : 'var(--accent)', trBar4: trDone ? 'var(--ink2)' : 'var(--hover)',
+      trNote: trDone ? 'a fresh draft, nothing to decide' : 'you can keep editing the original', trBtn: trDone ? 'open beside' : 'stop',
+      trTabNote: trDone ? 'draft' : 'writing…',
+      showQueue: v === 'chat' || farsi,
+      queue: farsi ? [{ n: 1, dir: 'rtl', quote: 'این سند یک گردش کوتاه است و مال شماست', text: 'make this shorter' }, { n: 2, dir: 'rtl', quote: 'دکمه‌ی ذخیره‌ای وجود ندارد', text: 'less formal, like talking to a friend' }]
+        : [{ n: 1, dir: 'ltr', quote: 'This document is a short tour, and it\u2019s yours', text: 'make this shorter' }, { n: 2, dir: 'ltr', quote: 'Enter on an empty item ends the list', text: 'change it like the other two items' }],
+      inputBorder: sendOn ? 'var(--accent)' : 'var(--hair)', inputInk: sendOn ? 'var(--ink)' : 'var(--dim)',
+      inputText: v === 'chat' ? 'And keep line 7\u2019s meaning exact.' : farsi ? 'Apply both notes.' : v === 'err-key' ? 'add a key to start' : 'ask, or ask for a change',
+      swBg: v === 'chat' ? 'var(--ink2)' : 'var(--mute)', swAlign: v === 'chat' ? 'flex-end' : 'flex-start',
+      sendBorder: sendOn ? 'var(--accent)' : 'var(--hair)', sendBg: sendOn ? 'var(--accent)' : 'var(--canvas)', sendInk: sendOn ? 'var(--on-accent)' : 'var(--dim)',
+      showResultsBar: review || isDiff, isDiff,
+      resultsTitle: style ? 'style review' : 'results',
+      vRevBg: isDiff ? 'transparent' : selBg, vRevInk: isDiff ? 'var(--ink2)' : selInk,
+      vDiffBg: isDiff ? selBg : 'transparent', vDiffInk: isDiff ? selInk : 'var(--ink2)',
+      dDecBg: all ? 'transparent' : 'var(--hover)', dDecInk: 'var(--ink)', dAllBg: all ? 'var(--hover)' : 'transparent', dAllInk: 'var(--ink)',
+      diffRight: all ? 'if all 4 were accepted' : 'as decided · 1 accepted, 1 rejected, 2 open',
+      decided: style ? '2 / 7 decided' : farsi ? '1 / 3 decided' : '2 / 4 decided',
+      docNotes: v === 'chat', docReview: review, rows, bubbles, diff,
+      docPlain: tr || err, plain, showTrPane: tr, fa,
+      keyDot: v === 'err-key' ? 'var(--mute)' : v === 'err-provider' ? 'var(--err)' : 'var(--accent)',
+      modelLine: v === 'err-key' ? 'no key' : 'openrouter · claude-sonnet-4.5'
+    };
+  }
+}
+</script>
+</body>
+</html>

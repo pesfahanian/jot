@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<sc-if value="{{ isMenu }}" hint-placeholder-val="{{ true }}">
+  <div style="width: 260px; display: flex; flex-direction: column; padding: 4px; background: var(--elev); border: 1px solid var(--pop); border-radius: 8px; color: var(--ink); font-family: 'Public Sans', sans-serif; font-size: 12.5px">
+    <div style="display: flex; align-items: center; height: 26px; padding: 0 8px; border-radius: 5px; background: var(--hover)"><span style="flex: 1 1 auto">Markdown</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">.md</span></div>
+    <div style="display: flex; flex-direction: column; gap: 2px; margin: 2px 0 4px 8px; padding-left: 10px; border-left: 1px solid var(--hair)">
+      <div style="display: flex; align-items: center; gap: 8px; height: 26px; padding: 0 6px; border: 1px solid var(--ink3); background: var(--hover); border-radius: 6px"><span style="flex: 1 1 auto; font-weight: 500">clean</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">↵</span></div>
+      <div style="display: flex; flex-direction: column; gap: 1px; padding: 5px 6px; border: 1px solid transparent; border-radius: 6px"><span>with annotations</span><span style="font-family: 'Source Code Pro', monospace; font-size: 10.5px; color: var(--ink3)">==highlights==, notes as [^1]</span></div>
+    </div>
+    <div style="display: flex; align-items: center; height: 26px; padding: 0 8px"><span style="flex: 1 1 auto">plain text</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">.txt</span></div>
+    <div style="display: flex; align-items: center; height: 26px; padding: 0 8px"><span style="flex: 1 1 auto">PDF…</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">.pdf</span></div>
+    <div style="height: 1px; margin: 4px 0; background: var(--rule)"></div>
+    <span style="padding: 2px 8px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">whole workspace</span>
+    <div style="display: flex; align-items: center; height: 26px; padding: 0 8px"><span style="flex: 1 1 auto">all 38 documents</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">.zip</span></div>
+  </div>
+</sc-if>
+<sc-if value="{{ isPage }}" hint-placeholder-val="{{ false }}">
+  <div style="width: 446px; height: 631px; display: flex; flex-direction: column; padding: 42px 42px 22px; background: #FFFFFF; border: 1px solid #CCD0D3; color: #25292F; font-family: 'Public Sans', sans-serif">
+    <div style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 9px; font-size: 9.6px; line-height: 1.55">
+      <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em">welcome to jot</div>
+      <div style="text-wrap: pretty">A quiet place to write markdown. This document is a short tour, and it's yours: edit it, keep it, or delete it. You can always get it back from the ? at the bottom of the sidebar.</div>
+      <div style="font-size: 12.5px; font-weight: 600; margin-top: 4px">writing</div>
+      <div style="text-wrap: pretty">Everything is saved as you type. <span style="background: color-mix(in oklab, #5D8F5E 22%, #FFFFFF)">There's no save button</span>, and Cmd/Ctrl + S does nothing on purpose.<sup style="font-family: 'Source Code Pro', monospace; font-size: 6.5px; padding-left: 1px">1</sup></div>
+      <div style="display: flex; flex-direction: column; gap: 3px; padding-left: 12px"><span>• Lists continue when you press Enter.</span><span style="padding-left: 12px">1. Numbered items count up by themselves.</span><span style="padding-left: 12px">2. Enter on an empty item ends the list.</span></div>
+      <div style="text-wrap: pretty">Cmd/Ctrl + Shift + I tidies the whole document: <span style="background: color-mix(in oklab, #5D8F5E 22%, #FFFFFF)">bullets, emphasis and table columns</span>.<sup style="font-family: 'Source Code Pro', monospace; font-size: 6.5px; padding-left: 1px">2</sup> One undo reverses it.</div>
+      <div style="font-size: 12.5px; font-weight: 600; margin-top: 4px">seeing it rendered</div>
+      <div style="text-wrap: pretty">Press Cmd/Ctrl + Shift + V to open the rendered view beside this one. It scrolls along with the editor.</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 7px; border-top: 0.5px solid #A7ABB0; width: 40%; font-size: 7.4px; line-height: 1.45; color: #383E43"></div>
+    <div style="display: flex; flex-direction: column; gap: 4px; margin-top: -2px; font-size: 7.4px; line-height: 1.45; color: #383E43">
+      <div style="display: flex; gap: 6px"><span style="font-family: 'Source Code Pro', monospace">1</span><span>Check this is still true once the PDF card remembers choices.</span></div>
+      <div style="display: flex; gap: 6px"><span style="font-family: 'Source Code Pro', monospace">2</span><span>Tables too? Confirm with the tidy spec.</span></div>
+    </div>
+    <div style="padding-top: 14px; text-align: center; font-family: 'Source Code Pro', monospace; font-size: 7.4px; color: #868B91">1</div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:470,&quot;height&quot;:650},&quot;part&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;menu&quot;,&quot;page&quot;],&quot;default&quot;:&quot;menu&quot;,&quot;tsType&quot;:&quot;'menu'|'page'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props.part ?? 'menu';
+    return { isMenu: p === 'menu', isPage: p === 'page' };
+  }
+}
+</script>
+</body>
+</html>

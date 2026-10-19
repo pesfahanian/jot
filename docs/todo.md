@@ -19,7 +19,7 @@ Phase 14 runs as two parallel tracks — building the quick items while the desi
 | Phase | Contents | Needs |
 |---|---|---|
 | **14a: Bugs and quick wins** ✓ (built 2026-10-14, branch `phase-14a`) | PDF filename; Farsi in the review view (then a look at the Farsi flag counts); sidebar collapse with Cmd+B (button placed provisionally — design may move it); double-click empty space → new document; bulk import (multi-file and folder pickers, entry placed provisionally); diff overview ruler; auto-title for new documents; writing suggestions (done). Owner: Cloudflare's challenge setting | Nothing |
-| **14b: Design round** (Claude Design, in parallel) | One round on the app's shape: shell layout (sidebar collapse, where every control lives); Settings modal; motion spec; AI mode — entry and its animation, chat area, AI notes vs personal notes, the results screen with its review / diff switch, the translation flow; the right-click menu on selected text; highlights, underline and notes in the editor; the PDF options "annotations" row and the markdown export choice; **command palette and the shortcut editor** (owner, 2026-10-14: in this round — the palette lets some controls drop their buttons and gives AI mode's actions a home) | A brief (I write it) |
+| **14b: Design round** ✓ (accepted 2026-10-19 — `docs/design/round-4/`, rulings below) | One round on the app's shape: shell layout (sidebar collapse, where every control lives); Settings modal; motion spec; AI mode — entry and its animation, chat area, AI notes vs personal notes, the results screen with its review / diff switch, the translation flow; the right-click menu on selected text; highlights, underline and notes in the editor; the PDF options "annotations" row and the markdown export choice; **command palette and the shortcut editor** (owner, 2026-10-14: in this round — the palette lets some controls drop their buttons and gives AI mode's actions a home) | A brief (I write it) |
 | **15: Shell** | Settings modal (AI provider moves in; theme, motion, editor, storage and backup, about); motion as designed, off in Settings and under reduced motion; the controls moved to their designed places; **command palette** (every action registered as a command; later phases add theirs); **shortcut editor** in Settings (remaps checked live against the vscode keymap and browser shortcuts — `scripts/keymap-collisions.mjs`'s logic) | 14b |
 | **16: Annotations and writing help** (normal mode, no AI) | Annotations stored beside the document (new table, re-anchored as text changes), shown in the editor and rendered view; the right-click menu (highlight, underline, translate, note); translate a selection via Google Translate (own key, kept in Settings; new `connect-src` host); annotation exports (zip always, PDF row, markdown choice); auto-fix spelling, off by default, English first | 14b; small research: dictionary (licence, size), Google Translate from the browser (key restrictions, CORS, pricing) |
 | **17: AI mode** | The mode and its transition; chat with local per-document history (deleted with the document, kept through undo; in the zip — lean yes); AI notes queued and sent Claude Design style, personal notes by switch; a proposals prompt (edits anchored like review flags) and one results screen for every run, the style review folded in, with the review / diff switch (as decided / all accepted); full translation to a new side-by-side document | 14b, 16 (notes); prompt work: proposals and translation (Farsi ↔ English), token budgets for document + history |
@@ -38,6 +38,34 @@ All run by the owner (2026-10-08): the live model decline, a live Farsi review, 
 ## Later (owner: its own fresh chat)
 
 - **Telemetry** (was "visitor counter"; widened by the owner 2026-10-11). Any tracking that shows how the app is doing — from Cloudflare's own analytics up to usage events. Touches the privacy promise (README, ADR-004) and the CSP; how much to measure is the chat's main question.
+
+## Round 4 design accepted (owner, 2026-10-19)
+
+Claude Design canvas `docs/design/round-4/Jot Round 4.dc.html` (18 frames; the `Jot R4 *` files are its components). Built in Phases 15–17. Everything the designer settled is accepted:
+
+- **Shell:**
+  - Sidebar header: wordmark · new document · search · sort-and-filter (one menu) · hide sidebar.
+  - Sidebar foot: settings · import… · ?.
+  - Collapsed: the toggle and the wordmark sit at the start of the first pane's tab strip.
+  - Status bar: ai mode on the left (replacing review style); dir, cursor, counts, a "notes N" count and the minimap toggle on the right.
+  - The theme icon and AI Provider leave the sidebar for Settings.
+- **Settings** modal 780 × 540, grouped ai / app / data. **Palette** 560 wide, 80px from the tray top; documents and commands in one list; ↵ opens here, ⌘↵ beside.
+- **Highlights:** three washes from tag green, clay and indigo (`--hl-1…3`), never yellow (that's selection and search). **Underline:** 1.5px solid secondary ink, 3px offset.
+- **Personal notes:** dotted underline and a gutter square; a popover to read, edit and delete. **AI notes:** a numbered inverted pill and a 1px outline — they differ by shape, not colour, and never print or export.
+- **AI mode:** the sidebar hides, other panes are parked and come back as they were, the chat takes the sidebar's slot at 360px. The results bar has review | diff, and in diff "as decided / if all accepted". Chat and note proposals carry no kind colour.
+- **Motion:** `--motion-fast` 100 / `-base` 160 / `-mode` 240 ms, `--ease-enter` / `--ease-exit`, plus the never-animates list. Reduced motion zeroes everything except the auto-fix flash (a static 1 s wash).
+- **Accepted pushbacks:** "notes" everywhere (PDF row "off / highlights / + notes"); translation falls back to batches of paragraphs when there are no headings; auto-fix off on right-to-left lines until tested, each fix its own undo step.
+
+**Owner's rulings on the open points:**
+1. The tab strip's **+** stays "new document" (browser habit), not a menu. Comparisons: right-click the strip, the palette, a shortcut.
+2. **Palette on ⌘K** (⇧⌘P as an alias where the browser allows). The vscode keymap's ⌘K chords give way (fold all, unfold all, and the chord forms of comment / uncomment); **⌘/ stays the comment toggle**.
+3. **Theme:** no shortcut (Settings and the palette); ⇧⌘L stays "select all occurrences".
+4. **Minimap:** no default shortcut (⌘M minimises the window on a Mac); the status-bar toggle stays.
+5. **New document ⌥⌘N; new comparison ⇧⌥⌘N** — never ⌥N (on a Mac it types ñ).
+6. **Settings ⌘,** where the browser allows (to test in Safari and Chrome); the sidebar foot and the palette cover it regardless.
+7. **Review kind colours:** keep the shipped `--flag-quick / -check / -call` tokens (decision #24) — the designer worked from v3, which predates them.
+
+Also test ⌘J (ai mode), ⌘O (import) and ⇧⌘E (export PDF) in all three browsers during the build.
 
 ## Next round: ideas from use (owner and friends, collected 2026-10-11)
 
