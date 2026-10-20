@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import type { JotDocument, ReviewFlag, ReviewSession } from '@/lib/db'
 import { cn } from '@/lib/utils'
-import { applyPlan, canApply, counts, describe } from '@/review/model'
+import { applyPlan, appliedSet, canApply, composeText, counts, describe } from '@/review/model'
 import { RULESET_NAME } from '@/review/ruleset'
 import { useReview } from '@/state/review'
 import { applyReview } from '@/state/reviewActions'
@@ -9,6 +9,8 @@ import { Bubble, KindMark, KindSample } from './Bubble'
 import { KIND_ORDER, kindCounts, kindInfo, KINDS, ruleName } from '@/review/kinds'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { OriginalText, PreviewText } from './spans'
+import { ResultsDiff } from './ResultsDiff'
+import { Segmented } from '@/components/settings/controls'
 
 // The two-pane review (interaction spec §1–§8; frames 4a–4c, 6b, 6c).
 // Original (locked, no handlers) | Result — preview (click a span to decide)
@@ -160,6 +162,13 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
   const c = counts(flags)
   const ready = canApply(flags)
   const plan = ready ? applyPlan(session.source, flags) : null
+  // Review (deciding) or diff (looking) — the same proposals either way
+  // (round 4, frame 13); in diff, the result as decided so far or with
+  // everything accepted.
+  const [view, setView] = useState<'review' | 'diff'>('review')
+  const [showAll, setShowAll] = useState(false)
+  const decidedPlan = applyPlan(session.source, flags)
+  const allApplied = appliedSet(flags, 'preview').filter((a) => a.text !== session.source.slice(a.start, a.end))
   const active = flags.find((f) => f.key === activeKey) ?? null
 
   // Both panes scroll together (spec §1).
@@ -183,7 +192,8 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
       a.removeEventListener('scroll', sa)
       b.removeEventListener('scroll', sb)
     }
-  }, [])
+    // view: the panes come back after a look at the diff.
+  }, [view])
 
   // The bubble floats over the right pane in its own layer, so it never
   // adds to the pane's scroll height (a taller right pane is what threw the
@@ -225,7 +235,7 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
       pane?.removeEventListener('scroll', place)
       window.removeEventListener('resize', place)
     }
-  }, [place])
+  }, [place, view])
   // Opening a flag brings its span into view, so the bubble has room.
   useEffect(() => {
     if (activeKey) right.current?.querySelector<HTMLElement>(`[data-flag-key="${activeKey}"]`)?.scrollIntoView({ block: 'nearest' })
@@ -266,6 +276,32 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
               one ("fa rev 1"). */}
           <span className="text-foreground">{RULESET_NAME}</span>
           <span className="text-muted-foreground">{session.rulesetVersion}</span>
+        </div>
+        <div className={cn(toolbarCell, 'gap-2.5 border-r')}>
+          <Segmented value={view} options={['review', 'diff']} onChange={setView} />
+          {view === 'diff' && (
+            <span className="flex items-center gap-1.5">
+              <span className="text-ink-tertiary">show</span>
+              <span className="flex gap-0.5 rounded-[7px] border border-ink-tertiary bg-background p-0.5">
+                {(
+                  [
+                    [false, 'as decided', decidedPlan.changed],
+                    [true, 'if all accepted', allApplied.length],
+                  ] as const
+                ).map(([all, label, n]) => (
+                  <button
+                    key={label}
+                    type="button"
+                    aria-pressed={showAll === all}
+                    onClick={() => setShowAll(all)}
+                    className={cn('flex h-5 items-center gap-1.5 rounded-[5px] px-2 font-medium', showAll === all ? 'bg-hover-lift text-foreground' : 'text-secondary-foreground hover:text-foreground')}
+                  >
+                    {label} <span className="opacity-70">{n}</span>
+                  </button>
+                ))}
+              </span>
+            </span>
+          )}
         </div>
         <div className="flex-auto" />
         <div className={cn(toolbarCell, 'gap-3.5 border-l')}>
@@ -340,6 +376,19 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
       </div>
 
       <Legend flags={flags} />
+      {view === 'diff' ? (
+        <div className="flex min-h-0 flex-auto flex-col bg-document">
+          <div className="grid flex-none grid-cols-2 border-b border-border font-mono text-[11px]">
+            <span className="px-3 py-1.5 text-ink-tertiary">
+              <span className="text-foreground">original</span> · before this run
+            </span>
+            <span className="border-l border-border px-3 py-1.5 text-ink-tertiary">
+              <span className="text-foreground">result</span> · {showAll ? 'if all accepted' : 'as decided'}
+            </span>
+          </div>
+          <ResultsDiff source={session.source} result={showAll ? composeText(session.source, allApplied) : decidedPlan.text} dir={doc.dir ?? 'auto'} />
+        </div>
+      ) : (
       <div className="flex min-h-0 flex-auto">
         <section className="flex min-w-0 flex-1 flex-col bg-document" data-review-original="">
           <PaneHeader title="original" note="locked while review is open" />
@@ -373,6 +422,7 @@ export function ReviewView({ doc, session, paneId }: { doc: JotDocument; session
         </section>
         {logOpen && <ReviewLog flags={flags} activeKey={activeKey} onJump={jump} onClose={toggleLog} />}
       </div>
+      )}
     </div>
   )
 }
