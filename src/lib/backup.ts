@@ -1,11 +1,12 @@
-import type { Annotation, JotDocument, TagColor } from './db'
+import type { Annotation, ChatMessage, JotDocument, TagColor } from './db'
 
 // The whole workspace as one .zip (data safety): the backup, and the way
 // to move between browsers, profiles or an installed app, each of which
 // keeps its own separate storage. One .md per document — readable anywhere
 // — plus jot-workspace.json for what markdown can't hold: colour tags, pins
-// and dates, and highlights, underlines and notes. Never keys, settings or
-// review sessions: a backup file gets passed around.
+// and dates, highlights, underlines and notes, and AI mode's conversation
+// with each document. Never keys, settings or review sessions: a backup
+// file gets passed around.
 //
 // Importing adds the documents alongside what's already there; it never
 // replaces anything. The zip library loads only when a backup is made or
@@ -22,6 +23,8 @@ interface ManifestEntry {
   updatedAt: number
   // Highlights, underlines and notes (Phase 16), without ids.
   annotations?: BackupAnnotation[]
+  // AI mode's conversation with the document (Phase 17).
+  chat?: ChatMessage[]
 }
 
 export type BackupAnnotation = Omit<Annotation, 'id' | 'documentId'>
@@ -33,7 +36,7 @@ interface Manifest {
   documents: ManifestEntry[]
 }
 
-export type ImportedDocument = Omit<JotDocument, 'id'> & { annotations?: BackupAnnotation[] }
+export type ImportedDocument = Omit<JotDocument, 'id'> & { annotations?: BackupAnnotation[]; chat?: ChatMessage[] }
 
 const segment = (s: string) => s.replace(/[\\:*?"<>|]+/g, '-').trim() || 'untitled'
 
@@ -56,7 +59,7 @@ export function backupName(now = new Date()): string {
   return `jot-workspace-${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.zip`
 }
 
-export async function packWorkspace(docs: JotDocument[], exportedAt = Date.now(), annotations: Annotation[] = []): Promise<Uint8Array> {
+export async function packWorkspace(docs: JotDocument[], exportedAt = Date.now(), annotations: Annotation[] = [], chats: Record<string, ChatMessage[]> = {}): Promise<Uint8Array> {
   const { zipSync, strToU8 } = await import('fflate')
   const paths = zipPaths(docs.map((d) => d.title))
   const files: Record<string, Uint8Array> = {}
@@ -66,7 +69,8 @@ export async function packWorkspace(docs: JotDocument[], exportedAt = Date.now()
     const own: BackupAnnotation[] = annotations
       .filter((a) => a.documentId === d.id)
       .map((a) => ({ kind: a.kind, color: a.color, from: a.from, to: a.to, quote: a.quote, body: a.body, createdAt: a.createdAt, updatedAt: a.updatedAt }))
-    manifest.documents.push({ path: paths[i], title: d.title, color: d.color, pinned: d.pinned, createdAt: d.createdAt, updatedAt: d.updatedAt, ...(own.length ? { annotations: own } : {}) })
+    const chat = chats[d.id]
+    manifest.documents.push({ path: paths[i], title: d.title, color: d.color, pinned: d.pinned, createdAt: d.createdAt, updatedAt: d.updatedAt, ...(own.length ? { annotations: own } : {}), ...(chat?.length ? { chat } : {}) })
   })
   files[MANIFEST] = strToU8(JSON.stringify(manifest, null, 2))
   return zipSync(files)
@@ -106,6 +110,7 @@ export async function unpackWorkspace(bytes: Uint8Array, now = Date.now()): Prom
       createdAt: num(e?.createdAt),
       updatedAt: num(e?.updatedAt),
       ...(Array.isArray(e?.annotations) ? { annotations: e.annotations.filter(validAnnotation) } : {}),
+      ...(Array.isArray(e?.chat) ? { chat: e.chat.filter((m) => !!m && typeof m.id === 'string' && typeof m.role === 'string') } : {}),
     })
   }
   return docs

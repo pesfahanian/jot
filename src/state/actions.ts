@@ -86,11 +86,12 @@ export async function importFiles(files: FileList | File[]): Promise<number> {
       count++
     } else if (/\.zip$/i.test(f.name)) {
       const { unpackWorkspace } = await import('@/lib/backup')
-      for (const { annotations, ...d } of await unpackWorkspace(new Uint8Array(await f.arrayBuffer()))) {
+      for (const { annotations, chat, ...d } of await unpackWorkspace(new Uint8Array(await f.arrayBuffer()))) {
         last = { ...d, id: crypto.randomUUID() }
         await restoreDocument(last)
         const documentId = last.id
         if (annotations?.length) await db.annotations.bulkAdd(annotations.map((a) => ({ ...a, id: crypto.randomUUID(), documentId })))
+        if (chat?.length) await db.chats.put({ documentId, messages: chat })
         count++
       }
     }
@@ -133,7 +134,8 @@ export async function exportWorkspace(): Promise<void> {
   // Annotations as they stand: an open document's live list, else stored.
   const live = useAnnotations.getState().byDoc
   const annotations = [...(await db.annotations.toArray()).filter((a) => !live[a.documentId]), ...Object.values(live).flat()]
-  const bytes = await packWorkspace(docs, Date.now(), annotations)
+  const chats = Object.fromEntries((await db.chats.toArray()).map((c) => [c.documentId, c.messages]))
+  const bytes = await packWorkspace(docs, Date.now(), annotations, chats)
   const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/zip' }))
   const a = document.createElement('a')
   a.href = url

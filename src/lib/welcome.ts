@@ -92,15 +92,16 @@ To see what changed between two texts, right-click a document and choose **compa
 
 Farsi works as naturally as English. Each paragraph, list or table reads right-to-left or left-to-right by its own majority script, while code, links and formulas inside Farsi text keep reading left-to-right. When a document has Farsi in it, the **dir** cell in the bar at the bottom shows the direction, and can set the whole document right-to-left or left-to-right instead. For a diagram that flows right-to-left, write **flowchart RL**.
 
-## the style review
+## ai mode
 
-jot can review your prose against a style guide, using your own AI key.
+jot can work on a document with AI, using your own key. Your text goes straight from this browser to your provider; nothing passes through jot.
 
 1. Open **settings** at the bottom of the sidebar, pick a provider (OpenRouter, Google AI Studio, OpenAI or Anthropic) and add your key. Below the key you can choose the model, and fallbacks to try if it's busy.
-2. Press **review style** in the bar at the bottom.
-3. Click each marked passage to accept, reject or rewrite it. Nothing changes until you press **apply**.
+2. Press **ai mode** at the bottom left (or Cmd/Ctrl + J). A chat opens where the sidebar was; Esc leaves, and your other panes come back as they were.
+3. Ask a question, or ask for a change ("make the intro friendlier"). To point at a passage, select it, right-click and choose **add ai note**; notes go with your next message. Switch on **my notes as context** to send your own notes along too.
+4. Changes come back as proposals. Open the results to accept, reject or rewrite each one, or switch to **diff** to see the whole result. Nothing changes until you press **apply**.
 
-The review reads English and Farsi, each against its own style guide. The **?** beside the review's colour key explains each kind of suggestion. Very short documents, or ones that are all code, are skipped; **review anyway** overrides that.
+From the chat you can also run **review style**, which checks your prose against a style guide (English or Farsi). Very short documents, or ones that are all code, are skipped; **review anyway** overrides that. **translate document** writes a translation into a new document beside this one, section by section. The conversation is kept with its document, in this browser.
 
 ## where your writing lives
 
