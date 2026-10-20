@@ -160,13 +160,15 @@ export interface Comparison {
 export interface Annotation {
   id: string
   documentId: string
-  kind: 'highlight' | 'underline' | 'note'
+  // ai-note: an instruction for AI mode, queued for the next message
+  // (round 4, frame 11); shown only in AI mode, never printed or exported.
+  kind: 'highlight' | 'underline' | 'note' | 'ai-note'
   // Highlights: one of the three washes (--hl-1…3).
   color?: 1 | 2 | 3
   from: number
   to: number
   quote: string
-  // Notes: what the note says.
+  // Notes: what the note says; AI notes: the instruction.
   body?: string
   createdAt: number
   updatedAt: number

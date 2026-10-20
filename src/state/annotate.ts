@@ -3,6 +3,7 @@ import { activeEditor, anchorOf } from '@/editor/annotations'
 import { directionOf } from '@/lib/direction'
 import { useAnnotations } from './annotations'
 import { useOverlays, type Anchor } from './overlays'
+import { useWorkspace } from './workspace'
 
 // What the right-click menu and its keys do to the selection (Phase 16).
 // A highlight or underline over text already wholly marked that way takes
@@ -49,12 +50,12 @@ function anchorFor(from: number, to: number): Anchor | null {
   return { left: Math.min(a.left, b.left), top: Math.min(a.top, b.top), bottom: Math.max(a.bottom, b.bottom) }
 }
 
-export function addNote() {
+export function addNote(kind: 'note' | 'ai-note' = 'note') {
   const s = selection()
   if (!s) return
   const now = Date.now()
   const id = crypto.randomUUID()
-  useAnnotations.getState().set(s.documentId, [...listOf(s.documentId), { id, documentId: s.documentId, kind: 'note', from: s.from, to: s.to, quote: s.text.slice(s.from, s.to), body: '', createdAt: now, updatedAt: now }])
+  useAnnotations.getState().set(s.documentId, [...listOf(s.documentId), { id, documentId: s.documentId, kind, from: s.from, to: s.to, quote: s.text.slice(s.from, s.to), body: '', createdAt: now, updatedAt: now }])
   const anchor = anchorFor(s.from, s.to)
   // Collapse the selection so the new note's underline shows at once.
   s.view.dispatch({ selection: { anchor: s.to } })
@@ -73,3 +74,11 @@ export function translateSelection() {
 export const translationTarget = (text: string) => (directionOf(text) === 'rtl' ? 'en' : 'fa')
 
 export { anchorOf }
+
+// AI notes belong to AI mode: only there, on its document.
+export const inAiModeOn = (documentId: string | undefined) => !!documentId && useWorkspace.getState().aiMode?.documentId === documentId
+export const canAddAiNote = () => {
+  const ed = activeEditor()
+  return hasSelection() && inAiModeOn(ed?.documentId)
+}
+export const addAiNote = () => canAddAiNote() && addNote('ai-note')

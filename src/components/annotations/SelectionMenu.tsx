@@ -4,7 +4,7 @@ import { formatKey } from '@/lib/shortcuts'
 import { cn } from '@/lib/utils'
 import { activeEditor } from '@/editor/annotations'
 import { useAnnotations } from '@/state/annotations'
-import { addNote, highlightSelection, translateSelection, translationTarget, underlineSelection } from '@/state/annotate'
+import { addAiNote, addNote, highlightSelection, inAiModeOn, translateSelection, translationTarget, underlineSelection } from '@/state/annotate'
 import { keysOf } from '@/state/commands'
 import { useOverlays } from '@/state/overlays'
 
@@ -104,6 +104,18 @@ export function SelectionMenu() {
           <span className="pr-2 font-mono text-[11px] text-ink-tertiary">{target === 'fa' ? 'en → fa' : 'fa → en'}</span>
           {key('translate')}
         </DropdownMenuItem>
+        {/* In AI mode: an instruction for the AI, queued for the next
+            message, numbered as it will be in the chat. */}
+        {inAiModeOn(menu.documentId) && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => void addAiNote()} className="gap-2">
+              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-foreground px-1 font-mono text-[10px] font-semibold text-document">{list.filter((a) => a.kind === 'ai-note').length + 1}</span>
+              <span className="flex-auto">add ai note</span>
+              {key('addAiNote')}
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

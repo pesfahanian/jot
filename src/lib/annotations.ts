@@ -8,7 +8,7 @@ import type { Annotation } from './db'
 type Kind = Annotation['kind']
 export type Mapper = { mapPos(pos: number, assoc?: number): number }
 
-const marks = (a: Annotation) => a.kind !== 'note'
+const marks = (a: Annotation) => a.kind === 'highlight' || a.kind === 'underline'
 
 // Follows an edit. A mark whose text was deleted goes; a note stays where
 // its text was, with nothing under it, until it's deleted.
@@ -82,3 +82,10 @@ export function covers(list: Annotation[], kind: Kind, from: number, to: number,
 }
 
 export const notesInOrder = (list: Annotation[]) => list.filter((a) => a.kind === 'note').sort((a, b) => a.from - b.from || a.to - b.to)
+
+// AI notes in queue order — the order they were written, which is the
+// number each one wears.
+export const aiNotesInOrder = (list: Annotation[]) => list.filter((a) => a.kind === 'ai-note').sort((a, b) => a.createdAt - b.createdAt)
+
+// What leaves Jot in a print or an export: never AI notes.
+export const printable = (list: Annotation[]) => list.filter((a) => a.kind !== 'ai-note')

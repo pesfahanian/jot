@@ -7,7 +7,7 @@ import { normKey } from '@/lib/shortcuts'
 import { welcomeDocumentId } from '@/lib/welcome'
 import { openContent } from '@/editor/sessions'
 import { exportWorkspace, newComparison, newDocument, pickImport } from './actions'
-import { addNote, hasSelection, highlightSelection, translateSelection, underlineSelection } from './annotate'
+import { addAiNote, addNote, canAddAiNote, hasSelection, highlightSelection, translateSelection, underlineSelection } from './annotate'
 import { useOverlays } from './overlays'
 import { docIdOf, isDiffTab } from './layout'
 import { useReview } from './review'
@@ -94,6 +94,7 @@ export const COMMANDS: Command[] = [
   { id: 'highlight', title: 'highlight', keys: ['Mod-Shift-h'], run: () => highlightSelection(), enabled: () => hasSelection() },
   { id: 'underline', title: 'underline', keys: ['Mod-Shift-u'], run: () => underlineSelection(), enabled: () => hasSelection() },
   { id: 'addNote', title: 'add note', keys: ['Mod-Alt-m'], run: () => addNote(), enabled: () => hasSelection() },
+  { id: 'addAiNote', title: 'add ai note', keys: ['Mod-Alt-i'], run: () => void addAiNote(), enabled: () => canAddAiNote() },
   { id: 'translate', title: 'translate', keys: ['Mod-Alt-t'], run: () => translateSelection(), enabled: () => hasSelection() },
   { id: 'notes', title: 'notes in this document', keys: [], run: () => useOverlays.getState().set({ notesList: true }), enabled: (c) => c.hasDocument },
   {

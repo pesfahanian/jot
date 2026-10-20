@@ -76,7 +76,7 @@ const TAGS = new Set([1, 2, 3, 4, 5, 6])
 
 const validAnnotation = (a: unknown): a is BackupAnnotation => {
   const x = a as BackupAnnotation
-  return !!x && ['highlight', 'underline', 'note'].includes(x.kind) && Number.isInteger(x.from) && Number.isInteger(x.to) && x.to >= x.from && typeof x.quote === 'string'
+  return !!x && ['highlight', 'underline', 'note', 'ai-note'].includes(x.kind) && Number.isInteger(x.from) && Number.isInteger(x.to) && x.to >= x.from && typeof x.quote === 'string'
 }
 
 // The documents in a backup. Without a manifest (a zip of .md files from

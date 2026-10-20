@@ -6,6 +6,7 @@ import { customSetsPage, PDF_DEFAULTS, SIZES, type PdfOptions } from '@/lib/pdfO
 import { getSettings, updateSettings } from '@/lib/settings'
 import { cn } from '@/lib/utils'
 import { useAnnotations } from '@/state/annotations'
+import { printable } from '@/lib/annotations'
 
 // The PDF options card (design accepted 2026-10-05, frames 1–2): opens in
 // place of the export menu on every PDF export, filled with the last
@@ -72,7 +73,7 @@ export function PdfOptionsCard({ doc, text, onDone }: { doc: JotDocument; text: 
     onDone()
     const content = text()
     const annotations = await useAnnotations.getState().load(doc.id, content)
-    void exportPdf(doc.title, content, opts, doc.dir ?? 'auto', annotations)
+    void exportPdf(doc.title, content, opts, doc.dir ?? 'auto', printable(annotations))
   }
 
   useEffect(() => {
