@@ -67,9 +67,11 @@ export const useAnnotations = create<AnnotationsState>()((set, get) => ({
   },
 }))
 
-// Annotations of documents that no longer exist go at start-up — not at
+// Annotations (and chats) of documents that no longer exist go at start-up — not at
 // delete time, so undoing a delete brings them back with the document.
 export async function dropOrphanAnnotations() {
   const ids = new Set(await db.documents.toCollection().primaryKeys())
   await db.annotations.filter((a) => !ids.has(a.documentId)).delete()
+  // AI mode's chats go with their documents too (Phase 17).
+  await db.chats.filter((c) => !ids.has(c.documentId)).delete()
 }

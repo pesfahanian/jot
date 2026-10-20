@@ -52,6 +52,11 @@ interface ReviewState {
   openKeyPanel(reason: 'cell' | 'review', documentId?: string, force?: boolean): void
   closeKeyPanel(): void
   setKeyTesting(v: boolean): void
+  // AI mode (Phase 17): proposals from the chat join the document's results
+  // — added to the open session when there is one (re-anchored if the text
+  // moved on), else a session of their own — and the results open.
+  addProposals(documentId: string, source: string, flags: ReviewSession['flags'], model: string): Promise<void>
+  openResults(documentId: string): Promise<void>
 }
 
 const liveText = async (documentId: string) => openContent(documentId) ?? (await getDocument(documentId))?.content ?? ''
@@ -251,6 +256,28 @@ export const useReview = create<ReviewState>()((set, get) => ({
   openKeyPanel: (reason, documentId, force) => set({ keyPanel: { open: true, reason, documentId, force } }),
   closeKeyPanel: () => set({ keyPanel: { open: false, reason: 'cell' } }),
   setKeyTesting: (v) => set({ keyTesting: v }),
+
+  async addProposals(documentId, source, flags, model) {
+    const existing = await get().loadSession(documentId)
+    const base = existing ? reanchor(existing, source) : null
+    const session: ReviewSession = base
+      ? { ...base, source, flags: [...base.flags, ...flags] }
+      : { documentId, rulesetVersion: 'ai mode', model, source, createdAt: Date.now(), flags }
+    await db.reviewSessions.put(session)
+    set({ sessions: { ...get().sessions, [documentId]: session } })
+  },
+
+  async openResults(documentId) {
+    const session = await get().loadSession(documentId)
+    if (!session) return
+    const text = await liveText(documentId)
+    if (session.source !== text) {
+      const moved = reanchor(session, text)
+      await db.reviewSessions.put(moved)
+      set({ sessions: { ...get().sessions, [documentId]: moved } })
+    }
+    openHere(documentId)
+  },
 }))
 
 function skipped(documentId: string, reason: string, by: 'jot' | 'model', text: string) {

@@ -11,9 +11,11 @@ import rulesFaMd from './ruleset/fa/RULES.md?raw'
 //   call       Tier 2, and any flag with no fix (e.g. T1b-04) — reader decides
 //   spelling / grammar / punctuation — objective proofing errors
 //   note       the reviewer quoted text that isn't in the document
-export type Kind = 'quick' | 'check' | 'call' | 'spelling' | 'grammar' | 'punctuation' | 'note'
+//   proposal   a change asked for in AI mode (chat or an AI note): neutral,
+//              so colour in the results always means the style review
+export type Kind = 'quick' | 'check' | 'call' | 'spelling' | 'grammar' | 'punctuation' | 'proposal' | 'note'
 
-export const KIND_ORDER: Kind[] = ['quick', 'check', 'call', 'spelling', 'grammar', 'punctuation', 'note']
+export const KIND_ORDER: Kind[] = ['quick', 'check', 'call', 'spelling', 'grammar', 'punctuation', 'proposal', 'note']
 
 export interface KindInfo {
   name: string
@@ -52,6 +54,13 @@ export const KINDS: Record<Kind, KindInfo> = {
   spelling: { name: 'Spelling', help: 'A misspelled word.', ink: 'var(--proof-spelling)', mark: 'squiggle' },
   grammar: { name: 'Grammar', help: 'A grammar mistake.', ink: 'var(--proof-grammar)', mark: 'squiggle' },
   punctuation: { name: 'Punctuation', help: 'A punctuation mistake.', ink: 'var(--proof-punct)', mark: 'squiggle' },
+  proposal: {
+    name: 'Proposal',
+    help: 'A change you asked for in AI mode, in the chat or an AI note.',
+    ink: 'var(--secondary-foreground)',
+    ground: 'var(--hover-lift)',
+    mark: 'wash',
+  },
   note: {
     name: 'Note',
     help: 'The reviewer mentioned text it could not find in your document. Just dismiss it.',
@@ -62,6 +71,7 @@ export const KINDS: Record<Kind, KindInfo> = {
 
 export function kindOf(f: ReviewFlag): Kind {
   if (isNote(f)) return 'note'
+  if (f.family === 'chat') return 'proposal'
   if (isProofing(f.family)) return f.family as Kind
   if (f.family === 'tier2' || f.kind === 'flag') return 'call'
   return f.family === 'tier1b' ? 'check' : 'quick'
@@ -116,6 +126,8 @@ const FA_RULE_NAMES: Record<string, string> = Object.fromEntries(
 // The rule's plain name, or null for proofing and notes (their kind says it all).
 export function ruleName(f: ReviewFlag): string | null {
   const k = kindOf(f)
+  // Where a proposal came from: "from chat", "from ai note 2".
+  if (k === 'proposal') return `from ${f.id}`
   if (k !== 'quick' && k !== 'check' && k !== 'call') return null
   return RULE_NAMES[f.id] ?? FA_RULE_NAMES[f.id] ?? null
 }

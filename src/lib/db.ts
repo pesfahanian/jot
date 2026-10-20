@@ -68,7 +68,8 @@ export interface Settings {
   pdf?: import('./pdfOptions').PdfOptions
 }
 
-export type FlagFamily = 'tier1' | 'tier1b' | 'tier2' | 'spelling' | 'grammar' | 'punctuation'
+// 'chat': a change asked for in AI mode — in a chat message or an AI note.
+export type FlagFamily = 'tier1' | 'tier1b' | 'tier2' | 'spelling' | 'grammar' | 'punctuation' | 'chat'
 export type FlagKind = 'replace' | 'delete' | 'insert' | 'flag'
 // superseded: set by Jot, not chosen — a pending flag inside a wider flag
 // that was accepted or edited (its text is gone; open-decisions #16).
@@ -174,6 +175,19 @@ export interface Annotation {
   updatedAt: number
 }
 
+// AI mode's conversation with one document (round 4, frame 11), kept with
+// the document in this browser and gone with it.
+export type ChatMessage =
+  | { id: string; at: number; role: 'user'; text: string; notes: { n: number; quote: string; body: string }[]; context: number }
+  | { id: string; at: number; role: 'assistant'; text: string; model: string; proposals: number; unmatched: number; keys?: string[] }
+  | { id: string; at: number; role: 'action'; action: 'review' | 'translate'; text: string; documentId?: string }
+  | { id: string; at: number; role: 'error'; kind: 'no-key' | 'provider' | 'declined'; message: string; detail?: string; model?: string; retry?: string }
+
+export interface Chat {
+  documentId: string
+  messages: ChatMessage[]
+}
+
 export const db = new Dexie('jot') as Dexie & {
   documents: EntityTable<JotDocument, 'id'>
   settings: EntityTable<Settings, 'id'>
@@ -181,6 +195,7 @@ export const db = new Dexie('jot') as Dexie & {
   workspace: EntityTable<Workspace, 'id'>
   comparisons: EntityTable<Comparison, 'id'>
   annotations: EntityTable<Annotation, 'id'>
+  chats: EntityTable<Chat, 'documentId'>
 }
 
 db.version(1).stores({
@@ -218,4 +233,9 @@ db.version(4).stores({
 // Highlights, underlines and notes (Phase 16).
 db.version(5).stores({
   annotations: 'id, documentId',
+})
+
+// AI mode's chats, one per document (Phase 17).
+db.version(6).stores({
+  chats: 'documentId',
 })
