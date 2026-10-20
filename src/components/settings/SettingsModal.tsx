@@ -15,13 +15,20 @@ import { useWorkspace } from '@/state/workspace'
 import { AiProviderSection } from './AiProviderSection'
 import { Grid, Label, quietButton, Rule, SectionHead, Segmented, Switch } from './controls'
 import { ShortcutsSection } from './ShortcutsSection'
+import { TranslationSection } from './TranslationSection'
 
 // Settings (round 4, frames 3a–3e): a modal, 780 × 540, sections grouped
 // ai / app / data. Opened from the sidebar foot, the palette and ⌘, — and
 // by asking for a review with no key, which lands on ai provider.
 
 const NAV: { group: string; items: { label: string; section: SettingsSection; anchor?: string }[] }[] = [
-  { group: 'ai', items: [{ label: 'ai provider', section: 'ai' }] },
+  {
+    group: 'ai',
+    items: [
+      { label: 'ai provider', section: 'ai' },
+      { label: 'translation', section: 'ai', anchor: 'settings-translation' },
+    ],
+  },
   {
     group: 'app',
     items: [
@@ -245,6 +252,8 @@ export function SettingsModal() {
               {section === 'ai' && (
                 <Page>
                   <AiProviderSection onDone={close} />
+                  <Rule />
+                  <TranslationSection />
                 </Page>
               )}
               {section === 'editor' && <EditorPage />}

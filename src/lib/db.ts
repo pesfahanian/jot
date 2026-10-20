@@ -51,6 +51,9 @@ export interface Settings {
   // empty list for none. Missing commands keep their defaults
   // (state/commands.ts).
   shortcuts?: Record<string, string[]>
+  // A Google Cloud Translation key, for translating a selection (Phase 16):
+  // separate from the AI provider; no AI involved.
+  translateKey?: ProviderKey
   // First run (Phase 10): when the welcome document was created (or the
   // workspace was found already in use), and which document it is.
   welcomedAt: number | null

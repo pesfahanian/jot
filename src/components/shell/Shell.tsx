@@ -10,6 +10,7 @@ import { SettingsModal } from '@/components/settings/SettingsModal'
 import { CommandPalette } from './CommandPalette'
 import { NotePopover } from '@/components/annotations/NotePopover'
 import { SelectionMenu } from '@/components/annotations/SelectionMenu'
+import { TranslatePopover } from '@/components/annotations/TranslatePopover'
 import { PaneEmpty } from './EditorPane'
 import { PaneGrid } from './PaneGrid'
 import { Sidebar } from './Sidebar'
@@ -151,6 +152,7 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
       <CommandPalette />
       <SelectionMenu />
       <NotePopover />
+      <TranslatePopover />
     </div>
   )
 }
