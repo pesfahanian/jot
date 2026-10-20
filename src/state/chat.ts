@@ -39,6 +39,11 @@ export const useChat = create<ChatState>()((set, get) => ({
     set({ byDoc: { ...get().byDoc, [documentId]: chat?.messages ?? [] } })
   },
   append(documentId, message) {
+    // Never save over a conversation not read yet: load it first.
+    if (!get().byDoc[documentId]) {
+      void get().load(documentId).then(() => get().append(documentId, message))
+      return
+    }
     const messages = [...(get().byDoc[documentId] ?? []), message]
     set({ byDoc: { ...get().byDoc, [documentId]: messages } })
     save(documentId, messages)

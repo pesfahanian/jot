@@ -95,11 +95,16 @@ export const useReview = create<ReviewState>()((set, get) => ({
   async requestReview(documentId) {
     if (get().runs[documentId]?.state === 'running') return
     const existing = await get().loadSession(documentId)
-    if (existing) {
+    // Results holding only AI mode's proposals aren't a review yet: the
+    // review runs, and the proposals stay beside its findings.
+    const reviewed = existing?.flags.some((f) => f.family !== 'chat')
+    if (existing && reviewed) {
       const verdict = standing(existing.source, existing.flags, await liveText(documentId))
       if (verdict === 'current') return openHere(documentId)
       if (verdict === 'stale') return
-      await get().discardSession(documentId)
+      // A spent review gives way — but AI mode's proposals in it stay (run
+      // carries them into the new results).
+      if (!existing.flags.some((f) => f.family === 'chat')) await get().discardSession(documentId)
     }
     // Text there's nothing to judge in is declined before a key is asked for.
     const text = await liveText(documentId)
@@ -159,7 +164,10 @@ export const useReview = create<ReviewState>()((set, get) => ({
         noteIfAway('done')
         return
       }
-      const session = result
+      // Proposals from AI mode's chat already in the results come along.
+      const before = get().sessions[documentId] ?? (await db.reviewSessions.get(documentId))
+      const proposals = before ? reanchor(before, result.source).flags.filter((f) => f.family === 'chat') : []
+      const session = { ...result, flags: [...result.flags, ...proposals] }
       // The document may have been edited while the call ran; anchor the
       // flags to what it says now.
       const now = reanchor(session, await liveText(documentId))
