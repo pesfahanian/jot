@@ -137,3 +137,18 @@ describe('grid', () => {
     expect(shape(r.panes)).toEqual(['A', 'C'])
   })
 })
+
+describe('AI mode parking', () => {
+  it('keeps one pane and brings the rest back as they were, with anything opened meanwhile', async () => {
+    const { parkFor, unpark } = await import('./layout')
+    const panes = [
+      { id: 'a', tabs: ['d1'], active: 'd1', size: 2 },
+      { id: 'b', tabs: ['d2', 'd3'], active: 'd2' },
+      { id: 'c', tabs: ['d4'], active: 'd4', below: true },
+    ]
+    const parked = parkFor(panes, 'b', 'd3')
+    expect(parked).toEqual([{ id: 'b', tabs: ['d2', 'd3'], active: 'd3', below: false, size: undefined, split: undefined }])
+    const back = unpark({ panes, focusedPaneId: 'b' }, [...parked, { id: 't', tabs: ['d9'], active: 'd9' }], 'b')
+    expect(back).toEqual([panes[0], { ...panes[1], tabs: ['d2', 'd3', 'd9'], active: 'd3' }, panes[2]])
+  })
+})

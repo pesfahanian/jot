@@ -85,7 +85,9 @@ function Workspace() {
     if (!docs || !loaded) return
     const ids = new Set(docs.map((d) => d.id))
     const ws = useWorkspace.getState()
-    for (const p of ws.panes) for (const t of p.tabs) if (!isDiffTab(t) && !ids.has(docIdOf(t))) ws.closeTab(p.id, t)
+    // AI mode ends with its document.
+    if (ws.aiMode && !ids.has(ws.aiMode.documentId)) ws.leaveAiMode()
+    for (const p of useWorkspace.getState().panes) for (const t of p.tabs) if (!isDiffTab(t) && !ids.has(docIdOf(t))) useWorkspace.getState().closeTab(p.id, t)
   }, [docs, loaded])
 
   if (!docs || !loaded) return <div className="h-svh bg-background" />

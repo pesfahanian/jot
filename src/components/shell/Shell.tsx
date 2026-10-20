@@ -8,6 +8,7 @@ import { importFiles, newDocument, pickImport } from '@/state/actions'
 import { useWorkspace } from '@/state/workspace'
 import { SettingsModal } from '@/components/settings/SettingsModal'
 import { CommandPalette } from './CommandPalette'
+import { ChatPanel } from '@/components/ai/ChatPanel'
 import { NotePopover } from '@/components/annotations/NotePopover'
 import { SelectionMenu } from '@/components/annotations/SelectionMenu'
 import { TranslatePopover } from '@/components/annotations/TranslatePopover'
@@ -70,6 +71,7 @@ function FirstRun() {
 export function Shell({ docs }: { docs: JotDocument[] }) {
   const panes = useWorkspace((s) => s.panes)
   const sidebarOpen = useWorkspace((s) => s.sidebarOpen)
+  const aiMode = useWorkspace((s) => s.aiMode)
   const docsById = useMemo(() => new Map(docs.map((d) => [d.id, d])), [docs])
   const [dropping, setDropping] = useState(false)
 
@@ -82,6 +84,16 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (useUi.getState().recordingKey) return
+      // Esc leaves AI mode, unless something on top of it (a menu, a
+      // popover, the editor's find panel) is what Esc should close.
+      if (e.key === 'Escape' && useWorkspace.getState().aiMode && !e.defaultPrevented) {
+        const layered = document.querySelector('[data-radix-popper-content-wrapper], [role="dialog"], [role="menu"]') || (e.target as Element).closest?.('.cm-panels, [data-review-view]')
+        if (!layered) {
+          e.preventDefault()
+          useWorkspace.getState().leaveAiMode()
+          return
+        }
+      }
       const key = keyOfEvent(e)
       if (!key || !isCommandKey(key)) return
       if (key === normKey('Mod-s')) return e.preventDefault()
@@ -134,11 +146,19 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
       <StorageWarning />
       <div className="flex min-h-0 flex-auto">
         {/* The key panel opens beside the sidebar's key row, over the panes. */}
-        {sidebarOpen && (
+        {/* In AI mode the chat takes the sidebar's slot (round 4, frame 11). */}
+        {aiMode ? (
           <>
-            <Sidebar docs={docs} />
-            <SidebarHandle />
+            <ChatPanel key={aiMode.documentId} documentId={aiMode.documentId} />
+            <div className="w-(--seam) flex-none" />
           </>
+        ) : (
+          sidebarOpen && (
+            <>
+              <Sidebar docs={docs} />
+              <SidebarHandle />
+            </>
+          )
         )}
         <div className="relative flex min-w-0 flex-auto">
           {docs.length === 0 ? <FirstRun /> : <PaneGrid panes={panes} docsById={docsById} />}

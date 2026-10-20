@@ -17,6 +17,9 @@ import { useReview } from '@/state/review'
 import { columnsOf, docIdOf } from '@/state/layout'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 import { NotesCell } from '@/components/annotations/NotesCell'
+import { formatKey } from '@/lib/shortcuts'
+import { keysOf } from '@/state/commands'
+import { modelChain, PROVIDERS } from '@/review/providers'
 
 // Counts hug their values and pack against the bar's right edge (§1.8:
 // every number is monospace, tabular). The cursor, which changes width on
@@ -195,6 +198,9 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
     // A spent review is replaced on the next click; until then the control
     // reads as a plain "review style".
     const live = verdict === 'current' || verdict === 'stale'
+    // Round 4: the style review is started from AI mode; here the control
+    // only reports a review in flight or one waiting to be resumed.
+    if (!live) return null
     const decided = session ? session.flags.filter((f) => f.status !== 'pending').length : 0
     const button = (
       <button
@@ -229,6 +235,45 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
   return <div className="flex min-w-0 flex-auto items-center px-[5px] whitespace-nowrap">{body}</div>
 }
 
+// Into AI mode (round 4): the status bar's left end, where the style
+// review control was.
+function AiModeButton({ disabled }: { disabled: boolean }) {
+  const key = keysOf('aiMode')[0]
+  return (
+    <div className="flex items-center px-[5px]">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => useWorkspace.getState().enterAiMode()}
+        title="work on this document with AI"
+        className="flex h-5 items-center gap-[7px] rounded-[5px] border border-border bg-background px-2 text-foreground hover:bg-hover-lift disabled:pointer-events-none disabled:text-ink-dim"
+      >
+        <span className="size-1.5 rounded-full bg-primary" />
+        ai mode
+        {key && <span className="text-muted-foreground">{formatKey(key)}</span>}
+      </button>
+    </div>
+  )
+}
+
+// In AI mode: how to leave, and what the AI runs on.
+function AiModeStatus() {
+  const settings = useLiveQuery(() => getSettings(), [])
+  const provider = settings?.provider ?? 'openrouter'
+  const model = settings ? modelChain(settings.models, provider)[0] : ''
+  return (
+    <div className="flex min-w-0 items-center gap-2 px-2.5 whitespace-nowrap">
+      <button type="button" onClick={() => useWorkspace.getState().leaveAiMode()} className="flex flex-none items-center gap-[7px] text-foreground hover:underline">
+        <span className="size-1.5 rounded-full bg-primary" />
+        ai mode <span className="text-muted-foreground">· esc to leave</span>
+      </button>
+      <span className="truncate text-muted-foreground">
+        {PROVIDERS[provider].label.toLowerCase()} · {model}
+      </span>
+    </div>
+  )
+}
+
 // The left block never shrinks below what the review control's widest
 // state ("review outdated", the skipped chip) needs.
 const LEFT_BLOCK_MIN = 210
@@ -259,7 +304,9 @@ function MinimapToggle() {
 export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) {
   const pane = useWorkspace(focusedPane)
   const cursor = useWorkspace((s) => s.cursor)
-  const sidebarWidth = useWorkspace((s) => (s.sidebarOpen ? s.sidebarWidth : 0))
+  const aiMode = useWorkspace((s) => !!s.aiMode)
+  // In AI mode the left block is as wide as the chat (round 4).
+  const sidebarWidth = useWorkspace((s) => (s.aiMode ? 360 : s.sidebarOpen ? s.sidebarWidth : 0))
   // A rendered tab counts as its document.
   const doc = pane?.active ? docsById.get(docIdOf(pane.active)) : undefined
   const text = doc ? (openContent(doc.id) ?? doc.content) : ''
@@ -275,7 +322,14 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
       <div className="flex flex-none items-stretch border-r border-border-subtle" style={{ width: Math.max(sidebarWidth - 1, LEFT_BLOCK_MIN) }}>
         {/* With no document there is nothing to review or count (6d): only
             global state remains. */}
-        {doc && <ReviewControl doc={doc} text={text} />}
+        {aiMode ? (
+          <AiModeStatus />
+        ) : (
+          <>
+            <AiModeButton disabled={!doc} />
+            {doc && <ReviewControl doc={doc} text={text} />}
+          </>
+        )}
       </div>
       <div className="flex-auto" />
       {doc && (

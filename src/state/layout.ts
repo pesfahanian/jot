@@ -184,3 +184,27 @@ export function splitWithTab(panes: PaneLayout[], tab: DraggedTab, target: strin
 export function canSplit(panes: PaneLayout[], tab: DraggedTab, target: string, edge: Edge = 'right'): boolean {
   return splitWithTab(panes, tab, target, edge, '?') !== null
 }
+
+// AI mode (round 4, frames 10–11): one document's pane stays; the others
+// are parked and come back exactly as they were. Entering keeps only the
+// working pane; leaving puts the parked layout back, with the working pane
+// as it is now — and anything opened beside it meanwhile (a translation's
+// draft) joins it as a tab.
+export interface Parked {
+  panes: PaneLayout[]
+  focusedPaneId: string
+}
+
+export function parkFor(panes: PaneLayout[], paneId: string, documentId: string): PaneLayout[] {
+  const pane = panes.find((p) => p.id === paneId)
+  return pane ? [{ ...pane, below: false, size: undefined, split: undefined, active: documentId }] : panes
+}
+
+export function unpark(parked: Parked, current: PaneLayout[], paneId: string): PaneLayout[] {
+  const working = current.find((p) => p.id === paneId)
+  if (!working) return parked.panes
+  const extra = current.filter((p) => p.id !== paneId).flatMap((p) => p.tabs)
+  const tabs = [...working.tabs, ...extra.filter((t) => !working.tabs.includes(t))]
+  const restored = parked.panes.map((p) => (p.id === paneId ? { ...p, tabs, active: working.active } : p))
+  return restored.some((p) => p.id === paneId) ? restored : [...restored, { ...working, tabs }]
+}

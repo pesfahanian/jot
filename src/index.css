@@ -523,3 +523,9 @@
 @keyframes jot-autofix { 0%, 40% { background: var(--mark); } 100% { background: transparent; } }
 .jot-autofix { animation: jot-autofix 1000ms linear forwards; border-radius: 2px; }
 [data-motion="off"] .jot-autofix { animation: none !important; background: var(--mark); }
+/* Entering AI mode (round 4, frame 10): the chat slides in 16px from the
+   left and fades up over 80–240 ms; the working pane widens on the same
+   curve (its own size transition). */
+@keyframes jot-chat-in { from { opacity: 0; translate: -16px 0; } }
+.jot-chat-enter { animation: jot-chat-in calc(var(--motion-mode) - 80ms) var(--ease-enter) 80ms backwards; }
+[data-motion="off"] .jot-chat-enter { animation: none; }

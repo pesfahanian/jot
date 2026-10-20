@@ -27,7 +27,7 @@ Everything is saved as you type. There's no save button, and Cmd/Ctrl + S does n
 
 Cmd/Ctrl + Shift + I tidies the whole document: bullets, emphasis and table columns. One undo reverses it.
 
-The icon at the far left of the bar at the bottom shows or hides the minimap.
+The icon at the far right of the bar at the bottom shows or hides the minimap.
 
 ## seeing it rendered
 

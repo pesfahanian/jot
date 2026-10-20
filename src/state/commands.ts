@@ -96,6 +96,18 @@ export const COMMANDS: Command[] = [
   { id: 'addNote', title: 'add note', keys: ['Mod-Alt-m'], run: () => addNote(), enabled: () => hasSelection() },
   { id: 'translate', title: 'translate', keys: ['Mod-Alt-t'], run: () => translateSelection(), enabled: () => hasSelection() },
   { id: 'notes', title: 'notes in this document', keys: [], run: () => useOverlays.getState().set({ notesList: true }), enabled: (c) => c.hasDocument },
+  {
+    id: 'aiMode',
+    title: 'toggle ai mode',
+    keys: ['Mod-j'],
+    run: () => {
+      const ws = useWorkspace.getState()
+      if (ws.aiMode) ws.leaveAiMode()
+      else ws.enterAiMode()
+    },
+    enabled: (c) => c.hasDocument || !!useWorkspace.getState().aiMode,
+    state: () => (useWorkspace.getState().aiMode ? 'on' : 'off'),
+  },
   { id: 'reviewStyle', title: 'review style', keys: [], run: withDocument((d) => void useReview.getState().requestReview(d.id)), enabled: (c) => c.hasDocument },
   { id: 'openWelcome', title: 'open the welcome document', keys: [], run: () => void welcomeDocumentId().then((id) => useWorkspace.getState().openDocument(id)) },
 ]
