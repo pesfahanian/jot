@@ -491,3 +491,29 @@
 .jot-results { animation: jot-fade-in var(--motion-base) var(--ease-enter); }
 .jot-results-bar { animation: jot-drop-in var(--motion-base) var(--ease-enter); }
 [data-motion="off"] *, [data-motion="off"] *::before, [data-motion="off"] *::after { animation-delay: 0s !important; }
+/* Highlights, underline and notes (round 4, frames 6–7). Three washes from
+   tag green, clay and indigo mixed onto the document — never yellow, which
+   means selection and search. Underline is straight and colourless, so it
+   can't be read as a spelling mark; a note is dotted. Right-to-left lines
+   sit their lines lower, clear of the dots below Farsi letters. */
+:root {
+    --hl-1: color-mix(in oklab, var(--tag-3) 22%, var(--document));
+    --hl-2: color-mix(in oklab, var(--tag-1) 18%, var(--document));
+    --hl-3: color-mix(in oklab, var(--tag-5) 18%, var(--document));
+}
+.dark {
+    --hl-1: color-mix(in oklab, var(--tag-3) 30%, var(--document));
+    --hl-2: color-mix(in oklab, var(--tag-1) 30%, var(--document));
+    --hl-3: color-mix(in oklab, var(--tag-5) 30%, var(--document));
+}
+.jot-hl-1 { background: var(--hl-1); }
+.jot-hl-2 { background: var(--hl-2); }
+.jot-hl-3 { background: var(--hl-3); }
+.jot-ul { text-decoration: underline solid var(--secondary-foreground); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.jot-note { text-decoration: underline dotted var(--secondary-foreground); text-decoration-thickness: 1.5px; text-underline-offset: 4px; cursor: pointer; }
+[dir="rtl"] .jot-ul { text-underline-offset: 5px; }
+[dir="rtl"] .jot-note { text-underline-offset: 6px; }
+.jot-note-open { background: var(--hover-lift); }
+.cm-jot-notes { width: 0; position: relative; }
+.cm-jot-notes .cm-gutterElement { position: relative; padding: 0 !important; }
+.jot-note-square { position: absolute; left: -4px; top: 8px; width: 7px; height: 7px; border-radius: 1px; background: var(--secondary-foreground); cursor: pointer; }

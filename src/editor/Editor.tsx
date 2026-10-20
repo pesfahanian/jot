@@ -25,6 +25,7 @@ import { getSession } from './sessions'
 import { codeBlockGround, jotEditorTheme } from './theme'
 import { dirCompartment, directionExtension, dirSettingFor } from './direction'
 import { db } from '@/lib/db'
+import { annotationsExtension } from './annotations'
 
 interface EditorProps {
   documentId: string
@@ -80,6 +81,8 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
         doc: session.content,
         extensions: [
           lineNumbers(),
+          // Note squares sit on the gutter's rule, after the line numbers.
+          annotationsExtension(documentId),
           highlightActiveLineGutter(),
           history(),
           drawSelection(),

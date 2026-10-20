@@ -16,6 +16,7 @@ import { useNow } from '@/state/hooks'
 import { useReview } from '@/state/review'
 import { columnsOf, docIdOf } from '@/state/layout'
 import { focusedPane, useWorkspace } from '@/state/workspace'
+import { NotesCell } from '@/components/annotations/NotesCell'
 
 // Counts hug their values and pack against the bar's right edge (§1.8:
 // every number is monospace, tabular). The cursor, which changes width on
@@ -286,6 +287,7 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
           <Cell label="words" value={groupDigits(c.words)} />
           <Cell label="lines" value={groupDigits(c.lines)} />
           <Cell label="paras" value={groupDigits(c.paras)} className="pr-2.5" />
+          <NotesCell documentId={doc.id} />
         </>
       )}
       {/* The minimap toggle, at the far right (round 4). */}

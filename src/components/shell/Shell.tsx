@@ -8,6 +8,8 @@ import { importFiles, newDocument, pickImport } from '@/state/actions'
 import { useWorkspace } from '@/state/workspace'
 import { SettingsModal } from '@/components/settings/SettingsModal'
 import { CommandPalette } from './CommandPalette'
+import { NotePopover } from '@/components/annotations/NotePopover'
+import { SelectionMenu } from '@/components/annotations/SelectionMenu'
 import { PaneEmpty } from './EditorPane'
 import { PaneGrid } from './PaneGrid'
 import { Sidebar } from './Sidebar'
@@ -147,6 +149,8 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
       </div>
       <SettingsModal />
       <CommandPalette />
+      <SelectionMenu />
+      <NotePopover />
     </div>
   )
 }

@@ -148,12 +148,32 @@ export interface Comparison {
   createdAt: number
 }
 
+// A highlight, underline or note on a stretch of a document (round 4,
+// frames 6–7): kept beside the document, never in its markdown. Positions
+// follow the text as it's edited (editor/annotations.ts); `quote` is the
+// text it was on, to find it again if the text changed elsewhere.
+export interface Annotation {
+  id: string
+  documentId: string
+  kind: 'highlight' | 'underline' | 'note'
+  // Highlights: one of the three washes (--hl-1…3).
+  color?: 1 | 2 | 3
+  from: number
+  to: number
+  quote: string
+  // Notes: what the note says.
+  body?: string
+  createdAt: number
+  updatedAt: number
+}
+
 export const db = new Dexie('jot') as Dexie & {
   documents: EntityTable<JotDocument, 'id'>
   settings: EntityTable<Settings, 'id'>
   reviewSessions: EntityTable<ReviewSession, 'documentId'>
   workspace: EntityTable<Workspace, 'id'>
   comparisons: EntityTable<Comparison, 'id'>
+  annotations: EntityTable<Annotation, 'id'>
 }
 
 db.version(1).stores({
@@ -186,4 +206,9 @@ db.version(3)
 // The diff checker's comparisons, one per diff tab.
 db.version(4).stores({
   comparisons: 'id',
+})
+
+// Highlights, underlines and notes (Phase 16).
+db.version(5).stores({
+  annotations: 'id, documentId',
 })

@@ -1,6 +1,7 @@
 import { Annotation, Transaction, type TransactionSpec } from '@codemirror/state'
 import type { EditorView, ViewUpdate } from '@codemirror/view'
 import { createAutosave, type Autosave } from '@/lib/autosave'
+import { useAnnotations } from '@/state/annotations'
 
 // One session per open document, shared by every pane showing it. Splitting
 // opens the current document in a second pane, so two CodeMirror views can
@@ -63,6 +64,8 @@ export function getSession(documentId: string, initialContent: string): Document
       // Replayed edits from a peer are already saved and broadcast.
       if (u.transactions.some((tr) => tr.annotation(fromPeer))) return
       session.content = u.state.doc.toString()
+      // Highlights, underlines and notes follow the edit, once per document.
+      for (const tr of u.transactions) if (!tr.changes.empty) useAnnotations.getState().follow(documentId, tr.changes, session.content)
       for (const peer of views) {
         if (peer === u.view) continue
         for (const tr of u.transactions) {

@@ -7,6 +7,8 @@ import { normKey } from '@/lib/shortcuts'
 import { welcomeDocumentId } from '@/lib/welcome'
 import { openContent } from '@/editor/sessions'
 import { exportWorkspace, newComparison, newDocument, pickImport } from './actions'
+import { addNote, hasSelection, highlightSelection, translateSelection, underlineSelection } from './annotate'
+import { useOverlays } from './overlays'
 import { docIdOf, isDiffTab } from './layout'
 import { useReview } from './review'
 import { nextTheme } from './theme'
@@ -89,6 +91,11 @@ export const COMMANDS: Command[] = [
   { id: 'toggleMinimap', title: 'toggle minimap', keys: [], run: () => void getSettings().then((s) => updateSettings({ minimap: !(s.minimap ?? true) })), state: (c) => (c.settings.minimap ?? true ? 'on' : 'off') },
   { id: 'toggleTheme', title: 'toggle theme', keys: [], run: () => void getSettings().then((s) => updateSettings({ theme: nextTheme(s.theme) })), state: (c) => c.settings.theme },
   { id: 'toggleAnimations', title: 'settings: toggle animations', keys: [], run: () => void getSettings().then((s) => updateSettings({ animations: !(s.animations ?? true) })), state: (c) => (c.settings.animations ?? true ? 'on' : 'off') },
+  { id: 'highlight', title: 'highlight', keys: ['Mod-Shift-h'], run: () => highlightSelection(), enabled: () => hasSelection() },
+  { id: 'underline', title: 'underline', keys: ['Mod-Shift-u'], run: () => underlineSelection(), enabled: () => hasSelection() },
+  { id: 'addNote', title: 'add note', keys: ['Mod-Alt-m'], run: () => addNote(), enabled: () => hasSelection() },
+  { id: 'translate', title: 'translate', keys: ['Mod-Alt-t'], run: () => translateSelection(), enabled: () => hasSelection() },
+  { id: 'notes', title: 'notes in this document', keys: [], run: () => useOverlays.getState().set({ notesList: true }), enabled: (c) => c.hasDocument },
   { id: 'reviewStyle', title: 'review style', keys: [], run: withDocument((d) => void useReview.getState().requestReview(d.id)), enabled: (c) => c.hasDocument },
   { id: 'openWelcome', title: 'open the welcome document', keys: [], run: () => void welcomeDocumentId().then((id) => useWorkspace.getState().openDocument(id)) },
 ]

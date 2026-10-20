@@ -9,6 +9,7 @@ import { docIdOf, isDiffTab } from '@/state/layout'
 import { useApplyTheme, useTheme } from '@/state/theme'
 import { useApplyMotion } from '@/lib/motion'
 import { useWorkspace } from '@/state/workspace'
+import { dropOrphanAnnotations } from '@/state/annotations'
 
 // Desktop only (ADR-011): below 1000px nothing of the app mounts — only the
 // too-narrow screen. Resizing across the line swaps live, in either direction.
@@ -75,6 +76,7 @@ function Workspace() {
       if (docs.length === 0 && (await db.documents.count()) > 0) return
       if (useWorkspace.getState().loaded) return
       useWorkspace.getState().hydrate(await db.workspace.get('workspace'), docs)
+      void dropOrphanAnnotations()
     })
   }, [docs])
 
