@@ -28,6 +28,8 @@ import { TagMark } from './TagMark'
 import { useUi } from '@/state/ui'
 import { SidebarToggle } from './SidebarToggle'
 import { Wordmark } from './Wordmark'
+import { annotatedMarkdown } from '@/lib/annotatedSource'
+import { useAnnotations } from '@/state/annotations'
 
 // The diff checker loads the first time a comparison opens.
 const DiffView = lazy(() => import('@/components/diff/DiffView').then((m) => ({ default: m.DiffView })))
@@ -53,12 +55,34 @@ const control =
 const liveText = (doc: JotDocument) => openContent(doc.id) ?? doc.content
 
 function ExportItems({ doc, onPdf }: { doc: JotDocument; onPdf: () => void }) {
+  // With highlights or notes, markdown asks first, clean as the default
+  // (round 4, frame 9c): highlights become ==text==, notes [^n] footnotes;
+  // underline has no markdown form.
+  const annotations = useAnnotations((s) => s.byDoc[doc.id])
+  const annotated = !!annotations?.some((a) => a.kind === 'highlight' || (a.kind === 'note' && a.body?.trim()))
   return (
     <>
-      <DropdownMenuItem onSelect={() => exportMarkdown(doc.title, liveText(doc))}>
-        <span className="flex-auto">Markdown</span>
-        <span className="font-mono text-[11px] text-muted-foreground">.md</span>
-      </DropdownMenuItem>
+      {annotated ? (
+        <>
+          <div className="flex items-center px-2.5 pt-1 pb-0.5 text-[12.5px]">
+            <span className="flex-auto">Markdown</span>
+            <span className="font-mono text-[11px] text-muted-foreground">.md</span>
+          </div>
+          <DropdownMenuItem onSelect={() => exportMarkdown(doc.title, liveText(doc))} className="pl-5">
+            <span className="flex-auto">clean</span>
+            <span className="font-mono text-[11px] text-muted-foreground">↵</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => exportMarkdown(doc.title, annotatedMarkdown(liveText(doc), annotations ?? []))} className="pl-5" title="underline has no markdown form and is left out">
+            <span className="flex-auto">with annotations</span>
+            <span className="font-mono text-[10.5px] text-muted-foreground">==hl==, [^1]</span>
+          </DropdownMenuItem>
+        </>
+      ) : (
+        <DropdownMenuItem onSelect={() => exportMarkdown(doc.title, liveText(doc))}>
+          <span className="flex-auto">Markdown</span>
+          <span className="font-mono text-[11px] text-muted-foreground">.md</span>
+        </DropdownMenuItem>
+      )}
       <DropdownMenuItem onSelect={() => exportPlainText(doc.title, liveText(doc))}>
         <span className="flex-auto">plain text</span>
         <span className="font-mono text-[11px] text-muted-foreground">.txt</span>

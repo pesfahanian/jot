@@ -1,6 +1,7 @@
 import { directionOf, type DirSetting } from './direction'
 import { PDF_DEFAULTS, pdfCss, type PdfOptions } from './pdfOptions'
 import { renderHtml } from './render'
+import type { Annotation } from './db'
 
 // Export (T3.6, 6a): three formats, triggered straight from the menu — no
 // intermediate dialog of Jot's own.
@@ -103,8 +104,11 @@ function registerTableHeaders(win: Window) {
 
 // The Paged.js polyfill runs inside the print frame, so its page styles never
 // touch the app. Referenced by path: the package exports only its main entry.
-export async function exportPdf(title: string, content: string, options: PdfOptions = PDF_DEFAULTS, dir: DirSetting = 'auto') {
-  const [body, { default: pagedUrl }] = await Promise.all([renderHtml(content, { theme: 'light', dir }), import('../../node_modules/pagedjs/dist/paged.polyfill.min.js?url')])
+export async function exportPdf(title: string, content: string, options: PdfOptions = PDF_DEFAULTS, dir: DirSetting = 'auto', annotations: Annotation[] = []) {
+  // Personal annotations print as chosen on the card: none, the marks, or
+  // the marks with notes as footnotes.
+  const marks = options.annotations === 'off' ? [] : annotations
+  const [body, { default: pagedUrl }] = await Promise.all([renderHtml(content, { theme: 'light', dir, annotations: marks, footnotes: options.annotations === 'notes' }), import('../../node_modules/pagedjs/dist/paged.polyfill.min.js?url')])
   // A document that reads right-to-left as a whole numbers its pages in
   // Persian digits (Farsi design, frame 8).
   const rtl = dir === 'rtl' || (dir === 'auto' && directionOf(content) === 'rtl')

@@ -4,6 +4,7 @@ import { followContent, openContent, viewsOf } from '@/editor/sessions'
 import type { JotDocument } from '@/lib/db'
 import { renderBlocks, type RenderedBlock } from '@/lib/render'
 import { useWorkspace } from '@/state/workspace'
+import { useAnnotations } from '@/state/annotations'
 
 // The rendered view (2g): one document, rendered — the body of a rendered
 // tab ("render:" + id), which moves like any tab. It follows the text as
@@ -28,9 +29,20 @@ export function RenderView({ doc }: { doc: JotDocument }) {
     const theme = () => (document.documentElement.classList.contains('dark') ? 'dark' : 'light')
     const render = () => {
       const n = ++latest
-      void renderBlocks(text, { theme: theme(), dir: doc.dir ?? 'auto' }).then((b) => n === latest && setBlocks(b))
+      const annotations = useAnnotations.getState().byDoc[doc.id]
+      void renderBlocks(text, { theme: theme(), dir: doc.dir ?? 'auto', annotations }).then((b) => n === latest && setBlocks(b))
     }
     render()
+    // Highlights, underlines and notes show here too, and redraw as they
+    // change (the editor maps them before this view hears of an edit).
+    void useAnnotations.getState().load(doc.id, text).then(render)
+    let marks = useAnnotations.getState().byDoc[doc.id]
+    const stopMarks = useAnnotations.subscribe((st) => {
+      if (st.byDoc[doc.id] === marks) return
+      marks = st.byDoc[doc.id]
+      clearTimeout(timer)
+      timer = setTimeout(render, RENDER_DELAY)
+    })
     const stop = followContent(doc.id, (next) => {
       text = next
       clearTimeout(timer)
@@ -41,6 +53,7 @@ export function RenderView({ doc }: { doc: JotDocument }) {
     return () => {
       clearTimeout(timer)
       stop()
+      stopMarks()
       themeWatch.disconnect()
     }
     // doc.content: a change saved from elsewhere (e.g. an applied review);

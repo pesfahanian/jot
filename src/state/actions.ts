@@ -2,6 +2,7 @@ import { db, type Comparison, type JotDocument, type TagColor } from '@/lib/db'
 import { uniqueTitle } from '@/lib/docList'
 import { createDocument, deleteDocument, listDocuments, restoreDocument, updateDocument } from '@/lib/documents'
 import { diffTab } from './layout'
+import { useAnnotations } from './annotations'
 import { useWorkspace } from './workspace'
 import { openContent } from '@/editor/sessions'
 import { requestPersistence } from '@/lib/storage'
@@ -85,9 +86,11 @@ export async function importFiles(files: FileList | File[]): Promise<number> {
       count++
     } else if (/\.zip$/i.test(f.name)) {
       const { unpackWorkspace } = await import('@/lib/backup')
-      for (const d of await unpackWorkspace(new Uint8Array(await f.arrayBuffer()))) {
+      for (const { annotations, ...d } of await unpackWorkspace(new Uint8Array(await f.arrayBuffer()))) {
         last = { ...d, id: crypto.randomUUID() }
         await restoreDocument(last)
+        const documentId = last.id
+        if (annotations?.length) await db.annotations.bulkAdd(annotations.map((a) => ({ ...a, id: crypto.randomUUID(), documentId })))
         count++
       }
     }
@@ -127,7 +130,10 @@ export function pickImport(kind: 'files' | 'folder'): void {
 export async function exportWorkspace(): Promise<void> {
   const { backupName, packWorkspace } = await import('@/lib/backup')
   const docs = (await listDocuments()).map((d) => ({ ...d, content: openContent(d.id) ?? d.content }))
-  const bytes = await packWorkspace(docs)
+  // Annotations as they stand: an open document's live list, else stored.
+  const live = useAnnotations.getState().byDoc
+  const annotations = [...(await db.annotations.toArray()).filter((a) => !live[a.documentId]), ...Object.values(live).flat()]
+  const bytes = await packWorkspace(docs, Date.now(), annotations)
   const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/zip' }))
   const a = document.createElement('a')
   a.href = url
