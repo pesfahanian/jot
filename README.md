@@ -19,6 +19,8 @@ Open it and write. There's no account and no server. Your documents stay on your
 - Writes Farsi and mixed Farsi/English properly: right-to-left by paragraph, in the editor, preview and PDF
 - Compares two documents, or pasted text, side by side
 - An optional AI style review, for English and Farsi, that suggests edits and changes nothing until you say so
+- Highlights, underlines and notes of your own, kept beside the text; they show in the preview, and print or export if you ask
+- Translates a selection between English and Farsi, and can fix clear typos as you write
 - A command palette (Cmd/Ctrl + K) for every command and any document, with keyboard shortcuts you can change
 
 ## Privacy

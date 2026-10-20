@@ -72,6 +72,18 @@ def greet(name):
 - Drop .md files anywhere to import them, or pick files or a whole folder from **import…** at the bottom of the sidebar. The **export** menu saves Markdown, plain text or PDF (with page, font and colour options), and, set apart below those, the whole workspace as one .zip.
 - The **+** at the end of the tabs makes a new document, as in a browser. So does double-clicking the empty space beside the tabs, or below the documents in the sidebar.
 
+## marking it up
+
+Select some text and right-click it for Jot's own menu:
+
+- **highlight** it in one of three colours, or **underline** it. These are marks on the page, like a highlighter on a printout, not part of your markdown.
+- **add note** pins a note of your own to the text. A dotted underline and a small square in the margin show where; click either to read or edit it. **notes** in the status bar lists them all.
+- **translate** shows the selection in English or Farsi, through Google Translate with your own key (settings → translation). No AI is involved, and replacing your text is a separate click.
+
+Highlights and notes show in the rendered view too. In a PDF they print if you ask (the PDF card's **annotations** row), with notes as footnotes. Markdown export can keep them as ==highlights== and footnotes.
+
+Turn on **auto-fix spelling** in settings, and clear typos (teh, recieve, definately) get fixed a couple of words behind you as you write. It works in English only, never touches a real word, and Cmd/Ctrl + Z undoes a fix.
+
 ## comparing
 
 To see what changed between two texts, right-click a document and choose **compare with…**, or right-click the tabs and choose **new comparison**. Each side can be a document or pasted text. Both sides stay editable, and the differences update as you type.
