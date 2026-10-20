@@ -17,3 +17,7 @@
 # Hashed build output never changes under the same name.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# The spelling dictionary changes only with a release.
+/dict/*
+  Cache-Control: public, max-age=604800

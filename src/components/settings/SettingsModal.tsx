@@ -52,11 +52,18 @@ function Page({ children }: { children: ReactNode }) {
 
 function EditorPage() {
   const minimap = useLiveQuery(() => getSettings().then((s) => s.minimap ?? true), []) ?? true
+  const autofix = useLiveQuery(() => getSettings().then((s) => s.autofix ?? false), []) ?? false
   return (
     <Page>
       <SectionHead title="editor" />
       <Row title="minimap" detail="A small map of the document beside the scrollbar. Hidden while three columns are open.">
         <Switch label="minimap" on={minimap} onChange={(on) => void updateSettings({ minimap: on })} />
+      </Row>
+      <Row
+        title="auto-fix spelling"
+        detail="Quietly corrects clear typos a couple of words behind you — English only, never inside code or links, each fix its own undo. Downloads a 200 KB dictionary the first time."
+      >
+        <Switch label="auto-fix spelling" on={autofix} onChange={(on) => void updateSettings({ autofix: on })} />
       </Row>
     </Page>
   )

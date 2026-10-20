@@ -20,6 +20,7 @@ import { useWorkspace } from '@/state/workspace'
 import { columnsOf } from '@/state/layout'
 import { markdownWithCode } from './codeLanguages'
 import { minimapCompartment, minimapFor } from './minimap'
+import { autofixCompartment, autofixFor } from './autofix'
 import { editorKeymap } from './keymap'
 import { getSession } from './sessions'
 import { codeBlockGround, jotEditorTheme } from './theme'
@@ -72,6 +73,10 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
   dirRef.current = dir
   const minimapRef = useRef(minimapOn)
   minimapRef.current = minimapOn
+  // Auto-fix spelling (Phase 16): off unless turned on in settings.
+  const autofixOn = useLiveQuery(() => getSettings().then((s) => s.autofix ?? false), []) ?? false
+  const autofixRef = useRef(autofixOn)
+  autofixRef.current = autofixOn
 
   useEffect(() => {
     const session = getSession(documentId, initialContent)
@@ -113,6 +118,7 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
           keymap.of(editorKeymap),
           jotEditorTheme,
           minimapCompartment.of(minimapFor(minimapRef.current)),
+          autofixCompartment.of(autofixFor(autofixRef.current)),
           directionExtension(dirRef.current),
           themeMode.of(themeModeFor(isDark())),
           lock.of(lockFor(isLocked(useReview.getState().openIn, documentId))),
@@ -164,6 +170,10 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
   useEffect(() => {
     viewRef.current?.dispatch({ effects: minimapCompartment.reconfigure(minimapFor(minimapOn)) })
   }, [minimapOn])
+
+  useEffect(() => {
+    viewRef.current?.dispatch({ effects: autofixCompartment.reconfigure(autofixFor(autofixOn)) })
+  }, [autofixOn])
 
   useEffect(() => {
     viewRef.current?.dispatch({ effects: dirCompartment.reconfigure(dirSettingFor(dir)) })

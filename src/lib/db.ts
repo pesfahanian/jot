@@ -47,6 +47,8 @@ export interface Settings {
   // Animations (round 4, motion spec); on unless turned off. The system's
   // reduced-motion request turns them off regardless.
   animations?: boolean
+  // Auto-fix spelling behind the cursor (Phase 16); off unless turned on.
+  autofix?: boolean
   // The person's own keyboard shortcuts (round 4): command id → keys, an
   // empty list for none. Missing commands keep their defaults
   // (state/commands.ts).

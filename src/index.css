@@ -518,3 +518,8 @@
 .cm-jot-notes { width: 0; position: relative; }
 .cm-jot-notes .cm-gutterElement { position: relative; padding: 0 !important; }
 .jot-note-square { position: absolute; left: -4px; top: 8px; width: 7px; height: 7px; border-radius: 1px; background: var(--secondary-foreground); cursor: pointer; }
+/* The auto-fix flash (motion spec): the --mark wash on the fixed word, held
+   400 ms and faded over 600; with motion off a static wash for its 1 s. */
+@keyframes jot-autofix { 0%, 40% { background: var(--mark); } 100% { background: transparent; } }
+.jot-autofix { animation: jot-autofix 1000ms linear forwards; border-radius: 2px; }
+[data-motion="off"] .jot-autofix { animation: none !important; background: var(--mark); }
