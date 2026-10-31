@@ -25,6 +25,22 @@ Phase 14 runs as two parallel tracks — building the quick items while the desi
 | **17: AI mode** ✓ (built 2026-10-20, branch `phase-17`; prompts tested against a stubbed provider only — live tuning with a real key still open) | The mode and its transition; chat with local per-document history (deleted with the document, kept through undo; in the zip — lean yes); AI notes queued and sent Claude Design style, personal notes by switch; a proposals prompt (edits anchored like review flags) and one results screen for every run, the style review folded in, with the review / diff switch (as decided / all accepted); full translation to a new side-by-side document | 14b, 16 (notes); prompt work: proposals and translation (Farsi ↔ English), token budgets for document + history |
 | **Later** | Telemetry (own chat); premium tier (own big decision — needs a backend); Jot's own autocomplete | — |
 
+## Polish from use after Phases 14a–17 (owner, 2026-10-31; built on branch `polish-1`, over `phase-17`)
+
+AI mode itself wasn't tested yet; these came first.
+
+- Settings: every item in the left bar has its own view; the minimap row goes (the status bar has it); about loses "the guide" (the sidebar's ? has it).
+- Import only in settings (the sidebar foot's import… goes); "whole workspace" leaves the export menu (settings has it).
+- The "double-click for a new document" hint goes.
+- New document as a draft: a name field (sidebar, or the tab while the sidebar is hidden) over an empty page; ↩ creates it named (untitled if empty), a click into the page creates it untitled, esc or anything else drops it — nothing written. Keys typed straight after ↩ are held for the new editor.
+- Icons over labels: settings, ai mode, split, export (named on hover). No key hints on buttons or in tooltips.
+- Rendered view: a new tab by default; settings → editor → rendered view can make it a split.
+- The welcome document is pinned on a true first run.
+- ⌘↵ is the editor's (a new line below, as VSCode) — it was opening find.
+- Other places the selected text appears get a faint grey wash, as VSCode.
+- ⌘X on an empty last line removes it.
+- H1 headings and tables centred in the rendered view and the PDF.
+
 ## Done from testing after Phases 12–13
 
 - Style review can decline text there's nothing to judge in (open-decisions #27).

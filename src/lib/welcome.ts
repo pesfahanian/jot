@@ -31,7 +31,7 @@ The icon at the far right of the bar at the bottom shows or hides the minimap.
 
 ## seeing it rendered
 
-Press Cmd/Ctrl + Shift + V to open the rendered view beside this one. It scrolls along with the editor.
+Press Cmd/Ctrl + Shift + V to open the rendered view in a tab beside this one (or in a split: settings → editor). It scrolls along with the editor.
 
 Math is written in LaTeX, inline like $a^2 + b^2 = c^2$ or on its own:
 
@@ -64,12 +64,12 @@ def greet(name):
 ## organising
 
 - The sidebar holds your documents. **+** makes a new one; beside it are search, and one button to sort and filter by colour tag. The last icon (or Cmd/Ctrl + B) hides the sidebar, or brings it back.
-- **settings** at the bottom of the sidebar (Cmd/Ctrl + ,) holds your AI provider, the theme, animations, keyboard shortcuts and your storage. Every shortcut can be changed there.
-- A new document names itself after its first line as you write. Rename it and the name stays.
+- The gear at the bottom of the sidebar (Cmd/Ctrl + ,) opens settings: your AI provider, the theme, animations, keyboard shortcuts, import and your storage. Every shortcut can be changed there.
+- **+** asks for a name first: type one and press Enter, or just click into the empty page to start writing. Esc, or clicking elsewhere, makes nothing. An unnamed document names itself after its first line as you write; rename it and the name stays.
 - Right-click a document to tag it with a colour, rename, pin or delete it. Double-click it to rename.
 - Drag tabs to reorder them, or onto another pane. Drop one on a pane's left or right edge for a new column, or on its top or bottom edge to stack two panes, up to three columns of two. Documents drag in from the sidebar too.
 - Drag the gaps between panes to resize them. Double-click a gap to even it out.
-- Drop .md files anywhere to import them, or pick files or a whole folder from **import…** at the bottom of the sidebar. The **export** menu saves Markdown, plain text or PDF (with page, font and colour options), and, set apart below those, the whole workspace as one .zip.
+- Drop .md files anywhere to import them, or pick files or a whole folder in settings → storage and backup, where the whole workspace exports as one .zip too. The export icon at the top right of a document saves it as Markdown, plain text or PDF (with page, font and colour options).
 - The **+** at the end of the tabs makes a new document, as in a browser. So does double-clicking the empty space beside the tabs, or below the documents in the sidebar.
 
 ## marking it up
@@ -97,7 +97,7 @@ Farsi works as naturally as English. Each paragraph, list or table reads right-t
 jot can work on a document with AI, using your own key. Your text goes straight from this browser to your provider; nothing passes through jot.
 
 1. Open **settings** at the bottom of the sidebar, pick a provider (OpenRouter, Google AI Studio, OpenAI or Anthropic) and add your key. Below the key you can choose the model, and fallbacks to try if it's busy.
-2. Press **ai mode** at the bottom left (or Cmd/Ctrl + J). A chat opens where the sidebar was; Esc leaves, and your other panes come back as they were.
+2. Press the sparkle at the bottom left (or Cmd/Ctrl + J). A chat opens where the sidebar was; Esc leaves, and your other panes come back as they were.
 3. Ask a question, or ask for a change ("make the intro friendlier"). To point at a passage, select it, right-click and choose **add ai note**; notes go with your next message. Switch on **my notes as context** to send your own notes along too.
 4. Changes come back as proposals. Open the results to accept, reject or rewrite each one, or switch to **diff** to see the whole result. Nothing changes until you press **apply**.
 
