@@ -333,7 +333,9 @@
     .jot-rendered h1, .jot-rendered h2, .jot-rendered h3, .jot-rendered h4, .jot-rendered h5, .jot-rendered h6 {
         font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; margin: 1.4em 0 0.5em;
     }
-    .jot-rendered h1 { font-size: 22px; }
+    /* Top-level headings and tables sit centred, as in the PDF (owner,
+       2026-10-31). A wide table still scrolls sideways. */
+    .jot-rendered h1 { font-size: 22px; text-align: center; }
     .jot-rendered h2 { font-size: 19px; }
     .jot-rendered h3 { font-size: 16px; }
     .jot-rendered h4, .jot-rendered h5, .jot-rendered h6 { font-size: 14.5px; }
@@ -376,7 +378,7 @@
     .jot-rendered blockquote { border-inline-start: 2px solid var(--border-strong); padding-inline-start: 12px; color: var(--secondary-foreground); }
     .jot-rendered hr { border: 0; border-top: 1px solid var(--border); margin: 1.6em 0; }
     .jot-rendered img { max-width: 100%; border-radius: 4px; }
-    .jot-rendered table { border-collapse: collapse; display: block; overflow-x: auto; max-width: 100%; font-size: 13.5px; }
+    .jot-rendered table { border-collapse: collapse; display: block; width: fit-content; overflow-x: auto; max-width: 100%; margin-inline: auto; font-size: 13.5px; }
     .jot-rendered th, .jot-rendered td { border: 1px solid var(--border); padding: 5px 10px; text-align: start; }
     .jot-rendered th { font-weight: 600; background: var(--inset); }
     /* Farsi and mixed documents (Farsi design, frame 3). Blocks carry
