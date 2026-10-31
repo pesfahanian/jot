@@ -73,3 +73,20 @@ export const listContinuation: readonly KeyBinding[] = [{ key: 'Enter', run: lis
 const withoutChords = vscodeKeymap.filter((b) => ![b.key, b.mac, b.win, b.linux].some((k) => k && /^(Mod|Cmd|Ctrl)-k /i.test(k)))
 
 export const editorKeymap: readonly KeyBinding[] = [...listContinuation, ...withoutChords, ...supplementKeymap, ...escapeFallback]
+
+// ⌘X / Ctrl+X with nothing selected cuts the whole line, as in VSCode —
+// CodeMirror's own line-wise cut takes the line and the break after it, so
+// on an empty last line (no break after) it removed nothing. There, the
+// break before goes instead.
+export const cutEmptyLastLine = EditorView.domEventHandlers({
+  cut(event, view) {
+    const { state } = view
+    if (state.readOnly || state.selection.ranges.length > 1 || !state.selection.main.empty) return false
+    const line = state.doc.lineAt(state.selection.main.head)
+    if (line.number !== state.doc.lines || line.number === 1 || line.length > 0) return false
+    event.preventDefault()
+    event.clipboardData?.setData('text/plain', '\n')
+    view.dispatch({ changes: { from: line.from - 1, to: line.to }, userEvent: 'delete.cut', scrollIntoView: true })
+    return true
+  },
+})

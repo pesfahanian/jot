@@ -22,7 +22,7 @@ import { columnsOf } from '@/state/layout'
 import { markdownWithCode } from './codeLanguages'
 import { minimapCompartment, minimapFor } from './minimap'
 import { autofixCompartment, autofixFor } from './autofix'
-import { editorKeymap } from './keymap'
+import { cutEmptyLastLine, editorKeymap } from './keymap'
 import { getSession } from './sessions'
 import { codeBlockGround, jotEditorTheme } from './theme'
 import { dirCompartment, directionExtension, dirSettingFor } from './direction'
@@ -117,6 +117,7 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
           // any (owner, 2026-10-14: on everywhere, to see what happens).
           EditorView.contentAttributes.of({ spellcheck: 'true', autocorrect: 'on', autocapitalize: 'off', writingsuggestions: 'true' }),
           keymap.of(editorKeymap),
+          cutEmptyLastLine,
           jotEditorTheme,
           minimapCompartment.of(minimapFor(minimapRef.current)),
           autofixCompartment.of(autofixFor(autofixRef.current)),
