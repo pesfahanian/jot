@@ -4,7 +4,7 @@ import { create } from 'zustand'
 // plus a request for the focused pane to open its PDF options card (from
 // the palette or ⇧⌘E — the card belongs to the pane's export button).
 
-export type SettingsSection = 'ai' | 'editor' | 'appearance' | 'shortcuts' | 'storage'
+export type SettingsSection = 'ai' | 'translation' | 'editor' | 'appearance' | 'shortcuts' | 'storage' | 'about'
 
 interface UiState {
   settings: { open: boolean; section: SettingsSection }

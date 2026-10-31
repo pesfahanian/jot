@@ -101,8 +101,7 @@ function TranslateBody({ open, onClose }: { open: Open; onClose: () => void }) {
                 className={strong}
                 onClick={() => {
                   onClose()
-                  openSettings('ai')
-                  setTimeout(() => document.getElementById('settings-translation')?.scrollIntoView({ block: 'start' }), 60)
+                  openSettings('translation')
                 }}
               >
                 open settings

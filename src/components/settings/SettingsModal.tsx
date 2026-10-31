@@ -6,12 +6,10 @@ import { db } from '@/lib/db'
 import { useMotion } from '@/lib/motion'
 import { getSettings, updateSettings } from '@/lib/settings'
 import { cn } from '@/lib/utils'
-import { welcomeDocumentId } from '@/lib/welcome'
 import { exportWorkspace, pickImport } from '@/state/actions'
 import { useReview } from '@/state/review'
 import { useTheme } from '@/state/theme'
 import { useUi, type SettingsSection } from '@/state/ui'
-import { useWorkspace } from '@/state/workspace'
 import { AiProviderSection } from './AiProviderSection'
 import { Grid, Label, quietButton, Rule, SectionHead, Segmented, Switch } from './controls'
 import { ShortcutsSection } from './ShortcutsSection'
@@ -21,12 +19,13 @@ import { TranslationSection } from './TranslationSection'
 // ai / app / data. Opened from the sidebar foot, the palette and ⌘, — and
 // by asking for a review with no key, which lands on ai provider.
 
-const NAV: { group: string; items: { label: string; section: SettingsSection; anchor?: string }[] }[] = [
+// Every item has its own view.
+const NAV: { group: string; items: { label: string; section: SettingsSection }[] }[] = [
   {
     group: 'ai',
     items: [
       { label: 'ai provider', section: 'ai' },
-      { label: 'translation', section: 'ai', anchor: 'settings-translation' },
+      { label: 'translation', section: 'translation' },
     ],
   },
   {
@@ -41,7 +40,7 @@ const NAV: { group: string; items: { label: string; section: SettingsSection; an
     group: 'data',
     items: [
       { label: 'storage and backup', section: 'storage' },
-      { label: 'about', section: 'storage', anchor: 'settings-about' },
+      { label: 'about', section: 'about' },
     ],
   },
 ]
@@ -51,13 +50,13 @@ function Page({ children }: { children: ReactNode }) {
 }
 
 function EditorPage() {
-  const minimap = useLiveQuery(() => getSettings().then((s) => s.minimap ?? true), []) ?? true
+  const renderIn = useLiveQuery(() => getSettings().then((s) => s.renderIn ?? 'tab'), []) ?? 'tab'
   const autofix = useLiveQuery(() => getSettings().then((s) => s.autofix ?? false), []) ?? false
   return (
     <Page>
       <SectionHead title="editor" />
-      <Row title="minimap" detail="A small map of the document beside the scrollbar. Hidden while three columns are open.">
-        <Switch label="minimap" on={minimap} onChange={(on) => void updateSettings({ minimap: on })} />
+      <Row title="rendered view" detail={renderIn === 'tab' ? 'Opens as a new tab beside the document, in the same pane.' : 'Opens in a split beside the document.'}>
+        <Segmented value={renderIn} options={['tab', 'split'] as const} onChange={(renderIn) => void updateSettings({ renderIn })} />
       </Row>
       <Row
         title="auto-fix spelling"
@@ -102,8 +101,6 @@ const mb = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(b
 function StoragePage() {
   const count = useLiveQuery(() => db.documents.count(), []) ?? 0
   const [state, setState] = useState<{ persisted: boolean | null; usage: number | null; quota: number | null }>({ persisted: null, usage: null, quota: null })
-  const close = useUi((s) => s.closeSettings)
-  const openDocument = useWorkspace((s) => s.openDocument)
   useEffect(() => {
     let live = true
     void (async () => {
@@ -161,33 +158,27 @@ function StoragePage() {
           </DropdownMenu>
         </Row>
       </div>
-      <Rule />
-      <div className="flex flex-col gap-1.5">
-        <SectionHead title="about" id="settings-about" />
-        <div className="grid gap-x-3 gap-y-[7px] font-mono text-[11px]" style={{ gridTemplateColumns: '112px minmax(0, 1fr)' }}>
-          <span className="text-ink-tertiary">version</span>
-          <span>
-            {__APP_VERSION__} · {new Date(__BUILD_DATE__).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </span>
-          <span className="text-ink-tertiary">licence</span>
-          <span>MIT</span>
-          <span className="text-ink-tertiary">links</span>
-          <span className="flex gap-3.5 text-secondary-foreground">
-            <button
-              type="button"
-              className="underline underline-offset-[3px] hover:text-foreground"
-              onClick={() => {
-                close()
-                void welcomeDocumentId().then((id) => openDocument(id))
-              }}
-            >
-              the guide
-            </button>
-            <a href="https://github.com/pesfahanian/jot" target="_blank" rel="noreferrer" className="underline underline-offset-[3px] hover:text-foreground">
-              source on github
-            </a>
-          </span>
-        </div>
+    </Page>
+  )
+}
+
+function AboutPage() {
+  return (
+    <Page>
+      <SectionHead title="about" />
+      <div className="grid gap-x-3 gap-y-[7px] font-mono text-[11px]" style={{ gridTemplateColumns: '112px minmax(0, 1fr)' }}>
+        <span className="text-ink-tertiary">version</span>
+        <span>
+          {__APP_VERSION__} · {new Date(__BUILD_DATE__).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+        </span>
+        <span className="text-ink-tertiary">licence</span>
+        <span>MIT</span>
+        <span className="text-ink-tertiary">source</span>
+        <span className="text-secondary-foreground">
+          <a href="https://github.com/pesfahanian/jot" target="_blank" rel="noreferrer" className="underline underline-offset-[3px] hover:text-foreground">
+            github.com/pesfahanian/jot
+          </a>
+        </span>
       </div>
     </Page>
   )
@@ -202,14 +193,10 @@ export function SettingsModal() {
   const open = settingsOpen || keyPanelOpen
   // Asking for a review with no key lands on the provider.
   const section = keyPanelOpen ? 'ai' : chosen
-  const [anchor, setAnchor] = useState<string | null>(null)
   const close = () => {
     closeSettings()
     closeKeyPanel()
   }
-  useEffect(() => {
-    if (anchor) document.getElementById(anchor)?.scrollIntoView({ block: 'start' })
-  }, [anchor, section])
 
   return (
     <D.Root open={open} onOpenChange={(o) => !o && close()}>
@@ -232,7 +219,7 @@ export function SettingsModal() {
                 <div key={g.group} className="flex flex-col gap-0.5">
                   <span className={cn('px-2.5 pb-0.5 font-mono text-[11px] text-muted-foreground', gi === 0 ? 'pt-1' : 'pt-2.5')}>{g.group}</span>
                   {g.items.map((it) => {
-                    const on = section === it.section && (it.anchor ?? null) === anchor
+                    const on = section === it.section
                     return (
                       <button
                         key={it.label}
@@ -240,8 +227,7 @@ export function SettingsModal() {
                         onClick={() => {
                           if (keyPanelOpen) closeKeyPanel()
                           setSection(it.section)
-                          setAnchor(it.anchor ?? null)
-                          if (!it.anchor) document.getElementById('settings-body')?.scrollTo({ top: 0 })
+                          document.getElementById('settings-body')?.scrollTo({ top: 0 })
                         }}
                         className={cn(
                           'rounded-r-md border-l-2 px-2.5 py-[5px] text-left hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
@@ -259,7 +245,10 @@ export function SettingsModal() {
               {section === 'ai' && (
                 <Page>
                   <AiProviderSection onDone={close} />
-                  <Rule />
+                </Page>
+              )}
+              {section === 'translation' && (
+                <Page>
                   <TranslationSection />
                 </Page>
               )}
@@ -267,6 +256,7 @@ export function SettingsModal() {
               {section === 'appearance' && <AppearancePage />}
               {section === 'shortcuts' && <ShortcutsSection />}
               {section === 'storage' && <StoragePage />}
+              {section === 'about' && <AboutPage />}
             </div>
           </div>
         </D.Content>
