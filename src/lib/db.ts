@@ -44,6 +44,9 @@ export interface Settings {
   theme: 'light' | 'dark' | 'system'
   // The editor's minimap (Phase 8); on unless turned off.
   minimap: boolean
+  // Where the rendered view opens: a new tab in the same pane (the default)
+  // or a split beside it.
+  renderIn?: 'tab' | 'split'
   // Animations (round 4, motion spec); on unless turned off. The system's
   // reduced-motion request turns them off regardless.
   animations?: boolean

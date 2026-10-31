@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { db, type Comparison, type JotDocument, type PaneLayout, type TagColor, type Workspace } from '@/lib/db'
 import type { SortMode } from '@/lib/docList'
+import { getSettings } from '@/lib/settings'
 import { columnsOf, comparisonIdOf, docIdOf, isDiffTab, insertPane, MAX_COLUMNS, MAX_PANES, moveTab, parkFor, removePane, renderTab, resize, splitWithTab, tidy, unpark, type DraggedTab, type Edge, type Parked } from './layout'
 
 // Shell state: panes and their tabs, which pane has focus, and the sidebar's
@@ -203,30 +204,39 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   },
 
   // Render (2g, Cmd/Ctrl+Shift+V) toggles the focused document's rendered
-  // view — a tab ("render:" + id), movable like any other. Opening puts it in
-  // a new pane where split would (right, else below), or, with no room, as a
-  // tab in the neighbouring pane; focus stays put. Pressed again, from the editor or
+  // view — a tab ("render:" + id), movable like any other. By default it
+  // opens as a new tab beside the editor's, in the same pane; with settings →
+  // editor → rendered view set to "split", in a new pane where split would
+  // put it (right, else below), or, with no room, as a tab in the
+  // neighbouring pane, focus staying put. Pressed again, from the editor or
   // the rendered tab, every rendered tab of that document closes.
   toggleRender() {
     const { panes, focusedPaneId } = get()
-    const i = panes.findIndex((p) => p.id === focusedPaneId)
-    const active = panes[i]?.active
+    const active = panes.find((p) => p.id === focusedPaneId)?.active
     if (!active || isDiffTab(active)) return
     const rid = renderTab(docIdOf(active))
     if (panes.some((p) => p.tabs.includes(rid))) {
       for (const p of get().panes) if (p.tabs.includes(rid)) get().closeTab(p.id, rid)
       return
     }
-    const edge = splitEdge(panes, focusedPaneId)
-    const next = edge && insertPane(panes, focusedPaneId, edge, { id: newPaneId(), tabs: [rid], active: rid })
-    if (next) return set({ panes: next })
-    const j = i + 1 < panes.length ? i + 1 : i - 1
-    set({
-      panes: panes.map((p, k) => {
-        if (k !== j) return p
-        const at = p.active ? p.tabs.indexOf(p.active) + 1 : p.tabs.length
-        return { ...p, tabs: [...p.tabs.slice(0, at), rid, ...p.tabs.slice(at)], active: rid }
-      }),
+    void getSettings().then(({ renderIn }) => {
+      const { panes, focusedPaneId } = get()
+      const i = panes.findIndex((p) => p.id === focusedPaneId)
+      if (i === -1 || panes.some((p) => p.tabs.includes(rid))) return
+      const besideIn = (j: number, focus: boolean) =>
+        set({
+          panes: panes.map((p, k) => {
+            if (k !== j) return p
+            const at = p.active ? p.tabs.indexOf(p.active) + 1 : p.tabs.length
+            return { ...p, tabs: [...p.tabs.slice(0, at), rid, ...p.tabs.slice(at)], active: rid }
+          }),
+          ...(focus ? { focusedPaneId: panes[j].id } : {}),
+        })
+      if ((renderIn ?? 'tab') === 'tab') return besideIn(i, true)
+      const edge = splitEdge(panes, focusedPaneId)
+      const next = edge && insertPane(panes, focusedPaneId, edge, { id: newPaneId(), tabs: [rid], active: rid })
+      if (next) return set({ panes: next })
+      besideIn(i + 1 < panes.length ? i + 1 : Math.max(0, i - 1), false)
     })
   },
 
