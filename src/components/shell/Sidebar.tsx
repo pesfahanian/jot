@@ -167,7 +167,8 @@ function GuideButton() {
           type="button"
           aria-label="guide"
           title="guide"
-          className={iconButton}
+          // Smaller than the other icons, and a circle round it on hover.
+          className="mr-[3px] flex size-[17px] flex-none items-center justify-center rounded-full border border-transparent font-mono text-[11px] text-secondary-foreground hover:border-border-strong hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[state=open]:border-border-strong data-[state=open]:text-foreground"
         >
           ?
         </button>

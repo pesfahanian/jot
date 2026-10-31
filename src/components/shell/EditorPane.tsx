@@ -10,7 +10,7 @@ import { DraftPage, DraftTab } from './Draft'
 import { Editor } from '@/editor/Editor'
 import { openContent } from '@/editor/sessions'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Download } from 'lucide-react'
+import { Download, Eye } from 'lucide-react'
 import { db, type DiffSide, type JotDocument, type PaneLayout } from '@/lib/db'
 import { exportMarkdown, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
@@ -107,7 +107,7 @@ function PaneControls({ paneId, doc, narrow }: { paneId: string; doc: JotDocumen
   // Render toggles this document's rendered tab (2g) — in a new pane where
   // split would open one, or in the neighbouring pane when the grid is full.
   const canRender = !!doc
-  const renderTitle = rendered ? 'close the rendered view' : 'show this document rendered, beside it'
+  const renderTitle = rendered ? 'close render' : 'render'
   // The PDF options card opens where the export menu was, anchored to the
   // same button, once the menu has closed.
   //
@@ -195,9 +195,10 @@ function PaneControls({ paneId, doc, narrow }: { paneId: string; doc: JotDocumen
         disabled={!canRender}
         aria-pressed={rendered}
         title={renderTitle}
+        aria-label="render"
         onClick={toggleRender}
       >
-        render
+        <Eye size={13} strokeWidth={1.75} aria-hidden />
       </button>
       <Popover open={pdfOpen} onOpenChange={setPdfOpen}>
         <DropdownMenu>
