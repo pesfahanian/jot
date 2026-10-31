@@ -15,6 +15,7 @@ import {
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef } from 'react'
 import { getSettings } from '@/lib/settings'
+import { takeTypeAhead } from '@/state/actions'
 import { isLocked, useReview } from '@/state/review'
 import { useWorkspace } from '@/state/workspace'
 import { columnsOf } from '@/state/layout'
@@ -136,6 +137,9 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
       if (!isRenaming(documentId)) view.focus()
       reportCursor(view, documentId)
     }
+    // A new document's first keys, typed while it was being created.
+    const typed = takeTypeAhead(documentId)
+    if (typed) view.dispatch({ changes: { from: view.state.doc.length, insert: typed }, selection: { anchor: view.state.doc.length + typed.length }, userEvent: 'input.type' })
 
     const themeObserver = new MutationObserver(() => {
       view.dispatch({ effects: themeMode.reconfigure(themeModeFor(isDark())) })

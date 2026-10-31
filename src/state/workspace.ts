@@ -13,6 +13,10 @@ export const SIDEBAR_MIN = 180
 export const SIDEBAR_MAX = 460
 export const SIDEBAR_DEFAULT = 248
 
+// Where a draft's name field goes (components/shell/Draft.tsx): the sidebar
+// while it's showing, else the draft's own tab. One place only.
+export const draftFieldInSidebar = (s: { sidebarOpen: boolean; aiMode: unknown }) => s.sidebarOpen && !s.aiMode
+
 export interface CursorStatus {
   documentId: string
   line: number
@@ -47,6 +51,11 @@ interface WorkspaceState {
   searchOpen: boolean
   searchQuery: string
   renamingId: string | null
+  // A new document not created yet (owner, 2026-10-31): its name field and
+  // an empty page in a pane. Typing a name and ↩ creates it with that name,
+  // clicking into the page creates it untitled; anything else drops it,
+  // and nothing is written. Never part of the saved layout.
+  draft: { paneId: string; nonce: number } | null
   cursor: CursorStatus | null
   // A pending "move the cursor here" for a document, e.g. from a search hit.
   reveal: { documentId: string; line: number; nonce: number } | null
@@ -80,6 +89,8 @@ interface WorkspaceState {
   clearColorFilter(): void
   setSearch(open: boolean, query?: string): void
   setRenaming(id: string | null): void
+  startDraft(): void
+  cancelDraft(): void
   setCursor(c: CursorStatus | null): void
   showToast(t: Toast | null): void
 }
@@ -101,6 +112,7 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   searchOpen: false,
   searchQuery: '',
   renamingId: null,
+  draft: null,
   cursor: null,
   reveal: null,
   toast: null,
@@ -151,12 +163,13 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
         return { ...p, tabs, active: documentId }
       }),
       focusedPaneId: paneId,
+      draft: null,
       reveal: opts?.line ? { documentId, line: opts.line, nonce: Date.now() } : get().reveal,
     })
   },
 
   activateTab(paneId, documentId) {
-    set({ panes: get().panes.map((p) => (p.id === paneId ? { ...p, active: documentId } : p)), focusedPaneId: paneId })
+    set({ panes: get().panes.map((p) => (p.id === paneId ? { ...p, active: documentId } : p)), focusedPaneId: paneId, draft: null })
   },
 
   // Closing a tab activates its neighbour. Closing the last tab closes the
@@ -176,7 +189,7 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   },
 
   focusPane(paneId) {
-    if (get().focusedPaneId !== paneId) set({ focusedPaneId: paneId })
+    if (get().focusedPaneId !== paneId) set({ focusedPaneId: paneId, draft: null })
   },
 
   // Split opens the current document in a new pane (6f): a new column to
@@ -323,6 +336,15 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   clearColorFilter: () => set({ colorFilter: new Set() }),
   setSearch: (open, query) => set({ searchOpen: open, searchQuery: open ? (query ?? get().searchQuery) : '' }),
   setRenaming: (id) => set({ renamingId: id }),
+  // Its name field should be visible: a filter or an open search would hide
+  // the row.
+  startDraft() {
+    const ws = get()
+    ws.clearColorFilter()
+    ws.setSearch(false)
+    set({ draft: { paneId: ws.focusedPaneId, nonce: Date.now() }, renamingId: null })
+  },
+  cancelDraft: () => get().draft && set({ draft: null }),
   setCursor: (c) => set({ cursor: c }),
   showToast: (t) => set({ toast: t }),
 }))

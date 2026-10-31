@@ -14,13 +14,12 @@ import {
   type SearchResult,
 } from '@/lib/docList'
 import { cn } from '@/lib/utils'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { formatKey } from '@/lib/shortcuts'
-import { newDocument, pickImport, renameDocument } from '@/state/actions'
+import { newDocument, renameDocument } from '@/state/actions'
+import { DraftRow } from './Draft'
 import { useNow } from '@/state/hooks'
 import { useUi } from '@/state/ui'
 import { docIdOf } from '@/state/layout'
-import { focusedPane, useWorkspace } from '@/state/workspace'
+import { draftFieldInSidebar, focusedPane, useWorkspace } from '@/state/workspace'
 import { DocumentMenu } from './DocumentMenu'
 import { FilterIcon, PinIcon, PlusIcon, SearchIcon } from './icons'
 import { SidebarToggle } from './SidebarToggle'
@@ -32,8 +31,6 @@ import { Wordmark } from './Wordmark'
 // hover.
 const iconButton =
   'flex h-5 w-6 flex-none items-center justify-center rounded-sm text-secondary-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:text-ink-mute data-[state=open]:bg-hover-lift data-[state=open]:text-foreground'
-const footButton =
-  'flex h-[22px] items-center gap-1.5 rounded-md px-[7px] hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[state=open]:bg-hover-lift data-[state=open]:text-foreground'
 
 // Secondary text button used by the empty states (6d).
 export function QuietButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
@@ -389,6 +386,8 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
   const searchOpen = useWorkspace((s) => s.searchOpen)
   const query = useWorkspace((s) => s.searchQuery)
   const setSearch = useWorkspace((s) => s.setSearch)
+  const startDraft = useWorkspace((s) => s.startDraft)
+  const draftHere = useWorkspace((s) => !!s.draft && draftFieldInSidebar(s))
   // A rendered tab selects its document too.
   const selectedId = useWorkspace((s) => { const a = focusedPane(s)?.active; return a ? docIdOf(a) : undefined })
 
@@ -473,10 +472,10 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
             <span className="flex flex-auto items-center text-foreground">
               <Wordmark />
             </span>
-            <button type="button" title={`new document (${formatKey('Mod-Alt-n')})`} className={iconButton} onClick={() => void newDocument()}>
+            <button type="button" title="new document" className={iconButton} onClick={startDraft}>
               <PlusIcon />
             </button>
-            <button type="button" title={`search (${formatKey('Mod-Shift-f')})`} disabled={empty} className={iconButton} onClick={() => setSearch(true)}>
+            <button type="button" title="search" disabled={empty} className={iconButton} onClick={() => setSearch(true)}>
               <SearchIcon />
             </button>
             <SortFilterBox docs={docs} />
@@ -485,44 +484,24 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
           </>
         )}
       </header>
-      {/* Double-click the empty space below the rows: a new document. A
-          faint hint says so while the list has room (round 4). */}
+      {/* Double-click the empty space below the rows: a new document
+          (round 4). A new one's name field heads the list (Draft.tsx). */}
       <div
         className="flex min-h-0 flex-auto flex-col overflow-y-auto"
         onDoubleClick={(e) => {
-          if ((e.target === e.currentTarget || (e.target as Element).hasAttribute('data-list-hint')) && !search) void newDocument()
+          if (e.target === e.currentTarget && !search) startDraft()
         }}
       >
+        {draftHere && !search && <DraftRow />}
         {body}
-        {!search && !empty && (
-          <span data-list-hint="" className="flex min-h-0 flex-auto items-end justify-center overflow-hidden pb-2.5 font-mono text-[11px] text-ink-dim select-none">
-            double-click for a new document
-          </span>
-        )}
       </div>
-      {/* The foot (round 4): settings, import, the guide. The AI provider
-          and the theme live in settings now. */}
-      <div className="flex h-[34px] flex-none items-center gap-0.5 border-t border-border pr-1.5 pl-2 font-mono text-[11px] text-secondary-foreground">
-        <button type="button" onClick={() => openSettings()} className={footButton} title="settings">
-          <Settings2 size={13} strokeWidth={1.75} aria-hidden />
-          settings
+      {/* The foot: settings and the guide. Import, the AI provider and the
+          theme live in settings. */}
+      <div className="flex h-[34px] flex-none items-center gap-0.5 border-t border-border pr-1.5 pl-2 text-secondary-foreground">
+        <button type="button" onClick={() => openSettings()} className={iconButton} title="settings" aria-label="settings">
+          <Settings2 size={14} strokeWidth={1.75} aria-hidden />
         </button>
-        <span className="flex-auto text-ink-dim">{formatKey('Mod-,')}</span>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button type="button" className={footButton} title="import documents">
-              import…
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top">
-            <DropdownMenuItem onSelect={() => pickImport('files')} title=".md, .txt or a workspace .zip — several at once">
-              files…
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => pickImport('folder')} title="every .md and .txt in a folder, and its subfolders">
-              a folder…
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <span className="flex-auto" />
         <GuideButton />
       </div>
     </aside>

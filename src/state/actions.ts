@@ -11,11 +11,12 @@ import { requestPersistence } from '@/lib/storage'
 
 export const UNDO_WINDOW_MS = 8000
 
-// New-document flow (T3.8): the + button creates "untitled" (or the next
-// free "untitled-N") and opens it as a new tab in the focused pane. Its
-// title then follows its first line, as Apple Notes (owner, 2026-10-14) —
-// so no rename prompt: you just start writing. Search's "new document "q""
-// passes the query as the title instead — the name is already chosen.
+// New-document flow (T3.8): creates "untitled" (or the next free
+// "untitled-N") and opens it as a new tab in the focused pane. Its title
+// then follows its first line, as Apple Notes (owner, 2026-10-14). The +
+// buttons and ⌘⌥N start a draft instead (workspace.draft, commitDraft), so
+// a new document is only written once it's named or written in. Search's
+// "new document "q"" creates one straight away, the name already chosen.
 export async function newDocument(title?: string): Promise<JotDocument> {
   void requestPersistence()
   const docs = await listDocuments()
@@ -29,6 +30,61 @@ export async function newDocument(title?: string): Promise<JotDocument> {
     ws.setSearch(false)
   }
   return doc
+}
+
+// The draft becomes a document (see workspace.draft): with the name typed,
+// or untitled when it's empty or the page was clicked. Once only.
+let committing = false
+export async function commitDraft(title = ''): Promise<void> {
+  const draft = useWorkspace.getState().draft
+  if (!draft || committing) return
+  committing = true
+  const typed = typeAhead()
+  try {
+    void requestPersistence()
+    const docs = await listDocuments()
+    const name = title.trim()
+    const doc = await createDocument(name ? { title: name } : { title: uniqueTitle('untitled', docs), autoTitle: true })
+    typed.docId = doc.id
+    const ws = useWorkspace.getState()
+    ws.openDocument(doc.id, { paneId: ws.panes.some((p) => p.id === draft.paneId) ? draft.paneId : undefined })
+  } finally {
+    committing = false
+  }
+}
+
+// Writing straight after ↩ (or the click) reaches the editor before it
+// exists: keys are held from the commit until the new document's editor
+// takes them (takeTypeAhead), so nothing typed in between is lost.
+let pending: { docId: string | null; text: string; stop: () => void } | null = null
+function typeAhead() {
+  pending?.stop()
+  const held = { docId: null as string | null, text: '', stop: () => {} }
+  const onKey = (e: KeyboardEvent) => {
+    if (e.metaKey || e.ctrlKey || e.altKey || e.isComposing) return
+    const insert = e.key === 'Enter' ? '\n' : e.key === 'Tab' ? '\t' : e.key.length === 1 ? e.key : null
+    if (insert === null && e.key !== 'Backspace') return
+    e.preventDefault()
+    e.stopPropagation()
+    held.text = insert === null ? held.text.slice(0, -1) : held.text + insert
+  }
+  window.addEventListener('keydown', onKey, { capture: true })
+  // Never held for long: an editor that doesn't come lets the keys go.
+  const timer = setTimeout(() => held.stop(), 3000)
+  held.stop = () => {
+    window.removeEventListener('keydown', onKey, { capture: true })
+    clearTimeout(timer)
+    if (pending === held) pending = null
+  }
+  pending = held
+  return held
+}
+
+export function takeTypeAhead(documentId: string): string {
+  if (!pending || pending.docId !== documentId) return ''
+  const { text } = pending
+  pending.stop()
+  return text
 }
 
 // A rename fixes the title: it stops following the first line. Confirming

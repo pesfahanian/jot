@@ -6,7 +6,7 @@ import { defaultSettings, getSettings, updateSettings } from '@/lib/settings'
 import { normKey } from '@/lib/shortcuts'
 import { welcomeDocumentId } from '@/lib/welcome'
 import { openContent } from '@/editor/sessions'
-import { exportWorkspace, newComparison, newDocument, pickImport } from './actions'
+import { exportWorkspace, newComparison, pickImport } from './actions'
 import { addAiNote, addNote, canAddAiNote, hasSelection, highlightSelection, translateSelection, underlineSelection } from './annotate'
 import { useOverlays } from './overlays'
 import { docIdOf, isDiffTab } from './layout'
@@ -51,7 +51,7 @@ const live = (id: string, content: string) => openContent(id) ?? content
 
 export const COMMANDS: Command[] = [
   { id: 'palette', title: 'command palette', keys: ['Mod-k', 'Mod-Shift-p'], run: () => useUi.getState().setPalette(!useUi.getState().paletteOpen) },
-  { id: 'newDocument', title: 'new document', keys: ['Mod-Alt-n'], run: () => void newDocument() },
+  { id: 'newDocument', title: 'new document', keys: ['Mod-Alt-n'], run: () => useWorkspace.getState().startDraft() },
   { id: 'newComparison', title: 'new comparison', keys: ['Mod-Alt-Shift-n'], run: () => void newComparison(), suggested: true },
   { id: 'import', title: 'import…', keys: ['Mod-o'], run: () => pickImport('files'), suggested: true },
   { id: 'importFolder', title: 'import a folder…', keys: [], run: () => pickImport('folder') },

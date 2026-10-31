@@ -6,13 +6,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DraftPage, DraftTab } from './Draft'
 import { Editor } from '@/editor/Editor'
 import { openContent } from '@/editor/sessions'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type DiffSide, type JotDocument, type PaneLayout } from '@/lib/db'
 import { exportMarkdown, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
-import { exportWorkspace, newComparison, newDocument } from '@/state/actions'
+import { exportWorkspace, newComparison } from '@/state/actions'
 import { useReview } from '@/state/review'
 import { useDocuments } from '@/state/hooks'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
@@ -370,6 +371,10 @@ function DiffTab({ tabId, active, focused, paneId }: { tabId: string; active: bo
 
 function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; focused: boolean }) {
   const strip = useRef<HTMLDivElement>(null)
+  const drafting = useWorkspace((s) => s.draft?.paneId === pane.id)
+  const startDraft = useWorkspace((s) => s.startDraft)
+  // A draft here takes the active look from the tab that was active.
+  const active = drafting ? null : pane.active
   const [hidden, setHidden] = useState(0)
   const activateTab = useWorkspace((s) => s.activateTab)
   const dragging = useWorkspace((s) => !!s.dragTab)
@@ -436,11 +441,12 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
       >
         {tabs.map((t) => (
           t.doc ? (
-            <Tab key={t.id} tabId={t.id} doc={t.doc} active={t.id === pane.active} focused={focused} paneId={pane.id} />
+            <Tab key={t.id} tabId={t.id} doc={t.doc} active={t.id === active} focused={focused} paneId={pane.id} />
           ) : (
-            <DiffTab key={t.id} tabId={t.id} active={t.id === pane.active} focused={focused} paneId={pane.id} />
+            <DiffTab key={t.id} tabId={t.id} active={t.id === active} focused={focused} paneId={pane.id} />
           )
         ))}
+        {drafting && <DraftTab focused={focused} />}
         {dragging && slot && <span aria-hidden className="pointer-events-none absolute top-1.5 bottom-1.5 z-10 w-[2px] -translate-x-1/2 rounded-full bg-primary" style={{ left: Math.max(1, slot.x) }} />}
       </div>
       {/* New tab, as in a browser's tab bar (owner): right after the last
@@ -451,7 +457,7 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
           type="button"
           aria-label="new document"
           title="new document"
-          onClick={() => void newDocument()}
+          onClick={startDraft}
           className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
         >
           <PlusIcon />
@@ -465,7 +471,7 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
         <ContextMenuTrigger asChild>
           <div
             className="min-w-0 flex-auto"
-            onDoubleClick={() => void newDocument()}
+            onDoubleClick={startDraft}
             onDragOver={(e) => {
               if (!dragging) return
               e.preventDefault()
@@ -480,7 +486,7 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
           />
         </ContextMenuTrigger>
         <ContextMenuContent className="w-[220px]">
-            <ContextMenuItem onSelect={() => void newDocument()}>new document</ContextMenuItem>
+            <ContextMenuItem onSelect={startDraft}>new document</ContextMenuItem>
             <ContextMenuItem onSelect={() => void newComparison({ paneId: pane.id })}>new comparison</ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
@@ -613,6 +619,8 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
   const showRendered = isRenderTab(pane.active)
   const reviewHere = useReview((s) => !!doc && !showRendered && s.openIn[pane.id] === doc.id)
   const session = useReview((s) => (doc ? s.sessions[doc.id] : undefined))
+  const drafting = useWorkspace((s) => s.draft?.paneId === pane.id)
+  const startDraft = useWorkspace((s) => s.startDraft)
 
   return (
     <section
@@ -641,7 +649,9 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
           </div>
         )}
       </div>
-      {isDiffTab(pane.active) ? (
+      {drafting ? (
+        <DraftPage />
+      ) : isDiffTab(pane.active) ? (
         <Suspense fallback={<div className="flex-auto" />}>
           <DiffView key={pane.active} tabId={pane.active!} paneId={pane.id} />
         </Suspense>
@@ -665,7 +675,7 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
         // closing the last tab of any other pane closes that pane.
         <PaneEmpty>
           <div className="text-[13px] text-muted-foreground">no document open</div>
-          <QuietButton onClick={() => void newDocument()}>new document</QuietButton>
+          <QuietButton onClick={startDraft}>new document</QuietButton>
         </PaneEmpty>
       )}
     </section>

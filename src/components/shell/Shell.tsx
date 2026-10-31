@@ -4,7 +4,7 @@ import { isCommandKey, keyOfEvent, normKey } from '@/lib/shortcuts'
 import { commandContext, commandForKey } from '@/state/commands'
 import { useUi } from '@/state/ui'
 import { cn } from '@/lib/utils'
-import { importFiles, newDocument, pickImport } from '@/state/actions'
+import { importFiles, pickImport } from '@/state/actions'
 import { useWorkspace } from '@/state/workspace'
 import { SettingsModal } from '@/components/settings/SettingsModal'
 import { CommandPalette } from './CommandPalette'
@@ -51,7 +51,7 @@ function FirstRun() {
         <div className="flex items-center gap-3.5">
           <button
             type="button"
-            onClick={() => void newDocument()}
+            onClick={() => useWorkspace.getState().startDraft()}
             className="flex h-7 items-center rounded-md bg-primary px-[13px] font-mono text-[12px] font-semibold text-primary-foreground hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             new document
@@ -72,6 +72,7 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
   const panes = useWorkspace((s) => s.panes)
   const sidebarOpen = useWorkspace((s) => s.sidebarOpen)
   const aiMode = useWorkspace((s) => s.aiMode)
+  const draft = useWorkspace((s) => !!s.draft)
   const docsById = useMemo(() => new Map(docs.map((d) => [d.id, d])), [docs])
   const [dropping, setDropping] = useState(false)
 
@@ -87,7 +88,8 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
       // Esc leaves AI mode, unless something on top of it (a menu, a
       // popover, the editor's find panel) is what Esc should close.
       if (e.key === 'Escape' && useWorkspace.getState().aiMode && !e.defaultPrevented) {
-        const layered = document.querySelector('[data-radix-popper-content-wrapper], [role="dialog"], [role="menu"]') || (e.target as Element).closest?.('.cm-panels, [data-review-view]')
+        const layered =
+          document.querySelector('[data-radix-popper-content-wrapper], [role="dialog"], [role="menu"]') || (e.target as Element).closest?.('.cm-panels, [data-review-view], [data-rename-field]')
         if (!layered) {
           e.preventDefault()
           useWorkspace.getState().leaveAiMode()
@@ -161,7 +163,7 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
           )
         )}
         <div className="relative flex min-w-0 flex-auto">
-          {docs.length === 0 ? <FirstRun /> : <PaneGrid panes={panes} docsById={docsById} />}
+          {docs.length === 0 && !draft ? <FirstRun /> : <PaneGrid panes={panes} docsById={docsById} />}
           <Toast />
         </div>
       </div>
