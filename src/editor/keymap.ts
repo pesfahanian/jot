@@ -1,4 +1,4 @@
-import { simplifySelection } from '@codemirror/commands'
+import { insertBlankLine, simplifySelection } from '@codemirror/commands'
 import { insertNewlineContinueMarkupCommand } from '@codemirror/lang-markdown'
 import { syntaxTree } from '@codemirror/language'
 import type { StateCommand } from '@codemirror/state'
@@ -40,6 +40,10 @@ export const supplementKeymap: readonly KeyBinding[] = [
   // Mac only: on Windows/Linux, Ctrl-g is the vscode keymap's go-to-line.
   { mac: 'Mod-g', run: findNext, shift: findPrevious, preventDefault: true },
   { key: 'F3', run: findNext, shift: findPrevious, preventDefault: true },
+  // VSCode's ⌘↵ / Ctrl+Enter: a new line below, the cursor on it. Bound
+  // here so the key is the editor's, not left to the browser (owner,
+  // 2026-10-31: it was opening find).
+  { key: 'Mod-Enter', run: insertBlankLine, preventDefault: true },
 ]
 
 export const escapeFallback: readonly KeyBinding[] = [{ key: 'Escape', run: simplifySelection }]
