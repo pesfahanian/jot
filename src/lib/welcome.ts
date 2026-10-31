@@ -113,14 +113,15 @@ That makes this browser the only copy. Each browser, profile and installed app k
 // Once per app load: guards React's double-run of effects in development.
 let firstRun: Promise<void> | undefined
 
-// Runs when the document list is first known. Creates the welcome document
-// on a true first run; marks an existing workspace as already welcomed.
+// Runs when the document list is first known. Creates the welcome document,
+// pinned, on a true first run; marks an existing workspace as already welcomed.
 export function welcomeIfFirstRun(documentCount: number): Promise<void> {
   firstRun ??= (async () => {
     const settings = await getSettings()
     if (settings.welcomedAt) return
     if (documentCount > 0) return void (await updateSettings({ welcomedAt: Date.now() }))
-    const doc = await createDocument({ title: WELCOME_TITLE, content: WELCOME_CONTENT })
+    // Pinned, so it stays at the top while the first documents arrive.
+    const doc = await createDocument({ title: WELCOME_TITLE, content: WELCOME_CONTENT, pinned: true })
     await updateSettings({ welcomedAt: Date.now(), welcomeDocId: doc.id })
   })()
   return firstRun
