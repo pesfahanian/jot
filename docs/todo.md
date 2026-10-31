@@ -10,6 +10,36 @@ Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first im
 |---|---|
 | 12: AI providers ✓ | OpenAI and Anthropic alongside OpenRouter and Google; provider dropdown; model picker suggesting from the provider's model list; per-provider fallback chain; new hosts in `public/_headers` connect-src |
 | 13: Layout 2.0 ✓ | Tab drag part B: top/bottom splits, up to a 2×3 grid, resizable dividers; the status bar stays global |
+| Diff / Farsi / PDF options ✓ | Shipped in PR #4 (2026-10-08) |
+
+### Phased plan for the next round (agreed with the owner, 2026-10-14)
+
+Phase 14 runs as two parallel tracks — building the quick items while the design round runs in Claude Design. Phases 15–17 build what the design round settles, in order, each its own PR. Items are detailed under "Next round" below.
+
+| Phase | Contents | Needs |
+|---|---|---|
+| **14a: Bugs and quick wins** ✓ (built 2026-10-14, branch `phase-14a`) | PDF filename; Farsi in the review view (then a look at the Farsi flag counts); sidebar collapse with Cmd+B (button placed provisionally — design may move it); double-click empty space → new document; bulk import (multi-file and folder pickers, entry placed provisionally); diff overview ruler; auto-title for new documents; writing suggestions (done). Owner: Cloudflare's challenge setting | Nothing |
+| **14b: Design round** ✓ (accepted 2026-10-19 — `docs/design/round-4/`, rulings below) | One round on the app's shape: shell layout (sidebar collapse, where every control lives); Settings modal; motion spec; AI mode — entry and its animation, chat area, AI notes vs personal notes, the results screen with its review / diff switch, the translation flow; the right-click menu on selected text; highlights, underline and notes in the editor; the PDF options "annotations" row and the markdown export choice; **command palette and the shortcut editor** (owner, 2026-10-14: in this round — the palette lets some controls drop their buttons and gives AI mode's actions a home) | A brief (I write it) |
+| **15: Shell** ✓ (built 2026-10-19, branch `phase-15`) | Settings modal (AI provider moves in; theme, motion, editor, storage and backup, about); motion as designed, off in Settings and under reduced motion; the controls moved to their designed places; **command palette** (every action registered as a command; later phases add theirs); **shortcut editor** in Settings (remaps checked live against the vscode keymap and browser shortcuts — `scripts/keymap-collisions.mjs`'s logic) | 14b |
+| **16: Annotations and writing help** ✓ (built 2026-10-20, branch `phase-16`) (normal mode, no AI; research done 2026-10-20 — `docs/research/phase-16-2026-10.md`; owner: Google Translate for selections, and a bundled dictionary for auto-fix — the browser's spellchecker can't be read by a page, and Chrome's on-device proofreader is Chrome-only and multi-GB) | Annotations stored beside the document (new table, re-anchored as text changes), shown in the editor and rendered view; the right-click menu (highlight, underline, translate, note); translate a selection via Google Translate (own key, kept in Settings; new `connect-src` host); annotation exports (zip always, PDF row, markdown choice); auto-fix spelling, off by default, English first | 14b; small research: dictionary (licence, size), Google Translate from the browser (key restrictions, CORS, pricing) |
+| **17: AI mode** ✓ (built 2026-10-20, branch `phase-17`; prompts tested against a stubbed provider only — live tuning with a real key still open) | The mode and its transition; chat with local per-document history (deleted with the document, kept through undo; in the zip — lean yes); AI notes queued and sent Claude Design style, personal notes by switch; a proposals prompt (edits anchored like review flags) and one results screen for every run, the style review folded in, with the review / diff switch (as decided / all accepted); full translation to a new side-by-side document | 14b, 16 (notes); prompt work: proposals and translation (Farsi ↔ English), token budgets for document + history |
+| **Later** | Telemetry (own chat); premium tier (own big decision — needs a backend); Jot's own autocomplete | — |
+
+## Polish from use after Phases 14a–17 (owner, 2026-10-31; built on branch `polish-1`, over `phase-17`)
+
+AI mode itself wasn't tested yet; these came first.
+
+- Settings: every item in the left bar has its own view; the minimap row goes (the status bar has it); about loses "the guide" (the sidebar's ? has it).
+- Import only in settings (the sidebar foot's import… goes); "whole workspace" leaves the export menu (settings has it).
+- The "double-click for a new document" hint goes.
+- New document as a draft: a name field (sidebar, or the tab while the sidebar is hidden) over an empty page; ↩ creates it named (untitled if empty), a click into the page creates it untitled, esc or anything else drops it — nothing written. Keys typed straight after ↩ are held for the new editor.
+- Icons over labels: settings, ai mode, split, export (named on hover). No key hints on buttons or in tooltips.
+- Rendered view: a new tab by default; settings → editor → rendered view can make it a split.
+- The welcome document is pinned on a true first run.
+- ⌘↵ is the editor's (a new line below, as VSCode) — it was opening find.
+- Other places the selected text appears get a faint grey wash, as VSCode.
+- ⌘X on an empty last line removes it.
+- H1 headings and tables centred in the rendered view and the PDF.
 
 ## Done from testing after Phases 12–13
 
@@ -17,42 +47,87 @@ Done: Phases 0–10 (v1.0.0 plus polish, editor power, render & export, first im
 - "saves as <title>.*" dropped from the export menu.
 - AI Provider panel footer moved into a "?" tooltip in the panel header.
 
-## Checks still open
+## Checks
 
-- **Model decline, live** (open-decisions #27): the AI half of the review opt-out has only been unit-tested. Next time a real key is at hand, review a gibberish document (30+ words) once and confirm the "skipped" chip shows the model's reason.
-- **Live Farsi review** with a real key: a Farsi document's review runs against the Farsi guide end to end only in tests so far (provider stubbed). Calibrate the provisional thresholds (sentence caps 25/30/40, variance floor 4, hedge cap 2) on real writing.
-- **Farsi PDF in Firefox and Safari:** Paged.js with right-to-left text is barely tested anywhere; check a long mixed paragraph across a page break and the Persian page numbers.
-- **Cross-browser pass** (a QA chat with Computer Use; prompt on request): Safari and Firefox haven't been tried. Includes the storage bar in real Safari and on iPad, Firefox's persistence prompt, a workspace .zip round-trip, and the "can't save documents here" screen under Safari's Lockdown Mode (it couldn't be forced in the Chromium preview).
-
-## Built: data safety (owner, locked 2026-09-30, after research; built 2026-10-04)
-
-The browser's storage is the only copy of a person's writing, and browsers treat site storage as clearable. Research (30 Sep 2026, summarised below) settled the plan; build before Jot is shared.
-
-**Research findings that shaped it**
-- Safari deletes all script-written storage, IndexedDB included, after 7 days of Safari use with no click, tap or keypress in the site (ITP). A visit alone doesn't reset it; writing in Jot does.
-- It's the WebKit engine, not the Safari brand: every browser on iPad (Chrome, Firefox, Edge) behaves the same, and so does Orion on Mac.
-- `navigator.storage.persist()` protects against disk-pressure eviction in Chrome, Edge and Firefox, but is not documented to exempt a site from Safari's 7-day rule. Assume it doesn't.
-- Installed web apps have their own separate, initially empty storage. Home Screen apps (iPad) are documented as exempt from the 7-day rule; Mac Dock apps are not documented and may not report `display-mode: standalone`.
-- Safari's Lockdown Mode turns IndexedDB off entirely.
-- Unverified on purpose (needs 8+ days on real devices; the plan doesn't depend on it): whether persistence exempts, whether Dock apps skip the rule, whether iPad Chrome really deletes.
-
-**What was built**
-1. **Warning bar, amber, full width above the panels.** Shown in any WebKit-engine browser (`navigator.vendor === 'Apple Computer, Inc.'`): Safari on Mac, every iPad browser, Orion. Not in Chromium browsers or Firefox. Hidden only in an installed iPad Home Screen app (`navigator.standalone` / `display-mode: standalone` on iPadOS). Never hidden because persistence was granted. Dismissible; returns after 7 days. Its button: **export workspace**.
-   - Mac: "Safari deletes jot's documents after 7 days of using Safari without typing or clicking in jot. Everything jot saves lives only in this browser. For writing you want to keep, use Chrome, Firefox or Edge — and export a backup now and then."
-   - iPad (WebKit with touch, `maxTouchPoints > 1`): "On iPad, every browser deletes jot's documents after 7 days of use without typing or clicking in jot. Add jot to your Home Screen to keep them there. It starts empty, so export your workspace here first and import it in the app."
-2. **Workspace export and import (.zip).** A separated "whole workspace" section in the export menu, "all N documents .zip". One `.md` per document (duplicate titles numbered, a `/` in a title becomes a folder) plus `jot-workspace.json` with tags, pins and dates. Never keys, settings or review sessions. File `jot-workspace-YYYY-MM-DD.zip`; a small zip library loaded on use. Dropping the .zip restores the workspace, added alongside existing documents, never replacing.
-3. **Persistent storage.** Ask on an explicit action — new document or import — not while typing (Firefox prompts). At most once per session, skipped if already granted; asking again in a later session is fine (Chrome re-evaluates).
-4. **Storage-unavailable screen.** When IndexedDB can't be opened (e.g. Lockdown Mode), a plain full-screen message like the narrow-window one: jot can't save documents in this browser's current mode.
-5. **Welcome document and README** (with the update banked above): each browser, profile and installed app keeps its own separate workspace; clearing site data or a "delete data on close" setting erases it; export is the backup.
-6. No backup reminder for now.
+All run by the owner (2026-10-08): the live model decline, a live Farsi review, Farsi PDFs in Firefox and Safari, and the cross-browser pass. One finding came out of them: the review view lays Farsi out left-to-right (next round, A). Calibrating the Farsi thresholds waits on that fix.
 
 ## Later (owner: its own fresh chat)
 
-- **Visitor counter.** Something as basic as Cloudflare's own analytics or Google Analytics, enough to know "5 people from the UK visited today". Touches the privacy promise (README, ADR-004) and the CSP.
+- **Telemetry** (was "visitor counter"; widened by the owner 2026-10-11). Any tracking that shows how the app is doing — from Cloudflare's own analytics up to usage events. Touches the privacy promise (README, ADR-004) and the CSP; how much to measure is the chat's main question.
+
+## Round 4 design accepted (owner, 2026-10-19)
+
+Claude Design canvas `docs/design/round-4/Jot Round 4.dc.html` (18 frames; the `Jot R4 *` files are its components). Built in Phases 15–17. Everything the designer settled is accepted:
+
+- **Shell:**
+  - Sidebar header: wordmark · new document · search · sort-and-filter (one menu) · hide sidebar.
+  - Sidebar foot: settings · import… · ?.
+  - Collapsed: the toggle and the wordmark sit at the start of the first pane's tab strip.
+  - Status bar: ai mode on the left (replacing review style); dir, cursor, counts, a "notes N" count and the minimap toggle on the right.
+  - The theme icon and AI Provider leave the sidebar for Settings.
+- **Settings** modal 780 × 540, grouped ai / app / data. **Palette** 560 wide, 80px from the tray top; documents and commands in one list; ↵ opens here, ⌘↵ beside.
+- **Highlights:** three washes from tag green, clay and indigo (`--hl-1…3`), never yellow (that's selection and search). **Underline:** 1.5px solid secondary ink, 3px offset.
+- **Personal notes:** dotted underline and a gutter square; a popover to read, edit and delete. **AI notes:** a numbered inverted pill and a 1px outline — they differ by shape, not colour, and never print or export.
+- **AI mode:** the sidebar hides, other panes are parked and come back as they were, the chat takes the sidebar's slot at 360px. The results bar has review | diff, and in diff "as decided / if all accepted". Chat and note proposals carry no kind colour.
+- **Motion:** `--motion-fast` 100 / `-base` 160 / `-mode` 240 ms, `--ease-enter` / `--ease-exit`, plus the never-animates list. Reduced motion zeroes everything except the auto-fix flash (a static 1 s wash).
+- **Accepted pushbacks:** "notes" everywhere (PDF row "off / highlights / + notes"); translation falls back to batches of paragraphs when there are no headings; auto-fix off on right-to-left lines until tested, each fix its own undo step.
+
+**Owner's rulings on the open points:**
+1. The tab strip's **+** stays "new document" (browser habit), not a menu. Comparisons: right-click the strip, the palette, a shortcut.
+2. **Palette on ⌘K** (⇧⌘P as an alias where the browser allows). The vscode keymap's ⌘K chords give way (fold all, unfold all, and the chord forms of comment / uncomment); **⌘/ stays the comment toggle**.
+3. **Theme:** no shortcut (Settings and the palette); ⇧⌘L stays "select all occurrences".
+4. **Minimap:** no default shortcut (⌘M minimises the window on a Mac); the status-bar toggle stays.
+5. **New document ⌥⌘N; new comparison ⇧⌥⌘N** — never ⌥N (on a Mac it types ñ).
+6. **Settings ⌘,** where the browser allows (to test in Safari and Chrome); the sidebar foot and the palette cover it regardless.
+7. **Review kind colours:** keep the shipped `--flag-quick / -check / -call` tokens (decision #24) — the designer worked from v3, which predates them.
+
+Also test ⌘J (ai mode), ⌘O (import) and ⇧⌘E (export PDF) in all three browsers during the build.
+
+## Next round: ideas from use (owner and friends, collected 2026-10-11)
+
+Friends are using Jot heavily; feedback so far all positive. Grouped and discussed with the owner; implementation detail, design / research needs and a phased plan still to come. The AI suite and translation wait on the owner's thinking.
+
+**A. Bugs**
+- **PDF saves as `jot.pdf`.** Chrome names the PDF after the top page's title, not the print frame's. Swap `document.title` to the document's name while printing, restore after.
+- **Flag counts (found 2026-10-14; owner's call 2026-10-19, built):** on the Farsi benchmark Jot's own rules raised 95 flags, 50 of them FA-T1-21 (sentence-length variance flagged every sentence in each run). Now, in English (T1-09) and Farsi alike, only paragraph sentences count, and a monotonous stretch is one flag over the whole stretch, with no generated fix. Farsi benchmark 95 → 48 flags (variance 50 → 3); pdf-benchmark variance 1, welcome document 1.
+- **Farsi in the review view** (owner's screenshot, 2026-10-11) — fixed in 14a: the locked original and the preview lay every line out left-to-right — `#` / `**` on the wrong end, full stops at line starts, struck / inserted fix text scrambled. Wire them to `lib/direction.ts` like the editor, rendered view and PDF; bubbles anchor to a right-to-left span's start (Farsi design). Then look at what the flags are (127 on one document, 85 quick fixes) before calling the Farsi thresholds calibrated.
+- **Cloudflare's "not a robot" page.** A Cloudflare dashboard setting (Bot Fight Mode / security level / a challenge rule), not code; a static site doesn't need it. Owner changes it, guided.
+
+**B. Small, no design**
+- **Close the sidebar:** a collapse button and Cmd+B (VS Code's toggle), state remembered. Today it only resizes.
+- **Double-click empty space → new document**, in the tab strip and below the sidebar rows (observed habit).
+- **Bulk import:** an "import…" entry with a multi-file picker (.md / .txt / .zip) and a folder picker (`webkitdirectory` — every browser; not the File System Access API). Imports alongside, as drop does.
+- **Diff overview ruler** (VS Code's name): a strip beside each side's scrollbar with a tick per change in the diff colours; click to jump.
+- **Auto-title, like Apple Notes:** the title follows the first line (markdown marks stripped) until the person renames it. **New documents only** (owner) — existing ones keep their titles.
+
+**C. Needs design** (one round together, after the AI suite is shaped — it decides where things go)
+- **Settings modal:** AI provider moves here; theme, animations, auto-fix, autocomplete, editor (minimap…), storage and backup, about; room for the future shortcut editor.
+- **Animations:** restrained (diff checker opening, review entering, panes and tabs); a short motion spec; off via Settings, and always off under `prefers-reduced-motion`.
+- **UI reshuffle:** where the diff checker, style review and other controls live — one AI entry point.
+
+**D. Writing assistance**
+- **Auto-fix spelling behind the cursor** (owner: as recommended). A bundled dictionary (Hunspell via e.g. nspell, ~1 MB English) since pages can't read the browser's spellchecker. Off by default; only unambiguous typos (one clear suggestion); acts once the cursor is a couple of words past; skips code, URLs and capitalised names; each fix flashes briefly and is its own undo step. English first. The first feature that changes text without a decision — opt-in, so ADR-009's review rule isn't touched.
+- **Autocomplete — done (2026-10-14):** CodeMirror set `writingsuggestions="false"`; now on in every browser. Owner tested: **Safari only** shows suggestions (the Mac's inline predictions); Chrome and Firefox show nothing. Autocomplete everywhere would mean Jot's own: AI ghost text with the person's key (cost, latency, text sent on every pause — an AI mode or Settings option), or local word completion (weak). Not decided; later.
+
+**E. Annotations and AI mode** (shaped with the owner step by step, 2026-10-14)
+- **Right-click on selected text:** highlight, underline, translate, add a note. Owner: fine to replace the browser's menu there (loses its spelling suggestions, Look Up and services on selected text).
+- **Annotations** (highlights and comments) stored beside the document, not in the markdown, re-anchored as the text changes (the review's mechanism). **Exports (owner, 2026-10-14):** the workspace .zip always keeps them (in `jot-workspace.json`); the PDF options card gets "annotations: off / highlights / highlights + comments" (highlights marked through the renderer — split per block, whole-block inside code / math / diagrams; comments as Paged.js page footnotes, no margin balloons); markdown export offers clean (default) or with annotations (`==highlight==`, comments as `[^n]` footnotes); plain text stays text only. The rendered view shows highlights through the same path.
+- **Two planes:**
+  - **Normal mode** (no AI): writing as today; personal notes and highlights; right-click translate of a selection — machine translation via Google Translate's API (its own Google Cloud key, not the AI Studio key; another `connect-src` host); exports as above.
+  - **AI mode** — the AI suite's evolution, not a review button. A distinct state of the screen, entered with its own small animation, with a chat area on the left (like Claude Design). Works on **one document**, the one in front of you. Every AI feature lives here:
+    - **AI notes:** instructions pinned to text ("shorter", "change it like this"). They queue and go out together with the next message, Claude Design style — sending right away is a batch of one. A per-run switch also sends the personal notes as context.
+    - **Chat:** acts unless asked not to (Claude Design's behaviour) — asking for a change gives proposals; asking a question, or "don't change anything", gives an answer only.
+    - **The style review:** one of the things done in AI mode.
+    - **Full translation:** the one action whose result is a new document, not proposals. Its own prompt; markdown, code, maths and links kept; long documents translated section by section; the new document ("title (فارسی)") opens side by side with the original. No decisions (a fresh draft — polish it in AI mode with that language's style review); no syncing (translate again); never in place.
+    - **One results screen** for every run: the review view to decide (nothing auto-applies — "acts" always means proposes), and a switch to the diff view to look — showing the result as decided so far, or with everything accepted (both; owner: intuitive and easy).
+- **Later: a premium tier** with AI mode's full force behind it (owner). Its own big decision: Jot supplying the AI means a backend, accounts and payments, against ADR-004 and the zero-backend rule. Nothing designed now should make it harder.
+- **Owner, 2026-10-14:** AI notes and personal notes look different (how: design). Chats and their history are local, attached to their document, and deleted with it (they come back if the delete is undone; gone once the undo window passes); whether the workspace .zip carries them — lean yes. Where AI mode's entry, the sidebar's collapse button and the rest live: the design round, which now covers Settings, motion, AI mode and its entry, the shell's layout and the two kinds of notes.
+
+**Dropped:** SVG in markdown (owner, 2026-10-14).
 
 ## Built: diff checker, Farsi, PDF options (owner's design round, built 2026-10-07)
 
-**Built 2026-10-07** on branch `diff-farsi-pdf` (not pushed): the new-tab +, Farsi in the editor / rendered view / PDF with the dir cell, PDF options, the diff checker, the Farsi style review, and the README / welcome updates. Designs, decisions and hand-offs for each stay below for reference.
+**Built 2026-10-07, shipped in PR #4** (merged and deployed; the owner ran the open checks): the new-tab +, Farsi in the editor / rendered view / PDF with the dir cell, PDF options, the diff checker, the Farsi style review, and the README / welcome updates. Designs, decisions and hand-offs for each stay below for reference.
 
 **Also in this build round (owner, 2026-10-06):** a **+** at the end of each pane's tab strip, as in a browser's tab bar, doing exactly what "new document" does, in that pane. (Seen in testing: a friend reached for it out of browser habit.)
 
@@ -90,6 +165,7 @@ These four touch each other, so they get a design round together before any buil
 - Open question: does the app chrome (menus, labels) also need a Farsi translation, or only the content?
 
 ### Command palette and customisable keyboard shortcuts
+- **Started by the owner, 2026-10-14:** designed in the 14b round, built in Phase 15 (see the phased plan).
 - A full command palette plus user-remappable shortcuts.
 - ADR-010's removal was a planning expedient, not the owner's position (see its amendment). Wanted; just not yet.
 
@@ -102,3 +178,4 @@ These four touch each other, so they get a design round together before any buil
 
 ### One-click PDF (Typst)
 - A direct `.pdf` download, no print dialog, identical in every browser: markdown converted to Typst and typeset by Typst compiled to WebAssembly, in the browser. Native math, themeable. Costs a few MB loaded on first export and a markdown→Typst converter to maintain. Revisit after Phase 10's options on the print pipeline.
+- **Leaning parked (discussed 2026-10-08):** the print dialog's preview is worth keeping (owner), and Typst would mean a second layout engine beside the shared renderer, losing the custom-CSS box. Cheaper alternatives if cross-browser printing disappoints: a one-time hint about the browser's headers / footers, and PDF bookmarks from headings if Paged.js can produce them.

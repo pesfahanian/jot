@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="width: 560px; display: flex; flex-direction: column; background: var(--elev); border: 1px solid var(--pop); border-radius: 12px; color: var(--ink); font-family: 'Public Sans', sans-serif; overflow: hidden">
+  <div style="flex: 0 0 44px; display: flex; align-items: center; gap: 10px; padding: 0 14px; border-bottom: 1px solid var(--hair)">
+    <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ true }}"><span style="display: flex; align-items: center; flex: 1 1 auto; font-size: 14px; color: var(--dim)"><span style="width: 1.5px; height: 17px; margin-right: 2px; background: var(--ink)"></span>type a command or a document name</span></sc-if>
+    <sc-if value="{{ isFiltered }}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; flex: 1 1 auto; font-size: 14px">tog<span style="width: 1.5px; height: 17px; margin-left: 1px; background: var(--ink)"></span></span></sc-if>
+    <sc-if value="{{ isDocs }}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; flex: 1 1 auto; font-size: 14px">sa<span style="width: 1.5px; height: 17px; margin-left: 1px; background: var(--ink)"></span></span></sc-if>
+    <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⌘K</span>
+  </div>
+  <div style="display: flex; flex-direction: column; padding: 6px 0; font-size: 12.5px">
+    <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column">
+        <span style="padding: 6px 14px 4px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">recent</span>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; background: var(--hover); border-left: 2px solid var(--accent); padding-left: 12px"><span style="flex: 1 1 auto">review style</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">ai mode</span></div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px"><span style="flex: 1 1 auto">export as pdf…</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⇧⌘E</span></div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px"><span style="width: 8px; height: 8px; border: 1px solid var(--ink3)"></span><span style="flex: 1 1 auto">jot-todo</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">document · 4d</span></div>
+        <span style="padding: 10px 14px 4px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">suggested</span>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px"><span style="flex: 1 1 auto">new comparison</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⌥⌘N</span></div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px"><span style="flex: 1 1 auto">import…</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⌘O</span></div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px"><span style="flex: 1 1 auto">settings</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⌘,</span></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isFiltered }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column">
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px 0 12px; background: var(--hover); border-left: 2px solid var(--accent)"><span style="flex: 1 1 auto"><strong style="font-weight: 600">tog</strong>gle sidebar</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">on</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⌘B</span></div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px"><span style="flex: 1 1 auto"><strong style="font-weight: 600">tog</strong>gle minimap</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">off</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⌘M</span></div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px"><span style="flex: 1 1 auto"><strong style="font-weight: 600">tog</strong>gle theme</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">light</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⇧⌘L</span></div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px"><span style="flex: 1 1 auto"><strong style="font-weight: 600">tog</strong>gle ai mode</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⌘J</span></div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px"><span style="flex: 1 1 auto">settings: <strong style="font-weight: 600">tog</strong>gle animations</span></div>
+        <span style="padding: 10px 14px 4px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">documents</span>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px"><span style="width: 8px; height: 8px; background: var(--amber)"></span><span style="flex: 1 1 auto">jot-<strong style="font-weight: 600">to</strong>do <span style="color: var(--ink3)">· "…<strong style="font-weight: 600">tog</strong>gle for the minimap…"</span></span></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isDocs }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column">
+        <span style="padding: 6px 14px 4px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">documents</span>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px 0 12px; background: var(--hover); border-left: 2px solid var(--accent)"><span style="width: 8px; height: 8px; background: var(--teal)"></span><span style="flex: 1 1 auto"><strong style="font-weight: 600">sa</strong>mple outline</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">3h</span></div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px"><span style="width: 8px; height: 8px"></span><span style="flex: 1 1 auto">release notes · <strong style="font-weight: 600">sa</strong>fari fixes</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">2d</span></div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px"><span style="width: 8px; height: 8px"></span><span style="flex: 1 1 auto; display: flex; gap: 8px"><span dir="rtl">سفرنامه</span><span style="color: var(--ink3)">· "…<strong style="font-weight: 600">Sa</strong>nandaj…"</span></span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">2h</span></div>
+        <span style="padding: 10px 14px 4px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">commands</span>
+        <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px"><span style="flex: 1 1 auto">export workspace as .zip</span></div>
+      </div>
+    </sc-if>
+  </div>
+  <div style="display: flex; align-items: center; gap: 14px; height: 30px; padding: 0 14px; border-top: 1px solid var(--rule); font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">
+    <span>↑↓ move</span><span>↵ {{ enterLabel }}</span>
+    <sc-if value="{{ isDocs }}" hint-placeholder-val="{{ false }}"><span>⌘↵ open beside</span></sc-if>
+    <span style="flex: 1 1 auto"></span><span>esc close</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:580,&quot;height&quot;:400},&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;empty&quot;,&quot;filtered&quot;,&quot;docs&quot;],&quot;default&quot;:&quot;empty&quot;,&quot;tsType&quot;:&quot;'empty'|'filtered'|'docs'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'empty';
+    return { isEmpty: s === 'empty', isFiltered: s === 'filtered', isDocs: s === 'docs', enterLabel: s === 'docs' ? 'open here' : 'run' };
+  }
+}
+</script>
+</body>
+</html>

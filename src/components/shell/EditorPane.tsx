@@ -6,13 +6,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DraftPage, DraftTab } from './Draft'
 import { Editor } from '@/editor/Editor'
 import { openContent } from '@/editor/sessions'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Download, Eye } from 'lucide-react'
 import { db, type DiffSide, type JotDocument, type PaneLayout } from '@/lib/db'
 import { exportMarkdown, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
-import { exportWorkspace, newComparison, newDocument } from '@/state/actions'
+import { newComparison } from '@/state/actions'
 import { useReview } from '@/state/review'
 import { useDocuments } from '@/state/hooks'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
@@ -25,6 +27,11 @@ import { DocumentMenu } from './DocumentMenu'
 import { DiffIcon, PlusIcon, SplitIcon } from './icons'
 import { QuietButton } from './Sidebar'
 import { TagMark } from './TagMark'
+import { useUi } from '@/state/ui'
+import { SidebarToggle } from './SidebarToggle'
+import { Wordmark } from './Wordmark'
+import { annotatedMarkdown } from '@/lib/annotatedSource'
+import { useAnnotations } from '@/state/annotations'
 
 // The diff checker loads the first time a comparison opens.
 const DiffView = lazy(() => import('@/components/diff/DiffView').then((m) => ({ default: m.DiffView })))
@@ -50,12 +57,34 @@ const control =
 const liveText = (doc: JotDocument) => openContent(doc.id) ?? doc.content
 
 function ExportItems({ doc, onPdf }: { doc: JotDocument; onPdf: () => void }) {
+  // With highlights or notes, markdown asks first, clean as the default
+  // (round 4, frame 9c): highlights become ==text==, notes [^n] footnotes;
+  // underline has no markdown form.
+  const annotations = useAnnotations((s) => s.byDoc[doc.id])
+  const annotated = !!annotations?.some((a) => a.kind === 'highlight' || (a.kind === 'note' && a.body?.trim()))
   return (
     <>
-      <DropdownMenuItem onSelect={() => exportMarkdown(doc.title, liveText(doc))}>
-        <span className="flex-auto">Markdown</span>
-        <span className="font-mono text-[11px] text-muted-foreground">.md</span>
-      </DropdownMenuItem>
+      {annotated ? (
+        <>
+          <div className="flex items-center px-2.5 pt-1 pb-0.5 text-[12.5px]">
+            <span className="flex-auto">Markdown</span>
+            <span className="font-mono text-[11px] text-muted-foreground">.md</span>
+          </div>
+          <DropdownMenuItem onSelect={() => exportMarkdown(doc.title, liveText(doc))} className="pl-5">
+            <span className="flex-auto">clean</span>
+            <span className="font-mono text-[11px] text-muted-foreground">↵</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => exportMarkdown(doc.title, annotatedMarkdown(liveText(doc), annotations ?? []))} className="pl-5" title="underline has no markdown form and is left out">
+            <span className="flex-auto">with annotations</span>
+            <span className="font-mono text-[10.5px] text-muted-foreground">==hl==, [^1]</span>
+          </DropdownMenuItem>
+        </>
+      ) : (
+        <DropdownMenuItem onSelect={() => exportMarkdown(doc.title, liveText(doc))}>
+          <span className="flex-auto">Markdown</span>
+          <span className="font-mono text-[11px] text-muted-foreground">.md</span>
+        </DropdownMenuItem>
+      )}
       <DropdownMenuItem onSelect={() => exportPlainText(doc.title, liveText(doc))}>
         <span className="flex-auto">plain text</span>
         <span className="font-mono text-[11px] text-muted-foreground">.txt</span>
@@ -65,30 +94,11 @@ function ExportItems({ doc, onPdf }: { doc: JotDocument; onPdf: () => void }) {
         <span className="flex-auto">PDF</span>
         <span className="font-mono text-[11px] text-muted-foreground">.pdf</span>
       </DropdownMenuItem>
-      <WorkspaceExport />
     </>
   )
 }
 
-// Set apart from the document's own formats so it can't be mistaken for
-// one: the whole workspace, every document, as a .zip backup (data safety).
-function WorkspaceExport() {
-  const count = useLiveQuery(() => db.documents.count(), []) ?? 0
-  return (
-    <>
-      <DropdownMenuSeparator />
-      <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">whole workspace</div>
-      <DropdownMenuItem onSelect={() => void exportWorkspace()} title="every document, with tags and pins — a backup you can import by dropping it on jot">
-        <span className="flex-auto">
-          all {count} document{count === 1 ? '' : 's'}
-        </span>
-        <span className="font-mono text-[11px] text-muted-foreground">.zip</span>
-      </DropdownMenuItem>
-    </>
-  )
-}
-
-function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: boolean }) {
+function PaneControls({ paneId, doc, narrow }: { paneId: string; doc: JotDocument | undefined; narrow: boolean }) {
   const split = useWorkspace((s) => s.split)
   const toggleRender = useWorkspace((s) => s.toggleRender)
   const edge = useWorkspace((s) => splitEdge(s.panes, s.focusedPaneId))
@@ -97,7 +107,7 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
   // Render toggles this document's rendered tab (2g) — in a new pane where
   // split would open one, or in the neighbouring pane when the grid is full.
   const canRender = !!doc
-  const renderTitle = rendered ? 'close the rendered view' : 'show this document rendered, beside it'
+  const renderTitle = rendered ? 'close render' : 'render'
   // The PDF options card opens where the export menu was, anchored to the
   // same button, once the menu has closed.
   //
@@ -107,6 +117,13 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
   // again (on a large document, the animation ends late enough to lose that
   // race). So choosing PDF only asks, and the menu's own close opens the card.
   const [pdfOpen, setPdfOpen] = useState(false)
+  // ⇧⌘E and the palette's "export as pdf…" open this pane's card.
+  const pdfRequest = useUi((s) => s.pdfRequest)
+  const [seenRequest, setSeenRequest] = useState(pdfRequest?.nonce)
+  if (pdfRequest && pdfRequest.nonce !== seenRequest) {
+    setSeenRequest(pdfRequest.nonce)
+    if (pdfRequest.paneId === paneId && doc) setPdfOpen(true)
+  }
   const pdfAsked = useRef(false)
   const openPdf = () => {
     pdfAsked.current = true
@@ -134,10 +151,10 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
       className={control}
       disabled={!canSplit}
       onClick={split}
-      title={edge === 'bottom' ? 'open this document in a new pane below' : edge ? 'open this document in a new pane to the right' : 'no room for another pane here'}
+      title={edge ? 'split' : 'no room for another pane here'}
+      aria-label="split"
     >
       <SplitIcon down={edge === 'bottom'} />
-      {!narrow && 'split'}
     </button>
   )
   if (narrow) {
@@ -178,17 +195,18 @@ function PaneControls({ doc, narrow }: { doc: JotDocument | undefined; narrow: b
         disabled={!canRender}
         aria-pressed={rendered}
         title={renderTitle}
+        aria-label="render"
         onClick={toggleRender}
       >
-        render
+        <Eye size={13} strokeWidth={1.75} aria-hidden />
       </button>
       <Popover open={pdfOpen} onOpenChange={setPdfOpen}>
         <DropdownMenu>
           <PopoverAnchor asChild>
             <DropdownMenuTrigger asChild>
               {/* Held while the card is open: the card stands in for this menu. */}
-              <button type="button" className={cn(control, pdfOpen && 'text-foreground')} disabled={!doc} data-pdf-anchor="">
-                export <span className="text-muted-foreground">▾</span>
+              <button type="button" className={cn(control, pdfOpen && 'text-foreground')} disabled={!doc} title="export" aria-label="export" data-pdf-anchor="">
+                <Download size={13} strokeWidth={1.75} aria-hidden />
               </button>
             </DropdownMenuTrigger>
           </PopoverAnchor>
@@ -336,6 +354,10 @@ function DiffTab({ tabId, active, focused, paneId }: { tabId: string; active: bo
 
 function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; focused: boolean }) {
   const strip = useRef<HTMLDivElement>(null)
+  const drafting = useWorkspace((s) => s.draft?.paneId === pane.id)
+  const startDraft = useWorkspace((s) => s.startDraft)
+  // A draft here takes the active look from the tab that was active.
+  const active = drafting ? null : pane.active
   const [hidden, setHidden] = useState(0)
   const activateTab = useWorkspace((s) => s.activateTab)
   const dragging = useWorkspace((s) => !!s.dragTab)
@@ -402,11 +424,12 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
       >
         {tabs.map((t) => (
           t.doc ? (
-            <Tab key={t.id} tabId={t.id} doc={t.doc} active={t.id === pane.active} focused={focused} paneId={pane.id} />
+            <Tab key={t.id} tabId={t.id} doc={t.doc} active={t.id === active} focused={focused} paneId={pane.id} />
           ) : (
-            <DiffTab key={t.id} tabId={t.id} active={t.id === pane.active} focused={focused} paneId={pane.id} />
+            <DiffTab key={t.id} tabId={t.id} active={t.id === active} focused={focused} paneId={pane.id} />
           )
         ))}
+        {drafting && <DraftTab focused={focused} />}
         {dragging && slot && <span aria-hidden className="pointer-events-none absolute top-1.5 bottom-1.5 z-10 w-[2px] -translate-x-1/2 rounded-full bg-primary" style={{ left: Math.max(1, slot.x) }} />}
       </div>
       {/* New tab, as in a browser's tab bar (owner): right after the last
@@ -417,18 +440,21 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
           type="button"
           aria-label="new document"
           title="new document"
-          onClick={() => void newDocument()}
+          onClick={startDraft}
           className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
         >
           <PlusIcon />
         </button>
       </div>
-      {/* The rest of the bar: a drop target at the end of the strip, and
-          right-click for a new document or a new comparison in this pane. */}
+      {/* The rest of the bar: a drop target at the end of the strip,
+          double-click for a new document (a browser habit friends reached
+          for), and right-click for a new document or a new comparison in
+          this pane. */}
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <div
             className="min-w-0 flex-auto"
+            onDoubleClick={startDraft}
             onDragOver={(e) => {
               if (!dragging) return
               e.preventDefault()
@@ -443,7 +469,7 @@ function TabStrip({ pane, tabs, focused }: { pane: PaneLayout; tabs: PaneTab[]; 
           />
         </ContextMenuTrigger>
         <ContextMenuContent className="w-[220px]">
-            <ContextMenuItem onSelect={() => void newDocument()}>new document</ContextMenuItem>
+            <ContextMenuItem onSelect={startDraft}>new document</ContextMenuItem>
             <ContextMenuItem onSelect={() => void newComparison({ paneId: pane.id })}>new comparison</ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
@@ -549,6 +575,11 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
   const columnCount = useWorkspace((s) => columnsOf(s.panes).length)
   const focused = useWorkspace((s) => s.focusedPaneId === pane.id)
   const focusPane = useWorkspace((s) => s.focusPane)
+  const sidebarOpen = useWorkspace((s) => s.sidebarOpen)
+  // A pane opened after the first second fades in as it arrives (motion
+  // spec); the layout restored on load just appears.
+  const [fresh] = useState(() => performance.now() > 1500)
+  const first = useWorkspace((s) => columnsOf(s.panes)[0]?.[0]?.id === pane.id)
   const self = useRef<HTMLElement>(null)
   const [narrow, setNarrow] = useState(false)
   useEffect(() => {
@@ -571,25 +602,39 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
   const showRendered = isRenderTab(pane.active)
   const reviewHere = useReview((s) => !!doc && !showRendered && s.openIn[pane.id] === doc.id)
   const session = useReview((s) => (doc ? s.sessions[doc.id] : undefined))
+  const drafting = useWorkspace((s) => s.draft?.paneId === pane.id)
+  const startDraft = useWorkspace((s) => s.startDraft)
 
   return (
     <section
       ref={self}
       onMouseDownCapture={() => focusPane(pane.id)}
       style={{ ...density[columnCount], ...style }}
-      className="absolute flex min-h-0 min-w-0 flex-col overflow-hidden rounded-(--radius-panel) border border-border-strong bg-document"
+      className={cn('jot-pane absolute flex min-h-0 min-w-0 flex-col overflow-hidden rounded-(--radius-panel) border border-border-strong bg-document', fresh && 'jot-pane-new')}
     >
       {!reviewHere && <DropZones paneId={pane.id} />}
       <div className="flex h-[38px] flex-none items-stretch border-b border-border bg-card">
+        {/* With the sidebar hidden, its toggle and the wordmark start the
+            first pane's tab strip, so the app is still named (round 4, 2). */}
+        {first && !sidebarOpen && (
+          <div className="flex flex-none items-center gap-1 border-r border-border pr-2 pl-2.5">
+            <SidebarToggle />
+            <span className="pl-1 text-foreground">
+              <Wordmark />
+            </span>
+          </div>
+        )}
         <TabStrip pane={pane} tabs={tabs} focused={focused} />
         {/* Controls sit on the focused pane only (6f). */}
         {focused && (
           <div className="flex flex-none items-center gap-1.5 border-l border-border pr-2 pl-3">
-            <PaneControls doc={doc} narrow={narrow} />
+            <PaneControls paneId={pane.id} doc={doc} narrow={narrow} />
           </div>
         )}
       </div>
-      {isDiffTab(pane.active) ? (
+      {drafting ? (
+        <DraftPage />
+      ) : isDiffTab(pane.active) ? (
         <Suspense fallback={<div className="flex-auto" />}>
           <DiffView key={pane.active} tabId={pane.active!} paneId={pane.id} />
         </Suspense>
@@ -613,7 +658,7 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
         // closing the last tab of any other pane closes that pane.
         <PaneEmpty>
           <div className="text-[13px] text-muted-foreground">no document open</div>
-          <QuietButton onClick={() => void newDocument()}>new document</QuietButton>
+          <QuietButton onClick={startDraft}>new document</QuietButton>
         </PaneEmpty>
       )}
     </section>

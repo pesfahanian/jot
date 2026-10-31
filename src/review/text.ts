@@ -173,3 +173,41 @@ export function nextWord(text: string, at: number): { from: number; to: number }
 }
 
 export const capitalize = (w: string) => (w ? w[0].toUpperCase() + w.slice(1) : w)
+
+// The sentence-length variance rule (T1-09, FA-T1-21; owner, 2026-10-19):
+// stretches of 5+ paragraph sentences in a row, within one heading section,
+// whose lengths have a standard deviation under 4 words. Only sentences in
+// paragraphs count — list items, headings and table rows are short by
+// nature. Overlapping windows merge into one stretch, so a monotonous
+// passage is one finding, not a flag on every sentence in it.
+export function monotonousRuns(sentences: readonly Sentence[]): Sentence[][] {
+  const bySection = new Map<number, Sentence[]>()
+  for (const s of sentences) {
+    if (s.block.kind !== 'paragraph') continue
+    bySection.set(s.block.headingSection, [...(bySection.get(s.block.headingSection) ?? []), s])
+  }
+  const runs: Sentence[][] = []
+  for (const list of bySection.values()) {
+    let run: [number, number] | null = null
+    for (let i = 0; i + 5 <= list.length; i++) {
+      const win = list.slice(i, i + 5)
+      const mean = win.reduce((a, s) => a + s.words, 0) / 5
+      const flat = Math.sqrt(win.reduce((a, s) => a + (s.words - mean) ** 2, 0) / 5) < 4
+      if (!flat) continue
+      if (run && i <= run[1]) run[1] = i + 4
+      else {
+        if (run) runs.push(list.slice(run[0], run[1] + 1))
+        run = [i, i + 4]
+      }
+    }
+    if (run) runs.push(list.slice(run[0], run[1] + 1))
+  }
+  return runs
+}
+
+// How a stretch's finding reads: how many sentences, and the range of their
+// lengths.
+export function runRationale(run: readonly Sentence[]): string {
+  const lens = run.map((s) => s.words)
+  return `${run.length} sentences in a row, all ${Math.min(...lens)}–${Math.max(...lens)} words long. Vary the rhythm somewhere in this stretch: a short sentence, or a longer one.`
+}

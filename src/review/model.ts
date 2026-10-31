@@ -17,7 +17,7 @@ export function allowedDecisions(f: ReviewFlag): Decision[] {
   if (isNote(f)) return ['dismiss']
   if (isProofing(f.family)) return ['accept', 'ignore']
   if (f.family === 'tier2' || f.kind === 'flag') return ['edit', 'dismiss']
-  if (f.family === 'tier1b') return ['accept', 'reject', 'edit']
+  if (f.family === 'tier1b' || f.family === 'chat') return ['accept', 'reject', 'edit']
   return ['accept', 'reject']
 }
 

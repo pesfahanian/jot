@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { db, type Comparison, type JotDocument, type PaneLayout, type TagColor, type Workspace } from '@/lib/db'
 import type { SortMode } from '@/lib/docList'
-import { columnsOf, comparisonIdOf, docIdOf, isDiffTab, insertPane, MAX_COLUMNS, MAX_PANES, moveTab, removePane, renderTab, resize, splitWithTab, tidy, type DraggedTab, type Edge } from './layout'
+import { getSettings } from '@/lib/settings'
+import { columnsOf, comparisonIdOf, docIdOf, isDiffTab, insertPane, MAX_COLUMNS, MAX_PANES, moveTab, parkFor, removePane, renderTab, resize, splitWithTab, tidy, unpark, type DraggedTab, type Edge, type Parked } from './layout'
 
 // Shell state: panes and their tabs, which pane has focus, and the sidebar's
 // own controls. Document records live in IndexedDB and are read live; this
@@ -11,6 +12,10 @@ export { MAX_PANES }
 export const SIDEBAR_MIN = 180
 export const SIDEBAR_MAX = 460
 export const SIDEBAR_DEFAULT = 248
+
+// Where a draft's name field goes (components/shell/Draft.tsx): the sidebar
+// while it's showing, else the draft's own tab. One place only.
+export const draftFieldInSidebar = (s: { sidebarOpen: boolean; aiMode: unknown }) => s.sidebarOpen && !s.aiMode
 
 export interface CursorStatus {
   documentId: string
@@ -37,11 +42,20 @@ interface WorkspaceState {
   panes: PaneLayout[]
   focusedPaneId: string
   sidebarWidth: number
+  sidebarOpen: boolean
+  // AI mode (round 4): the document worked on with AI, its pane, and the
+  // layout parked while it lasts.
+  aiMode: { documentId: string; paneId: string; parked: Parked } | null
   sort: SortMode
   colorFilter: ReadonlySet<TagColor>
   searchOpen: boolean
   searchQuery: string
   renamingId: string | null
+  // A new document not created yet (owner, 2026-10-31): its name field and
+  // an empty page in a pane. Typing a name and ↩ creates it with that name,
+  // clicking into the page creates it untitled; anything else drops it,
+  // and nothing is written. Never part of the saved layout.
+  draft: { paneId: string; nonce: number } | null
   cursor: CursorStatus | null
   // A pending "move the cursor here" for a document, e.g. from a search hit.
   reveal: { documentId: string; line: number; nonce: number } | null
@@ -56,6 +70,7 @@ interface WorkspaceState {
   closeTab(paneId: string, documentId: string): void
   focusPane(paneId: string): void
   split(): void
+  openBeside(documentId: string): void
   toggleRender(): void
   setDragTab(tab: DraggedTab | null): void
   dropTabOnStrip(to: string, index: number): void
@@ -64,11 +79,18 @@ interface WorkspaceState {
   closeDocumentEverywhere(documentId: string): DeletedEntry['placements']
   restorePlacements(documentId: string, placements: DeletedEntry['placements']): void
   setSidebarWidth(px: number): void
+  // Hides the sidebar entirely, or brings it back (Cmd+B, as VS Code).
+  toggleSidebar(): void
+  // Into AI mode on the focused pane's document, and back out.
+  enterAiMode(): void
+  leaveAiMode(): void
   toggleSort(): void
   toggleColor(color: TagColor): void
   clearColorFilter(): void
   setSearch(open: boolean, query?: string): void
   setRenaming(id: string | null): void
+  startDraft(): void
+  cancelDraft(): void
   setCursor(c: CursorStatus | null): void
   showToast(t: Toast | null): void
 }
@@ -83,11 +105,14 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   panes: [],
   focusedPaneId: '',
   sidebarWidth: SIDEBAR_DEFAULT,
+  sidebarOpen: true,
+  aiMode: null,
   sort: 'date',
   colorFilter: new Set(),
   searchOpen: false,
   searchQuery: '',
   renamingId: null,
+  draft: null,
   cursor: null,
   reveal: null,
   toast: null,
@@ -119,6 +144,7 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
       panes,
       focusedPaneId,
       sidebarWidth: clampWidth(ws?.sidebarWidth ?? SIDEBAR_DEFAULT),
+      sidebarOpen: ws?.sidebarOpen ?? true,
       sort: ws?.sort ?? 'date',
     })
   },
@@ -137,12 +163,13 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
         return { ...p, tabs, active: documentId }
       }),
       focusedPaneId: paneId,
+      draft: null,
       reveal: opts?.line ? { documentId, line: opts.line, nonce: Date.now() } : get().reveal,
     })
   },
 
   activateTab(paneId, documentId) {
-    set({ panes: get().panes.map((p) => (p.id === paneId ? { ...p, active: documentId } : p)), focusedPaneId: paneId })
+    set({ panes: get().panes.map((p) => (p.id === paneId ? { ...p, active: documentId } : p)), focusedPaneId: paneId, draft: null })
   },
 
   // Closing a tab activates its neighbour. Closing the last tab closes the
@@ -162,7 +189,7 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   },
 
   focusPane(paneId) {
-    if (get().focusedPaneId !== paneId) set({ focusedPaneId: paneId })
+    if (get().focusedPaneId !== paneId) set({ focusedPaneId: paneId, draft: null })
   },
 
   // Split opens the current document in a new pane (6f): a new column to
@@ -178,31 +205,51 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     if (next) set({ panes: next, focusedPaneId: pane.id })
   },
 
+  // Opens a document beside the focused pane (the palette's ⌘↵): where
+  // split would put it, or in the focused pane when the grid is full.
+  openBeside(documentId) {
+    const { panes, focusedPaneId } = get()
+    const edge = splitEdge(panes, focusedPaneId)
+    if (!edge) return get().openDocument(documentId)
+    const pane: PaneLayout = { id: newPaneId(), tabs: [documentId], active: documentId }
+    const next = insertPane(panes, focusedPaneId, edge, pane)
+    if (next) set({ panes: next, focusedPaneId: pane.id })
+  },
+
   // Render (2g, Cmd/Ctrl+Shift+V) toggles the focused document's rendered
-  // view — a tab ("render:" + id), movable like any other. Opening puts it in
-  // a new pane where split would (right, else below), or, with no room, as a
-  // tab in the neighbouring pane; focus stays put. Pressed again, from the editor or
+  // view — a tab ("render:" + id), movable like any other. By default it
+  // opens as a new tab beside the editor's, in the same pane; with settings →
+  // editor → rendered view set to "split", in a new pane where split would
+  // put it (right, else below), or, with no room, as a tab in the
+  // neighbouring pane, focus staying put. Pressed again, from the editor or
   // the rendered tab, every rendered tab of that document closes.
   toggleRender() {
     const { panes, focusedPaneId } = get()
-    const i = panes.findIndex((p) => p.id === focusedPaneId)
-    const active = panes[i]?.active
+    const active = panes.find((p) => p.id === focusedPaneId)?.active
     if (!active || isDiffTab(active)) return
     const rid = renderTab(docIdOf(active))
     if (panes.some((p) => p.tabs.includes(rid))) {
       for (const p of get().panes) if (p.tabs.includes(rid)) get().closeTab(p.id, rid)
       return
     }
-    const edge = splitEdge(panes, focusedPaneId)
-    const next = edge && insertPane(panes, focusedPaneId, edge, { id: newPaneId(), tabs: [rid], active: rid })
-    if (next) return set({ panes: next })
-    const j = i + 1 < panes.length ? i + 1 : i - 1
-    set({
-      panes: panes.map((p, k) => {
-        if (k !== j) return p
-        const at = p.active ? p.tabs.indexOf(p.active) + 1 : p.tabs.length
-        return { ...p, tabs: [...p.tabs.slice(0, at), rid, ...p.tabs.slice(at)], active: rid }
-      }),
+    void getSettings().then(({ renderIn }) => {
+      const { panes, focusedPaneId } = get()
+      const i = panes.findIndex((p) => p.id === focusedPaneId)
+      if (i === -1 || panes.some((p) => p.tabs.includes(rid))) return
+      const besideIn = (j: number, focus: boolean) =>
+        set({
+          panes: panes.map((p, k) => {
+            if (k !== j) return p
+            const at = p.active ? p.tabs.indexOf(p.active) + 1 : p.tabs.length
+            return { ...p, tabs: [...p.tabs.slice(0, at), rid, ...p.tabs.slice(at)], active: rid }
+          }),
+          ...(focus ? { focusedPaneId: panes[j].id } : {}),
+        })
+      if ((renderIn ?? 'tab') === 'tab') return besideIn(i, true)
+      const edge = splitEdge(panes, focusedPaneId)
+      const next = edge && insertPane(panes, focusedPaneId, edge, { id: newPaneId(), tabs: [rid], active: rid })
+      if (next) return set({ panes: next })
+      besideIn(i + 1 < panes.length ? i + 1 : Math.max(0, i - 1), false)
     })
   },
 
@@ -264,6 +311,21 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   },
 
   setSidebarWidth: (px) => set({ sidebarWidth: clampWidth(px) }),
+  toggleSidebar: () => set({ sidebarOpen: !get().sidebarOpen }),
+  enterAiMode() {
+    const { panes, focusedPaneId, aiMode } = get()
+    if (aiMode) return
+    const pane = panes.find((p) => p.id === focusedPaneId)
+    const tab = pane?.active
+    if (!pane || !tab || isDiffTab(tab)) return
+    const documentId = docIdOf(tab)
+    set({ aiMode: { documentId, paneId: pane.id, parked: { panes, focusedPaneId } }, panes: parkFor(panes, pane.id, documentId), focusedPaneId: pane.id })
+  },
+  leaveAiMode() {
+    const { aiMode, panes } = get()
+    if (!aiMode) return
+    set({ aiMode: null, panes: tidy(unpark(aiMode.parked, panes, aiMode.paneId)), focusedPaneId: aiMode.paneId })
+  },
   toggleSort: () => set({ sort: get().sort === 'date' ? 'name' : 'date' }),
   toggleColor(color) {
     const next = new Set(get().colorFilter)
@@ -274,6 +336,15 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   clearColorFilter: () => set({ colorFilter: new Set() }),
   setSearch: (open, query) => set({ searchOpen: open, searchQuery: open ? (query ?? get().searchQuery) : '' }),
   setRenaming: (id) => set({ renamingId: id }),
+  // Its name field should be visible: a filter or an open search would hide
+  // the row.
+  startDraft() {
+    const ws = get()
+    ws.clearColorFilter()
+    ws.setSearch(false)
+    set({ draft: { paneId: ws.focusedPaneId, nonce: Date.now() }, renamingId: null })
+  },
+  cancelDraft: () => get().draft && set({ draft: null }),
   setCursor: (c) => set({ cursor: c }),
   showToast: (t) => set({ toast: t }),
 }))
@@ -283,11 +354,15 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
 let saveTimer: ReturnType<typeof setTimeout> | undefined
 useWorkspace.subscribe((s, prev) => {
   if (!s.loaded) return
-  if (s.panes === prev.panes && s.focusedPaneId === prev.focusedPaneId && s.sidebarWidth === prev.sidebarWidth && s.sort === prev.sort) return
+  if (s.panes === prev.panes && s.focusedPaneId === prev.focusedPaneId && s.sidebarWidth === prev.sidebarWidth && s.sidebarOpen === prev.sidebarOpen && s.sort === prev.sort) return
   clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
-    const { panes, focusedPaneId, sidebarWidth, sort } = useWorkspace.getState()
-    void db.workspace.put({ id: 'workspace', panes, focusedPaneId, sidebarWidth, sort })
+    const { panes: live, focusedPaneId: liveFocus, sidebarWidth, sidebarOpen, sort, aiMode } = useWorkspace.getState()
+    // In AI mode the saved layout is the one leaving would restore, so a
+    // reload never loses the parked panes.
+    const panes = aiMode ? tidy(unpark(aiMode.parked, live, aiMode.paneId)) : live
+    const focusedPaneId = aiMode ? aiMode.paneId : liveFocus
+    void db.workspace.put({ id: 'workspace', panes, focusedPaneId, sidebarWidth, sidebarOpen, sort })
   }, 200)
 })
 

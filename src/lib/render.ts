@@ -1,6 +1,8 @@
 import { highlightCode, tagHighlighter } from '@lezer/highlight'
 import type { Marked, Token, TokensList } from 'marked'
 import { CODE_GROUPS, findCodeLanguage } from './code'
+import { markSource, unmarkHtml } from './annotatedSource'
+import type { Annotation } from './db'
 import { directionOf, lineDirections, type DirSetting } from './direction'
 import { diagramHtml, loadDiagrams, type DiagramTheme } from './diagrams'
 import { loadMath, mathExtension } from './math'
@@ -44,6 +46,10 @@ export interface RenderOptions {
   // editor shows — and only right-to-left blocks are marked, so an English
   // document renders exactly as before.
   dir?: DirSetting
+  // Highlights, underlines and notes (Phase 16), drawn as spans through
+  // lib/annotatedSource.ts. Notes as footnotes: the PDF's "+ notes".
+  annotations?: Annotation[]
+  footnotes?: boolean
 }
 
 // Farsi emphasis stays upright and goes bolder (Farsi design): Arabic-script
@@ -152,6 +158,20 @@ export async function renderBlocks(md: string, opts: RenderOptions = {}): Promis
   // in the other theme can't interleave.
   theme = opts.theme ?? 'light'
   itemDirs = (opts.dir ?? 'auto') === 'auto'
+  // Annotations ride through the parse as invisible markers; every block's
+  // HTML turns them into spans (and notes into footnotes, for print).
+  const list = opts.annotations ?? []
+  const notes = opts.footnotes ? list.filter((a) => a.kind === 'note' && a.body?.trim()).sort((a, b) => a.to - b.to) : []
+  const marked = list.length ? markSource(md, list, notes) : null
+  if (marked) md = marked.text
+  const byId = new Map(list.map((a) => [a.id, a]))
+  const open = (i: number) => {
+    const ids = marked!.pieces[i]?.ids ?? []
+    const cls = ids.map((id) => byId.get(id)).map((a) => (a?.kind === 'highlight' ? `jot-hl jot-hl-${a.color ?? 1}` : a?.kind === 'underline' ? 'jot-ul' : 'jot-note'))
+    return `<span class="${[...new Set(cls)].join(' ')}">`
+  }
+  const call = (i: number) => (notes[i] ? `<span class="jot-footnote">${escape(notes[i].body!.trim())}</span>` : '')
+  const finish = (html: string) => (marked ? unmarkHtml(html, open, call) : html)
   const tokens = m.lexer(md)
   const dirs = lineDirections(md, opts.dir ?? 'auto')
   const out: RenderedBlock[] = []
@@ -163,7 +183,7 @@ export async function renderBlocks(md: string, opts: RenderOptions = {}): Promis
       // A token's raw text can start with blank lines; its direction is its
       // first line with text.
       const lead = (token.raw.match(/^(?:[ \t]*\n)*/)?.[0].match(/\n/g) ?? []).length
-      out.push({ line, html: withDir(m.parser(one), dirs[line + lead] === 'rtl' && token.type !== 'code') })
+      out.push({ line, html: withDir(finish(m.parser(one)), dirs[line + lead] === 'rtl' && token.type !== 'code') })
     }
     line += (token.raw.match(/\n/g) ?? []).length
   }

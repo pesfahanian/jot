@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { ReviewFlag } from '@/lib/db'
+import { lineDirections, type DirSetting } from '@/lib/direction'
 import { previewSegments } from '@/review/decor'
 import { kindInfo } from '@/review/kinds'
 import { isNote, isProofing, showsArrow } from '@/review/model'
@@ -80,43 +81,90 @@ const headingLines = (text: string) => {
 }
 const isHeading = (ranges: [number, number][], pos: number) => ranges.some(([a, b]) => pos >= a && pos < b)
 
+// Both panes lay their text out line by line, each line with the direction
+// lib/direction.ts gives it — the same answer as the editor, the rendered
+// view and the PDF — so Farsi reads right-to-left here too. A piece of text
+// that crosses lines is split, each part keeping its flag (the bubble anchors
+// to the first). Zero-length pieces (arrows, deletion stubs) sit in the line
+// they fall on.
+interface Piece {
+  text: string
+  render: (text: string, key: string) => ReactNode
+}
+
+function inLines(pieces: Piece[], setting: DirSetting): ReactNode[] {
+  const dirs = lineDirections(pieces.map((p) => p.text).join(''), setting)
+  const lines: ReactNode[] = []
+  let line: ReactNode[] = []
+  const close = () => {
+    const n = lines.length
+    lines.push(
+      <div key={n} dir={dirs[n] === 'rtl' ? 'rtl' : undefined}>
+        {line.length ? line : <br />}
+      </div>,
+    )
+    line = []
+  }
+  pieces.forEach((p, i) => {
+    if (!p.text) {
+      line.push(p.render('', `${i}`))
+      return
+    }
+    p.text.split('\n').forEach((t, j) => {
+      if (j > 0) close()
+      if (t) line.push(p.render(t, `${i}.${j}`))
+    })
+  })
+  close()
+  return lines
+}
+
 // The left pane renders with no event handlers of any kind — structurally
 // non-interactive (T5.3), not just visually. Bubbles never originate here.
-export function OriginalText({ source, flags, activeKey }: { source: string; flags: ReviewFlag[]; activeKey: string | null }) {
+export function OriginalText({ source, flags, activeKey, dir = 'auto' }: { source: string; flags: ReviewFlag[]; activeKey: string | null; dir?: DirSetting }) {
   const decos: Deco[] = flags.filter((f) => !isNote(f)).map((f) => ({ start: f.spanStart!, end: f.spanEnd!, flag: f }))
   const heads = headingLines(source)
-  const nodes: ReactNode[] = []
+  const pieces: Piece[] = []
   // Heading line ends are cuts too, so weight 600 stops at the line.
   for (const seg of segmentsOf(source, decos, heads.flat())) {
     const text = source.slice(seg.start, seg.end)
     const weight = isHeading(heads, seg.start) ? 600 : undefined
     const f = seg.flag
     if (!f) {
-      nodes.push(
-        <span key={seg.start} style={weight ? { fontWeight: weight } : undefined}>
-          {text}
-        </span>,
-      )
+      pieces.push({
+        text,
+        render: (t, key) => (
+          <span key={key} style={weight ? { fontWeight: weight } : undefined}>
+            {t}
+          </span>
+        ),
+      })
       continue
     }
-    nodes.push(
-      <span key={seg.start} data-flag-key={f.key} style={{ ...originalStyle(f, f.key === activeKey), fontWeight: weight }}>
-        {text}
-      </span>,
-    )
+    pieces.push({
+      text,
+      render: (t, key) => (
+        <span key={key} data-flag-key={f.key} style={{ ...originalStyle(f, f.key === activeKey), fontWeight: weight }}>
+          {t}
+        </span>
+      ),
+    })
     // Trailing arrow: this flag is a replacement — something takes the
     // struck text's place. A pure deletion ("") gets bare strikethrough and
     // never an arrow (the CLS-007 bug).
     const endsHere = decos.filter((d) => d.end === seg.end && showsArrow(d.flag))
     for (const d of endsHere) {
-      nodes.push(
-        <span key={`arrow-${d.flag.key}`} data-arrow-for={d.flag.key} style={{ color: resolved(d.flag) ? 'var(--ink-dim)' : kindInfo(d.flag).ink }}>
-          →
-        </span>,
-      )
+      pieces.push({
+        text: '',
+        render: (_, key) => (
+          <span key={key} data-arrow-for={d.flag.key} style={{ color: resolved(d.flag) ? 'var(--ink-dim)' : kindInfo(d.flag).ink }}>
+            →
+          </span>
+        ),
+      })
     }
   }
-  return <>{nodes}</>
+  return <>{inLines(pieces, dir)}</>
 }
 
 // ── Right pane: result — preview ───────────────────────────────────────────
@@ -144,25 +192,48 @@ export function PreviewText({
   flags,
   activeKey,
   onOpen,
+  dir = 'auto',
 }: {
   source: string
   flags: ReviewFlag[]
   activeKey: string | null
   onOpen: (key: string) => void
+  dir?: DirSetting
 }) {
-  const segments = previewSegments(source, flags)
-  return (
-    <>
-      {segments.map((seg) => {
-        const f = seg.flag
-        if (!f) return <PlainPreview key={`p${seg.sourceStart}`} text={seg.text} sourceStart={seg.sourceStart} source={source} />
-        const focused = f.key === activeKey
-        // A deletion leaves nothing to click: a small stub in the tier ground
-        // marks the point and carries the ring (§1.11).
-        if (seg.text === '' && !resolved(f)) {
-          return (
+  const heads = headingLines(source)
+  const pieces: Piece[] = previewSegments(source, flags).flatMap((seg): Piece[] => {
+    const f = seg.flag
+    if (!f) {
+      // Unflagged text: heading lines at weight 600, judged by where each
+      // line starts in the source.
+      const out: Piece[] = []
+      let at = 0
+      while (at < seg.text.length) {
+        const nl = seg.text.indexOf('\n', at)
+        const end = nl === -1 ? seg.text.length : nl + 1
+        const bold = isHeading(heads, seg.sourceStart + at)
+        out.push({
+          text: seg.text.slice(at, end),
+          render: (t, key) => (
+            <span key={key} style={bold ? { fontWeight: 600 } : undefined}>
+              {t}
+            </span>
+          ),
+        })
+        at = end
+      }
+      return out
+    }
+    const focused = f.key === activeKey
+    // A deletion leaves nothing to click: a small stub in the tier ground
+    // marks the point and carries the ring (§1.11).
+    if (seg.text === '' && !resolved(f)) {
+      return [
+        {
+          text: '',
+          render: (_, key) => (
             <span
-              key={f.key}
+              key={key}
               data-flag-key={f.key}
               role="button"
               tabIndex={0}
@@ -173,11 +244,16 @@ export function PreviewText({
               }}
               style={{ display: 'inline-block', width: 9, height: 14, verticalAlign: -2, borderRadius: 2, background: kindInfo(f).ground, cursor: 'pointer', ...(focused ? ring : {}) }}
             />
-          )
-        }
-        return (
+          ),
+        },
+      ]
+    }
+    return [
+      {
+        text: seg.text,
+        render: (t, key) => (
           <span
-            key={f.key}
+            key={key}
             data-flag-key={f.key}
             role="button"
             tabIndex={0}
@@ -188,29 +264,11 @@ export function PreviewText({
             onKeyDown={(e) => e.key === 'Enter' && onOpen(f.key)}
             style={previewStyle(f, focused)}
           >
-            {seg.text}
+            {t}
           </span>
-        )
-      })}
-    </>
-  )
-}
-
-// Unflagged preview text, with heading lines at weight 600.
-function PlainPreview({ text, sourceStart, source }: { text: string; sourceStart: number; source: string }) {
-  const heads = headingLines(source)
-  const parts: ReactNode[] = []
-  let at = 0
-  while (at < text.length) {
-    const nl = text.indexOf('\n', at)
-    const end = nl === -1 ? text.length : nl + 1
-    const piece = text.slice(at, end)
-    parts.push(
-      <span key={at} style={isHeading(heads, sourceStart + at) ? { fontWeight: 600 } : undefined}>
-        {piece}
-      </span>,
-    )
-    at = end
-  }
-  return <>{parts}</>
+        ),
+      },
+    ]
+  })
+  return <>{inLines(pieces, dir)}</>
 }

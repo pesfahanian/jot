@@ -1,10 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { JotDocument } from '@/lib/db'
-import { shortcutKey } from '@/lib/keys'
+import { isCommandKey, keyOfEvent, normKey } from '@/lib/shortcuts'
+import { commandContext, commandForKey } from '@/state/commands'
+import { useUi } from '@/state/ui'
 import { cn } from '@/lib/utils'
-import { importFiles, newDocument } from '@/state/actions'
+import { importFiles, pickImport } from '@/state/actions'
 import { useWorkspace } from '@/state/workspace'
-import { KeyPanel } from '@/components/review/KeyPanel'
+import { SettingsModal } from '@/components/settings/SettingsModal'
+import { CommandPalette } from './CommandPalette'
+import { ChatPanel } from '@/components/ai/ChatPanel'
+import { NotePopover } from '@/components/annotations/NotePopover'
+import { SelectionMenu } from '@/components/annotations/SelectionMenu'
+import { TranslatePopover } from '@/components/annotations/TranslatePopover'
 import { PaneEmpty } from './EditorPane'
 import { PaneGrid } from './PaneGrid'
 import { Sidebar } from './Sidebar'
@@ -44,12 +51,17 @@ function FirstRun() {
         <div className="flex items-center gap-3.5">
           <button
             type="button"
-            onClick={() => void newDocument()}
+            onClick={() => useWorkspace.getState().startDraft()}
             className="flex h-7 items-center rounded-md bg-primary px-[13px] font-mono text-[12px] font-semibold text-primary-foreground hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             new document
           </button>
-          <span className="font-mono text-[11.5px] text-muted-foreground">or drop .md files anywhere</span>
+          <span className="font-mono text-[11.5px] text-muted-foreground">
+            or drop .md files anywhere, or{' '}
+            <button type="button" onClick={() => pickImport('files')} className="underline underline-offset-2 hover:text-foreground">
+              import…
+            </button>
+          </span>
         </div>
       </PaneEmpty>
     </section>
@@ -58,27 +70,43 @@ function FirstRun() {
 
 export function Shell({ docs }: { docs: JotDocument[] }) {
   const panes = useWorkspace((s) => s.panes)
+  const sidebarOpen = useWorkspace((s) => s.sidebarOpen)
+  const aiMode = useWorkspace((s) => s.aiMode)
+  const draft = useWorkspace((s) => !!s.draft)
   const docsById = useMemo(() => new Map(docs.map((d) => [d.id, d])), [docs])
   const [dropping, setDropping] = useState(false)
 
-  // App-wide keys, captured before anything else sees them, wherever focus is:
-  //   Cmd/Ctrl+S        does nothing — every edit already persists (ADR-008),
-  //                     and the browser's "Save as" would only save the page
-  //   Cmd/Ctrl+Shift+V  toggles the rendered view, as VSCode's preview
-  //                     (replaces Chrome's "paste as plain text", which a
-  //                     plain-text editor never needs)
+  // App-wide keys, captured before anything else sees them, wherever focus
+  // is — so a command's key wins over the editor's (the shortcut editor
+  // warns before taking one of its keys). Cmd/Ctrl+S does nothing: every
+  // edit already persists (ADR-008), and the browser's "Save as" would only
+  // save the page. Every other key comes from the command registry
+  // (state/commands.ts), with the person's own choices.
   useEffect(() => {
-    const save = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey) || e.altKey) return
-      const key = shortcutKey(e)
-      if (key === 's' && !e.shiftKey) e.preventDefault()
-      if (key === 'v' && e.shiftKey) {
-        e.preventDefault()
-        useWorkspace.getState().toggleRender()
+    const onKey = (e: KeyboardEvent) => {
+      if (useUi.getState().recordingKey) return
+      // Esc leaves AI mode, unless something on top of it (a menu, a
+      // popover, the editor's find panel) is what Esc should close.
+      if (e.key === 'Escape' && useWorkspace.getState().aiMode && !e.defaultPrevented) {
+        const layered =
+          document.querySelector('[data-radix-popper-content-wrapper], [role="dialog"], [role="menu"]') || (e.target as Element).closest?.('.cm-panels, [data-review-view], [data-rename-field]')
+        if (!layered) {
+          e.preventDefault()
+          useWorkspace.getState().leaveAiMode()
+          return
+        }
       }
+      const key = keyOfEvent(e)
+      if (!key || !isCommandKey(key)) return
+      if (key === normKey('Mod-s')) return e.preventDefault()
+      const command = commandForKey(key)
+      if (!command || (command.enabled && !command.enabled(commandContext(undefined)))) return
+      e.preventDefault()
+      e.stopPropagation()
+      command.run()
     }
-    window.addEventListener('keydown', save, { capture: true })
-    return () => window.removeEventListener('keydown', save, { capture: true })
+    window.addEventListener('keydown', onKey, { capture: true })
+    return () => window.removeEventListener('keydown', onKey, { capture: true })
   }, [])
 
   // Drop .md files anywhere to import them (6d).
@@ -120,19 +148,33 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
       <StorageWarning />
       <div className="flex min-h-0 flex-auto">
         {/* The key panel opens beside the sidebar's key row, over the panes. */}
-        <div className="relative flex min-h-0">
-          <Sidebar docs={docs} />
-          <KeyPanel />
-        </div>
-        <SidebarHandle />
+        {/* In AI mode the chat takes the sidebar's slot (round 4, frame 11). */}
+        {aiMode ? (
+          <>
+            <ChatPanel key={aiMode.documentId} documentId={aiMode.documentId} />
+            <div className="w-(--seam) flex-none" />
+          </>
+        ) : (
+          sidebarOpen && (
+            <>
+              <Sidebar docs={docs} />
+              <SidebarHandle />
+            </>
+          )
+        )}
         <div className="relative flex min-w-0 flex-auto">
-          {docs.length === 0 ? <FirstRun /> : <PaneGrid panes={panes} docsById={docsById} />}
+          {docs.length === 0 && !draft ? <FirstRun /> : <PaneGrid panes={panes} docsById={docsById} />}
           <Toast />
         </div>
       </div>
       <div className="relative flex-none">
         <StatusBar docsById={docsById} />
       </div>
+      <SettingsModal />
+      <CommandPalette />
+      <SelectionMenu />
+      <NotePopover />
+      <TranslatePopover />
     </div>
   )
 }

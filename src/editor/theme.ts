@@ -146,7 +146,9 @@ const baseTheme = EditorView.theme({
   '.cm-content ::selection': { backgroundColor: 'var(--mark)' },
   '.cm-searchMatch': { backgroundColor: 'var(--mark)' },
   '.cm-searchMatch.cm-searchMatch-selected': { backgroundColor: 'var(--mark)', outline: '1px solid var(--border-strong)' },
-  '.cm-selectionMatch': { backgroundColor: 'transparent', textDecoration: 'underline', textDecorationColor: 'var(--border-strong)' },
+  // Other places the selected text appears: a faint grey wash, as VSCode
+  // marks them (owner, 2026-10-31) — fainter than the selection itself.
+  '.cm-selectionMatch': { backgroundColor: 'color-mix(in oklab, var(--foreground) 9%, transparent)', borderRadius: '2px' },
   '.cm-matchingBracket, &.cm-focused .cm-matchingBracket': {
     backgroundColor: 'transparent',
     outline: '1px solid var(--border-strong)',

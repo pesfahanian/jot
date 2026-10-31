@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="width: 780px; height: 540px; display: flex; flex-direction: column; background: var(--elev); border: 1px solid var(--pop); border-radius: 12px; color: var(--ink); font-family: 'Public Sans', sans-serif; overflow: hidden">
+  <div style="flex: 0 0 44px; display: flex; align-items: center; gap: 10px; padding: 0 10px 0 18px; border-bottom: 1px solid var(--hair)">
+    <span style="flex: 1 1 auto; font-size: 15px; font-weight: 600; letter-spacing: -0.02em">settings</span>
+    <span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">esc</span>
+    <span style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 14px; color: var(--ink2)">×</span>
+  </div>
+  <div style="flex: 1 1 auto; min-height: 0; display: flex">
+    <div style="flex: 0 0 184px; display: flex; flex-direction: column; gap: 2px; padding: 12px 8px; background: var(--panel); border-right: 1px solid var(--hair); font-size: 13px; color: var(--ink2)">
+      <span style="padding: 4px 10px 2px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">ai</span>
+      <span style="padding: 5px 10px; border-left: 2px solid {{ navAi }}; background: {{ bgAi }}; border-radius: 0 6px 6px 0">ai provider</span>
+      <span style="padding: 5px 10px; border-left: 2px solid transparent">translation</span>
+      <span style="padding: 10px 10px 2px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">app</span>
+      <span style="padding: 5px 10px; border-left: 2px solid transparent">editor</span>
+      <span style="padding: 5px 10px; border-left: 2px solid transparent">appearance</span>
+      <span style="padding: 5px 10px; border-left: 2px solid {{ navKeys }}; background: {{ bgKeys }}; border-radius: 0 6px 6px 0">keyboard shortcuts</span>
+      <span style="padding: 10px 10px 2px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">data</span>
+      <span style="padding: 5px 10px; border-left: 2px solid {{ navStore }}; background: {{ bgStore }}; border-radius: 0 6px 6px 0">storage and backup</span>
+      <span style="padding: 5px 10px; border-left: 2px solid transparent">about</span>
+    </div>
+    <div style="flex: 1 1 auto; min-width: 0; overflow: hidden">
+      <sc-if value="{{ isAi }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 18px; padding: 18px 22px">
+          <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 600; letter-spacing: -0.02em">ai provider</span><span style="font-size: 12.5px; line-height: 1.5; color: var(--ink3); text-wrap: pretty">Calls go straight from this browser to your provider, with your key. Nothing passes through jot.software.</span></div>
+          <div style="display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px 12px; align-items: center; font-family: 'Source Code Pro', monospace; font-size: 11px">
+            <span style="color: var(--ink3)">provider</span>
+            <span style="display: flex; align-items: center; justify-content: space-between; width: 220px; height: 26px; padding: 0 9px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; font-family: 'Public Sans', sans-serif; font-size: 12.5px">OpenRouter<span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">▾</span></span>
+            <span style="color: var(--ink3)">key</span>
+            <span style="display: flex; align-items: center; gap: 6px"><span style="flex: 1 1 auto; display: flex; align-items: center; height: 26px; padding: 0 9px; border: 1px solid var(--hair); background: var(--inset); border-radius: 6px; font-size: 12px; color: var(--ink)">sk-or-v1-••••••••••••••••3f2a</span><span style="display: flex; align-items: center; height: 26px; padding: 0 9px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; color: var(--ink2)">test</span><span style="display: flex; align-items: center; height: 26px; padding: 0 9px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; color: var(--ink2)">clear</span></span>
+            <span></span>
+            <span style="display: flex; align-items: center; gap: 7px; color: var(--ink3)"><span style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent)"></span>key works · tested 2m ago</span>
+            <span style="align-self: start; padding-top: 7px; color: var(--ink3)">model chain</span>
+            <div style="display: flex; flex-direction: column; border: 1px solid var(--hair); border-radius: 6px; overflow: hidden">
+              <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 10px; border-bottom: 1px solid var(--rule)"><span style="color: var(--dim)">⋮⋮</span><span style="width: 14px; color: var(--ink3)">1</span><span style="flex: 1 1 auto; color: var(--ink)">anthropic/claude-sonnet-4.5</span><span style="color: var(--faint)">×</span></div>
+              <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 10px; border-bottom: 1px solid var(--rule)"><span style="color: var(--dim)">⋮⋮</span><span style="width: 14px; color: var(--ink3)">2</span><span style="flex: 1 1 auto; color: var(--ink)">google/gemini-2.5-pro</span><span style="color: var(--faint)">×</span></div>
+              <div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 10px; color: var(--ink2)"><span style="color: transparent">⋮⋮</span><span style="width: 14px">+</span><span>add a fallback model</span></div>
+            </div>
+            <span></span>
+            <span style="font-family: 'Public Sans', sans-serif; font-size: 12px; line-height: 1.45; color: var(--ink3); text-wrap: pretty">If the first model fails, jot tries the next, in order.</span>
+          </div>
+          <div style="height: 1px; background: var(--rule)"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 600; letter-spacing: -0.02em">translation</span><span style="font-size: 12.5px; line-height: 1.5; color: var(--ink3); text-wrap: pretty">A Google Cloud Translation key, used only to translate a selection. Separate from the AI provider; no AI is involved.</span></div>
+          <div style="display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px 12px; align-items: center; font-family: 'Source Code Pro', monospace; font-size: 11px">
+            <span style="color: var(--ink3)">key</span>
+            <span style="display: flex; align-items: center; gap: 6px"><span style="flex: 1 1 auto; display: flex; align-items: center; height: 26px; padding: 0 9px; border: 1px solid var(--hair); background: var(--inset); border-radius: 6px; font-size: 12px; color: var(--dim)">paste a key</span><span style="display: flex; align-items: center; height: 26px; padding: 0 9px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; color: var(--dim)">test</span></span>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isStore }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 18px; padding: 18px 22px">
+          <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 600; letter-spacing: -0.02em">storage and backup</span><span style="font-size: 12.5px; line-height: 1.5; color: var(--ink3); text-wrap: pretty">Each browser keeps its own separate workspace. Documents written in this browser are not visible in another one, or in a private window.</span></div>
+          <div style="display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; align-items: center; font-family: 'Source Code Pro', monospace; font-size: 11px">
+            <span style="color: var(--ink3)">this browser</span>
+            <span style="display: flex; align-items: center; gap: 8px; color: var(--ink)"><span style="width: 6px; height: 6px; border-radius: 50%; background: var(--ink2)"></span>persistent<span style="color: var(--faint)">· the browser won't clear it to free space</span></span>
+            <span style="color: var(--ink3)">used</span>
+            <span style="display: flex; flex-direction: column; gap: 5px"><span style="color: var(--ink)">4.2 MB <span style="color: var(--faint)">· 38 documents · 112 notes</span></span><span style="width: 260px; height: 4px; background: var(--hover); border-radius: 2px"><span style="display: block; width: 6px; height: 4px; background: var(--ink2); border-radius: 2px"></span></span></span>
+          </div>
+          <div style="height: 1px; background: var(--rule)"></div>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; align-items: center; gap: 12px"><span style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 500">export the workspace</span><span style="font-size: 12px; color: var(--ink3)">Every document as markdown, notes and highlights included, in one .zip.</span></span><span style="display: flex; align-items: center; height: 26px; padding: 0 9px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2)">export .zip</span></div>
+            <div style="display: flex; align-items: center; gap: 12px"><span style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 500">import</span><span style="font-size: 12px; color: var(--ink3)">Markdown or text files, a folder, or a jot .zip. Imports add documents; nothing is replaced.</span></span><span style="display: flex; align-items: center; height: 26px; padding: 0 9px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2)">import…</span></div>
+          </div>
+          <div style="height: 1px; background: var(--rule)"></div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 15px; font-weight: 600; letter-spacing: -0.02em">about</span>
+            <div style="display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 7px 12px; font-family: 'Source Code Pro', monospace; font-size: 11px">
+              <span style="color: var(--ink3)">version</span><span>0.9.4 · 12 Oct 2026</span>
+              <span style="color: var(--ink3)">licence</span><span>MIT</span>
+              <span style="color: var(--ink3)">links</span><span style="display: flex; gap: 14px; color: var(--ink2)"><span style="text-decoration: underline; text-underline-offset: 3px">the guide</span><span style="text-decoration: underline; text-underline-offset: 3px">source on github</span></span>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isKeys }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 12px; padding: 18px 22px">
+          <div style="display: flex; align-items: center; gap: 10px"><span style="flex: 1 1 auto; font-size: 15px; font-weight: 600; letter-spacing: -0.02em">keyboard shortcuts</span><span style="display: flex; align-items: center; height: 24px; padding: 0 8px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2)">reset all</span></div>
+          <span style="display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 9px; border: 1px solid var(--hair); background: var(--inset); border-radius: 6px; font-size: 12.5px; color: var(--dim)">search commands or keys</span>
+          <div style="display: flex; flex-direction: column; font-size: 12.5px">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 44px; gap: 10px; align-items: center; height: 32px; padding: 0 4px; border-bottom: 1px solid var(--rule)"><span>command palette</span><span style="display: flex; gap: 4px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="padding: 2px 6px; border: 1px solid var(--hair); border-radius: 4px; background: var(--canvas)">⌘K</span></span><span></span></div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 44px; gap: 10px; align-items: center; height: 32px; padding: 0 4px; border-bottom: 1px solid var(--rule)"><span>toggle sidebar</span><span style="display: flex; gap: 4px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="padding: 2px 6px; border: 1px solid var(--hair); border-radius: 4px; background: var(--canvas)">⌘B</span></span><span></span></div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 44px; gap: 10px; align-items: center; height: 32px; padding: 0 4px; border-bottom: 1px solid var(--rule)"><span>ai mode</span><span style="display: flex; gap: 4px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="padding: 2px 6px; border: 1px solid var(--hair); border-radius: 4px; background: var(--canvas)">⌘J</span></span><span></span></div>
+            <div style="display: flex; flex-direction: column; gap: 8px; padding: 8px 4px 10px; border-bottom: 1px solid var(--rule); background: var(--hover); margin: 0 -4px; padding-left: 8px; padding-right: 8px">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 44px; gap: 10px; align-items: center"><span style="font-weight: 500">highlight</span><span style="display: flex; align-items: center; gap: 4px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="padding: 2px 6px; border: 1px solid var(--accent); border-radius: 4px; background: var(--doc); color: var(--ink); font-weight: 500">⌘B</span><span style="color: var(--faint)">was ⇧⌘H</span></span><span></span></div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink2)"><span style="width: 6px; height: 6px; border-radius: 50%; background: var(--err)"></span><span style="flex: 1 1 auto">⌘B is already <strong style="font-weight: 600; color: var(--ink)">toggle sidebar</strong>. Replace it, and toggle sidebar will have no key.</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--ink); background: var(--ink); border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--doc)">replace</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px">cancel</span></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px; padding: 8px 4px 10px; border-bottom: 1px solid var(--rule)">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 44px; gap: 10px; align-items: center"><span>new document</span><span style="display: flex; align-items: center; gap: 4px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="padding: 2px 6px; border: 1px solid var(--hair); border-radius: 4px; background: var(--canvas)">⌥N</span><span style="color: var(--faint)">edited</span></span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2); text-decoration: underline; text-underline-offset: 3px">reset</span></div>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 44px; gap: 10px; align-items: center; height: 32px; padding: 0 4px; border-bottom: 1px solid var(--rule)"><span>add note</span><span style="display: flex; gap: 4px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="padding: 2px 6px; border: 1px solid var(--hair); border-radius: 4px; background: var(--canvas)">⌥⌘M</span></span><span></span></div>
+            <div style="display: flex; flex-direction: column; gap: 8px; padding: 8px 4px 10px; border-bottom: 1px solid var(--rule)">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 44px; gap: 10px; align-items: center"><span>close tab</span><span style="display: flex; align-items: center; gap: 4px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="padding: 2px 6px; border: 1px solid var(--accent); border-radius: 4px; background: var(--doc); font-weight: 500">⌘W</span></span><span></span></div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink2)"><span style="width: 6px; height: 6px; border-radius: 50%; background: var(--amber)"></span><span style="flex: 1 1 auto">The browser uses ⌘W to close its own tab and won't hand it to jot.</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--dim)">replace</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px">cancel</span></div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:800,&quot;height&quot;:560},&quot;section&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ai&quot;,&quot;storage&quot;,&quot;shortcuts&quot;],&quot;default&quot;:&quot;ai&quot;,&quot;tsType&quot;:&quot;'ai'|'storage'|'shortcuts'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.section ?? 'ai';
+    const on = k => s === k;
+    const m = k => on(k) ? 'var(--accent)' : 'transparent';
+    const b = k => on(k) ? 'var(--hover)' : 'transparent';
+    return { isAi: on('ai'), isStore: on('storage'), isKeys: on('shortcuts'),
+      navAi: m('ai'), bgAi: b('ai'), navStore: m('storage'), bgStore: b('storage'), navKeys: m('shortcuts'), bgKeys: b('shortcuts') };
+  }
+}
+</script>
+</body>
+</html>

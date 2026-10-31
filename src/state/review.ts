@@ -52,6 +52,11 @@ interface ReviewState {
   openKeyPanel(reason: 'cell' | 'review', documentId?: string, force?: boolean): void
   closeKeyPanel(): void
   setKeyTesting(v: boolean): void
+  // AI mode (Phase 17): proposals from the chat join the document's results
+  // — added to the open session when there is one (re-anchored if the text
+  // moved on), else a session of their own — and the results open.
+  addProposals(documentId: string, source: string, flags: ReviewSession['flags'], model: string): Promise<void>
+  openResults(documentId: string): Promise<void>
 }
 
 const liveText = async (documentId: string) => openContent(documentId) ?? (await getDocument(documentId))?.content ?? ''
@@ -90,11 +95,16 @@ export const useReview = create<ReviewState>()((set, get) => ({
   async requestReview(documentId) {
     if (get().runs[documentId]?.state === 'running') return
     const existing = await get().loadSession(documentId)
-    if (existing) {
+    // Results holding only AI mode's proposals aren't a review yet: the
+    // review runs, and the proposals stay beside its findings.
+    const reviewed = existing?.flags.some((f) => f.family !== 'chat')
+    if (existing && reviewed) {
       const verdict = standing(existing.source, existing.flags, await liveText(documentId))
       if (verdict === 'current') return openHere(documentId)
       if (verdict === 'stale') return
-      await get().discardSession(documentId)
+      // A spent review gives way — but AI mode's proposals in it stay (run
+      // carries them into the new results).
+      if (!existing.flags.some((f) => f.family === 'chat')) await get().discardSession(documentId)
     }
     // Text there's nothing to judge in is declined before a key is asked for.
     const text = await liveText(documentId)
@@ -154,7 +164,10 @@ export const useReview = create<ReviewState>()((set, get) => ({
         noteIfAway('done')
         return
       }
-      const session = result
+      // Proposals from AI mode's chat already in the results come along.
+      const before = get().sessions[documentId] ?? (await db.reviewSessions.get(documentId))
+      const proposals = before ? reanchor(before, result.source).flags.filter((f) => f.family === 'chat') : []
+      const session = { ...result, flags: [...result.flags, ...proposals] }
       // The document may have been edited while the call ran; anchor the
       // flags to what it says now.
       const now = reanchor(session, await liveText(documentId))
@@ -251,6 +264,28 @@ export const useReview = create<ReviewState>()((set, get) => ({
   openKeyPanel: (reason, documentId, force) => set({ keyPanel: { open: true, reason, documentId, force } }),
   closeKeyPanel: () => set({ keyPanel: { open: false, reason: 'cell' } }),
   setKeyTesting: (v) => set({ keyTesting: v }),
+
+  async addProposals(documentId, source, flags, model) {
+    const existing = await get().loadSession(documentId)
+    const base = existing ? reanchor(existing, source) : null
+    const session: ReviewSession = base
+      ? { ...base, source, flags: [...base.flags, ...flags] }
+      : { documentId, rulesetVersion: 'ai mode', model, source, createdAt: Date.now(), flags }
+    await db.reviewSessions.put(session)
+    set({ sessions: { ...get().sessions, [documentId]: session } })
+  },
+
+  async openResults(documentId) {
+    const session = await get().loadSession(documentId)
+    if (!session) return
+    const text = await liveText(documentId)
+    if (session.source !== text) {
+      const moved = reanchor(session, text)
+      await db.reviewSessions.put(moved)
+      set({ sessions: { ...get().sessions, [documentId]: moved } })
+    }
+    openHere(documentId)
+  },
 }))
 
 function skipped(documentId: string, reason: string, by: 'jot' | 'model', text: string) {

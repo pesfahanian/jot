@@ -27,11 +27,11 @@ Everything is saved as you type. There's no save button, and Cmd/Ctrl + S does n
 
 Cmd/Ctrl + Shift + I tidies the whole document: bullets, emphasis and table columns. One undo reverses it.
 
-The icon at the far left of the bar at the bottom shows or hides the minimap.
+The icon at the far right of the bar at the bottom shows or hides the minimap.
 
 ## seeing it rendered
 
-Press Cmd/Ctrl + Shift + V to open the rendered view beside this one. It scrolls along with the editor.
+Press Cmd/Ctrl + Shift + V to open the rendered view in a tab beside this one (or in a split: settings → editor). It scrolls along with the editor.
 
 Math is written in LaTeX, inline like $a^2 + b^2 = c^2$ or on its own:
 
@@ -58,33 +58,50 @@ def greet(name):
 | Cmd/Ctrl + Shift + V | rendered view |
 | Cmd/Ctrl + Shift + I | format the document |
 | Cmd/Ctrl + F | find and replace |
+| Cmd/Ctrl + K | the command palette: every command, and any document by name |
+| Cmd/Ctrl + B | hide or show the sidebar |
 
 ## organising
 
-- The sidebar holds your documents. **+** makes a new one, and the icons beside it sort, filter by colour tag and search.
+- The sidebar holds your documents. **+** makes a new one; beside it are search, and one button to sort and filter by colour tag. The last icon (or Cmd/Ctrl + B) hides the sidebar, or brings it back.
+- The gear at the bottom of the sidebar (Cmd/Ctrl + ,) opens settings: your AI provider, the theme, animations, keyboard shortcuts, import and your storage. Every shortcut can be changed there.
+- **+** asks for a name first: type one and press Enter, or just click into the empty page to start writing. Esc, or clicking elsewhere, makes nothing. An unnamed document names itself after its first line as you write; rename it and the name stays.
 - Right-click a document to tag it with a colour, rename, pin or delete it. Double-click it to rename.
 - Drag tabs to reorder them, or onto another pane. Drop one on a pane's left or right edge for a new column, or on its top or bottom edge to stack two panes, up to three columns of two. Documents drag in from the sidebar too.
 - Drag the gaps between panes to resize them. Double-click a gap to even it out.
-- Drop .md files anywhere to import them. The **export** menu saves Markdown, plain text or PDF (with page, font and colour options), and, set apart below those, the whole workspace as one .zip.
-- The **+** at the end of the tabs makes a new document, as in a browser.
+- Drop .md files anywhere to import them, or pick files or a whole folder in settings → storage and backup, where the whole workspace exports as one .zip too. The export icon at the top right of a document saves it as Markdown, plain text or PDF (with page, font and colour options).
+- The **+** at the end of the tabs makes a new document, as in a browser. So does double-clicking the empty space beside the tabs, or below the documents in the sidebar.
+
+## marking it up
+
+Select some text and right-click it for Jot's own menu:
+
+- **highlight** it in one of three colours, or **underline** it. These are marks on the page, like a highlighter on a printout, not part of your markdown.
+- **add note** pins a note of your own to the text. A dotted underline and a small square in the margin show where; click either to read or edit it. **notes** in the status bar lists them all.
+- **translate** shows the selection in English or Farsi, through Google Translate with your own key (settings → translation). No AI is involved, and replacing your text is a separate click.
+
+Highlights and notes show in the rendered view too. In a PDF they print if you ask (the PDF card's **annotations** row), with notes as footnotes. Markdown export can keep them as ==highlights== and footnotes.
+
+Turn on **auto-fix spelling** in settings, and clear typos (teh, recieve, definately) get fixed a couple of words behind you as you write. It works in English only, never touches a real word, and Cmd/Ctrl + Z undoes a fix.
 
 ## comparing
 
-To see what changed between two texts, right-click a document and choose **compare with…**, or press the two-panel icon at the top of the sidebar. Each side can be a document or pasted text. Both sides stay editable, and the differences update as you type.
+To see what changed between two texts, right-click a document and choose **compare with…**, or right-click the tabs and choose **new comparison**. Each side can be a document or pasted text. Both sides stay editable, and the differences update as you type.
 
 ## writing in farsi
 
 Farsi works as naturally as English. Each paragraph, list or table reads right-to-left or left-to-right by its own majority script, while code, links and formulas inside Farsi text keep reading left-to-right. When a document has Farsi in it, the **dir** cell in the bar at the bottom shows the direction, and can set the whole document right-to-left or left-to-right instead. For a diagram that flows right-to-left, write **flowchart RL**.
 
-## the style review
+## ai mode
 
-jot can review your prose against a style guide, using your own AI key.
+jot can work on a document with AI, using your own key. Your text goes straight from this browser to your provider; nothing passes through jot.
 
-1. Click **AI Provider** at the bottom of the sidebar, pick a provider (OpenRouter, Google AI Studio, OpenAI or Anthropic) and add your key. Below the key you can choose the model, and fallbacks to try if it's busy.
-2. Press **review style** in the bar at the bottom.
-3. Click each marked passage to accept, reject or rewrite it. Nothing changes until you press **apply**.
+1. Open **settings** at the bottom of the sidebar, pick a provider (OpenRouter, Google AI Studio, OpenAI or Anthropic) and add your key. Below the key you can choose the model, and fallbacks to try if it's busy.
+2. Press the sparkle at the bottom left (or Cmd/Ctrl + J). A chat opens where the sidebar was; Esc leaves, and your other panes come back as they were.
+3. Ask a question, or ask for a change ("make the intro friendlier"). To point at a passage, select it, right-click and choose **add ai note**; notes go with your next message. Switch on **my notes as context** to send your own notes along too.
+4. Changes come back as proposals. Open the results to accept, reject or rewrite each one, or switch to **diff** to see the whole result. Nothing changes until you press **apply**.
 
-The review reads English and Farsi, each against its own style guide. The **?** beside the review's colour key explains each kind of suggestion. Very short documents, or ones that are all code, are skipped; **review anyway** overrides that.
+From the chat you can also run **review style**, which checks your prose against a style guide (English or Farsi). Very short documents, or ones that are all code, are skipped; **review anyway** overrides that. **translate document** writes a translation into a new document beside this one, section by section. The conversation is kept with its document, in this browser.
 
 ## where your writing lives
 
@@ -96,14 +113,15 @@ That makes this browser the only copy. Each browser, profile and installed app k
 // Once per app load: guards React's double-run of effects in development.
 let firstRun: Promise<void> | undefined
 
-// Runs when the document list is first known. Creates the welcome document
-// on a true first run; marks an existing workspace as already welcomed.
+// Runs when the document list is first known. Creates the welcome document,
+// pinned, on a true first run; marks an existing workspace as already welcomed.
 export function welcomeIfFirstRun(documentCount: number): Promise<void> {
   firstRun ??= (async () => {
     const settings = await getSettings()
     if (settings.welcomedAt) return
     if (documentCount > 0) return void (await updateSettings({ welcomedAt: Date.now() }))
-    const doc = await createDocument({ title: WELCOME_TITLE, content: WELCOME_CONTENT })
+    // Pinned, so it stays at the top while the first documents arrive.
+    const doc = await createDocument({ title: WELCOME_TITLE, content: WELCOME_CONTENT, pinned: true })
     await updateSettings({ welcomedAt: Date.now(), welcomeDocId: doc.id })
   })()
   return firstRun

@@ -108,8 +108,10 @@ export function Bubble({
     // Tier 1: rationale shown directly, no before/after (the change is
     // already visible across the panes). Tier 1b: before/after quoted,
     // rationale behind the "?".
+    // A proposal (AI mode) shows its before / after and why, the way the
+    // chat explained it.
     body =
-      flag.family === 'tier1b' ? (
+      flag.family === 'tier1b' || flag.family === 'chat' ? (
         <div className="flex flex-col gap-px border-b border-border px-3 py-2.5 font-mono text-[12.5px] leading-relaxed">
           <div className="flex gap-2.5">
             <span className="w-11 flex-none text-[11px] text-muted-foreground">before</span>
@@ -119,6 +121,7 @@ export function Bubble({
             <span className="w-11 flex-none text-[11px] text-muted-foreground">after</span>
             <span className="text-foreground">{flag.after === '' ? '(deleted)' : flag.after}</span>
           </div>
+          {flag.family === 'chat' && flag.rationale && <div className="pt-1.5 font-sans text-[12.5px] text-secondary-foreground">{flag.rationale}</div>}
         </div>
       ) : (
         <div className="border-b border-border px-3 py-2.5 text-[12.5px] leading-relaxed text-foreground">{flag.rationale}</div>

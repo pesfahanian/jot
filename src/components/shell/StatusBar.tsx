@@ -16,6 +16,8 @@ import { useNow } from '@/state/hooks'
 import { useReview } from '@/state/review'
 import { columnsOf, docIdOf } from '@/state/layout'
 import { focusedPane, useWorkspace } from '@/state/workspace'
+import { NotesCell } from '@/components/annotations/NotesCell'
+import { modelChain, PROVIDERS } from '@/review/providers'
 
 // Counts hug their values and pack against the bar's right edge (§1.8:
 // every number is monospace, tabular). The cursor, which changes width on
@@ -194,6 +196,9 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
     // A spent review is replaced on the next click; until then the control
     // reads as a plain "review style".
     const live = verdict === 'current' || verdict === 'stale'
+    // Round 4: the style review is started from AI mode; here the control
+    // only reports a review in flight or one waiting to be resumed.
+    if (!live) return null
     const decided = session ? session.flags.filter((f) => f.status !== 'pending').length : 0
     const button = (
       <button
@@ -228,8 +233,46 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
   return <div className="flex min-w-0 flex-auto items-center px-[5px] whitespace-nowrap">{body}</div>
 }
 
-// The left block never shrinks below what the minimap toggle and the review
-// control's widest state ("review outdated", the skipped chip) need.
+// Into AI mode (round 4): the status bar's left end, where the style
+// review control was.
+// An icon, named on hover (owner, 2026-10-31: icons over labels).
+function AiModeButton({ disabled }: { disabled: boolean }) {
+  return (
+    <div className="flex items-center px-[5px]">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => useWorkspace.getState().enterAiMode()}
+        title="ai mode"
+        aria-label="ai mode"
+        className="flex h-5 w-7 items-center justify-center rounded-[5px] border border-border bg-background text-primary hover:bg-hover-lift disabled:pointer-events-none disabled:text-ink-dim"
+      >
+        <Sparkles size={12} strokeWidth={1.75} aria-hidden />
+      </button>
+    </div>
+  )
+}
+
+// In AI mode: how to leave, and what the AI runs on.
+function AiModeStatus() {
+  const settings = useLiveQuery(() => getSettings(), [])
+  const provider = settings?.provider ?? 'openrouter'
+  const model = settings ? modelChain(settings.models, provider)[0] : ''
+  return (
+    <div className="flex min-w-0 items-center gap-2 px-2.5 whitespace-nowrap">
+      <button type="button" onClick={() => useWorkspace.getState().leaveAiMode()} className="flex flex-none items-center gap-[7px] text-foreground hover:underline">
+        <span className="size-1.5 rounded-full bg-primary" />
+        ai mode <span className="text-muted-foreground">· leave</span>
+      </button>
+      <span className="truncate text-muted-foreground">
+        {PROVIDERS[provider].label.toLowerCase()} · {model}
+      </span>
+    </div>
+  )
+}
+
+// The left block never shrinks below what the review control's widest
+// state ("review outdated", the skipped chip) needs.
 const LEFT_BLOCK_MIN = 210
 
 // Minimap on/off (Phase 8; in the status bar since the owner moved it), one
@@ -246,7 +289,7 @@ function MinimapToggle() {
       title={`minimap: ${on ? 'on' : 'off'}${on && crowded ? ' (hidden with three columns)' : ''} — click to ${on ? 'hide' : 'show'}`}
       onClick={() => void updateSettings({ minimap: !on })}
       className={cn(
-        'flex w-[30px] flex-none items-center justify-center border-r border-border-subtle hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+        'flex w-[30px] flex-none items-center justify-center border-l border-border-subtle hover:bg-hover-lift hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
         on ? 'text-secondary-foreground' : 'text-ink-dim',
       )}
     >
@@ -258,7 +301,9 @@ function MinimapToggle() {
 export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) {
   const pane = useWorkspace(focusedPane)
   const cursor = useWorkspace((s) => s.cursor)
-  const sidebarWidth = useWorkspace((s) => s.sidebarWidth)
+  const aiMode = useWorkspace((s) => !!s.aiMode)
+  // In AI mode the left block is as wide as the chat (round 4).
+  const sidebarWidth = useWorkspace((s) => (s.aiMode ? 360 : s.sidebarOpen ? s.sidebarWidth : 0))
   // A rendered tab counts as its document.
   const doc = pane?.active ? docsById.get(docIdOf(pane.active)) : undefined
   const text = doc ? (openContent(doc.id) ?? doc.content) : ''
@@ -274,8 +319,14 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
       <div className="flex flex-none items-stretch border-r border-border-subtle" style={{ width: Math.max(sidebarWidth - 1, LEFT_BLOCK_MIN) }}>
         {/* With no document there is nothing to review or count (6d): only
             global state remains. */}
-        <MinimapToggle />
-        {doc && <ReviewControl doc={doc} text={text} />}
+        {aiMode ? (
+          <AiModeStatus />
+        ) : (
+          <>
+            <AiModeButton disabled={!doc} />
+            {doc && <ReviewControl doc={doc} text={text} />}
+          </>
+        )}
       </div>
       <div className="flex-auto" />
       {doc && (
@@ -287,8 +338,11 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
           <Cell label="words" value={groupDigits(c.words)} />
           <Cell label="lines" value={groupDigits(c.lines)} />
           <Cell label="paras" value={groupDigits(c.paras)} className="pr-2.5" />
+          <NotesCell documentId={doc.id} />
         </>
       )}
+      {/* The minimap toggle, at the far right (round 4). */}
+      <MinimapToggle />
     </footer>
   )
 }

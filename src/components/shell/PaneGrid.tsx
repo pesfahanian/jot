@@ -120,8 +120,12 @@ function track(e: React.PointerEvent, move: (ev: PointerEvent) => void) {
     window.removeEventListener('pointermove', move)
     window.removeEventListener('pointerup', up)
     document.body.style.removeProperty('user-select')
+    delete document.body.dataset.resizing
   }
   document.body.style.userSelect = 'none'
+  // Panes follow a dragged seam at once — their size transition is for
+  // panes opening and closing (index.css).
+  document.body.dataset.resizing = ''
   window.addEventListener('pointermove', move)
   window.addEventListener('pointerup', up)
 }

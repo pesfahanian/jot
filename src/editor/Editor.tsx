@@ -15,16 +15,19 @@ import {
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef } from 'react'
 import { getSettings } from '@/lib/settings'
+import { takeTypeAhead } from '@/state/actions'
 import { isLocked, useReview } from '@/state/review'
 import { useWorkspace } from '@/state/workspace'
 import { columnsOf } from '@/state/layout'
 import { markdownWithCode } from './codeLanguages'
 import { minimapCompartment, minimapFor } from './minimap'
-import { editorKeymap } from './keymap'
+import { autofixCompartment, autofixFor } from './autofix'
+import { cutEmptyLastLine, editorKeymap } from './keymap'
 import { getSession } from './sessions'
 import { codeBlockGround, jotEditorTheme } from './theme'
 import { dirCompartment, directionExtension, dirSettingFor } from './direction'
 import { db } from '@/lib/db'
+import { annotationsExtension } from './annotations'
 
 interface EditorProps {
   documentId: string
@@ -71,6 +74,10 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
   dirRef.current = dir
   const minimapRef = useRef(minimapOn)
   minimapRef.current = minimapOn
+  // Auto-fix spelling (Phase 16): off unless turned on in settings.
+  const autofixOn = useLiveQuery(() => getSettings().then((s) => s.autofix ?? false), []) ?? false
+  const autofixRef = useRef(autofixOn)
+  autofixRef.current = autofixOn
 
   useEffect(() => {
     const session = getSession(documentId, initialContent)
@@ -80,6 +87,8 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
         doc: session.content,
         extensions: [
           lineNumbers(),
+          // Note squares sit on the gutter's rule, after the line numbers.
+          annotationsExtension(documentId),
           highlightActiveLineGutter(),
           history(),
           drawSelection(),
@@ -102,11 +111,16 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
           new LanguageSupport(markdownWithCode),
           EditorView.lineWrapping,
           // Real contenteditable text, so the OS/browser spellchecker attaches
-          // to it directly — the reason for CM6 over Monaco (ADR-002).
-          EditorView.contentAttributes.of({ spellcheck: 'true', autocorrect: 'on', autocapitalize: 'off' }),
+          // to it directly — the reason for CM6 over Monaco (ADR-002). Writing
+          // suggestions too (CodeMirror turns them off): Safari shows the
+          // Mac's inline predictions; other browsers get theirs if they add
+          // any (owner, 2026-10-14: on everywhere, to see what happens).
+          EditorView.contentAttributes.of({ spellcheck: 'true', autocorrect: 'on', autocapitalize: 'off', writingsuggestions: 'true' }),
           keymap.of(editorKeymap),
+          cutEmptyLastLine,
           jotEditorTheme,
           minimapCompartment.of(minimapFor(minimapRef.current)),
+          autofixCompartment.of(autofixFor(autofixRef.current)),
           directionExtension(dirRef.current),
           themeMode.of(themeModeFor(isDark())),
           lock.of(lockFor(isLocked(useReview.getState().openIn, documentId))),
@@ -124,6 +138,9 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
       if (!isRenaming(documentId)) view.focus()
       reportCursor(view, documentId)
     }
+    // A new document's first keys, typed while it was being created.
+    const typed = takeTypeAhead(documentId)
+    if (typed) view.dispatch({ changes: { from: view.state.doc.length, insert: typed }, selection: { anchor: view.state.doc.length + typed.length }, userEvent: 'input.type' })
 
     const themeObserver = new MutationObserver(() => {
       view.dispatch({ effects: themeMode.reconfigure(themeModeFor(isDark())) })
@@ -158,6 +175,10 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
   useEffect(() => {
     viewRef.current?.dispatch({ effects: minimapCompartment.reconfigure(minimapFor(minimapOn)) })
   }, [minimapOn])
+
+  useEffect(() => {
+    viewRef.current?.dispatch({ effects: autofixCompartment.reconfigure(autofixFor(autofixOn)) })
+  }, [autofixOn])
 
   useEffect(() => {
     viewRef.current?.dispatch({ effects: dirCompartment.reconfigure(dirSettingFor(dir)) })

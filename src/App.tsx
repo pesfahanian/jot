@@ -7,7 +7,9 @@ import { useDocuments } from '@/state/hooks'
 import { useReview } from '@/state/review'
 import { docIdOf, isDiffTab } from '@/state/layout'
 import { useApplyTheme, useTheme } from '@/state/theme'
+import { useApplyMotion } from '@/lib/motion'
 import { useWorkspace } from '@/state/workspace'
+import { dropOrphanAnnotations } from '@/state/annotations'
 
 // Desktop only (ADR-011): below 1000px nothing of the app mounts — only the
 // too-narrow screen. Resizing across the line swaps live, in either direction.
@@ -74,6 +76,7 @@ function Workspace() {
       if (docs.length === 0 && (await db.documents.count()) > 0) return
       if (useWorkspace.getState().loaded) return
       useWorkspace.getState().hydrate(await db.workspace.get('workspace'), docs)
+      void dropOrphanAnnotations()
     })
   }, [docs])
 
@@ -82,7 +85,9 @@ function Workspace() {
     if (!docs || !loaded) return
     const ids = new Set(docs.map((d) => d.id))
     const ws = useWorkspace.getState()
-    for (const p of ws.panes) for (const t of p.tabs) if (!isDiffTab(t) && !ids.has(docIdOf(t))) ws.closeTab(p.id, t)
+    // AI mode ends with its document.
+    if (ws.aiMode && !ids.has(ws.aiMode.documentId)) ws.leaveAiMode()
+    for (const p of useWorkspace.getState().panes) for (const t of p.tabs) if (!isDiffTab(t) && !ids.has(docIdOf(t))) useWorkspace.getState().closeTab(p.id, t)
   }, [docs, loaded])
 
   if (!docs || !loaded) return <div className="h-svh bg-background" />
@@ -101,6 +106,7 @@ function App() {
   const isWide = useSyncExternalStore(subscribeWidth, () => wide.matches)
   const theme = useTheme()
   useApplyTheme(theme.resolved)
+  useApplyMotion()
   useFaviconStatus()
   const storageOk = useStorageOk()
   if (!isWide) return <TooNarrow />

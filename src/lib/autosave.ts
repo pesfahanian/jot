@@ -1,5 +1,6 @@
 import { liveQuery } from 'dexie'
 import { db, type JotDocument } from './db'
+import { titleFromContent } from './autoTitle'
 import { updateDocument } from './documents'
 
 // Continuous autosave (ADR-008). Every edit goes through write(); it lands in
@@ -62,7 +63,8 @@ export function createAutosave(documentId: string): Autosave {
     if (queued === null) return
     if (!stored || !db.isOpen()) return void flush()
     clearTimers()
-    const record: JotDocument = { ...stored, content: queued, updatedAt: Date.now() }
+    const title = (stored.autoTitle && titleFromContent(queued)) || stored.title
+    const record: JotDocument = { ...stored, content: queued, title, updatedAt: Date.now() }
     queued = null
     stored = record
     const tx = db.backendDB().transaction('documents', 'readwrite')

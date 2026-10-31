@@ -26,7 +26,7 @@ Three places this runs, same as the English guide. One thing differs: **orthogra
 - Mode classification for every section: always included, resolved first.
 - FA-T1b-09 in full (coreference has no client-side substitute).
 - All of Tier 2, detection and rationale together.
-- Fix generation for the Tier 1 rules detected deterministically but needing rewriting, not substitution: FA-T1-18, FA-T1-19, FA-T1-20, FA-T1-21, FA-T1-22, FA-T1-23, FA-T1-24, FA-T1-25. Also FA-T1-15 and the FA-T1b table rules whose table entry gives guidance instead of a replacement.
+- Fix generation for the Tier 1 rules detected deterministically but needing rewriting, not substitution: FA-T1-18, FA-T1-19, FA-T1-20, FA-T1-22, FA-T1-23, FA-T1-24, FA-T1-25. Also FA-T1-15 and the FA-T1b table rules whose table entry gives guidance instead of a replacement.
 - **Not in the Farsi call:** the spelling/grammar/punctuation proofing pass, and the em-dash and semicolon follow-ups. Current models are unreliable on formal Persian orthography and grammar, so every objective error here is a fixed rule instead.
 
 **Client-side, Pass B: mode reconciliation, after the shared call returns.** Local arithmetic only. Finalizes the three mode-dependent rules and the T2-07 frequency cap. See below.
@@ -62,7 +62,7 @@ The model does this as the first part of the shared call, applying modes.md exac
 
 ### Aggregate rules produce more than one flag
 
-FA-T1-16, FA-T1-21, FA-T1-22, FA-T1-23, FA-T1-24, FA-T1-25, FA-T1b-02 and FA-T2-07 fail on a document-wide count or measurement. When one fails, every contributing instance gets its own flag record, with the shared `id`/`family` and a `rationale` stating the aggregate finding.
+FA-T1-16, FA-T1-21, FA-T1-22, FA-T1-23, FA-T1-24, FA-T1-25, FA-T1b-02 and FA-T2-07 fail on a document-wide count or measurement. When one fails, every contributing instance gets its own flag record, with the shared `id`/`family` and a `rationale` stating the aggregate finding. **Exception: FA-T1-21** (owner, 2026-10-19) — one flag per monotonous stretch, spanning it.
 
 ### How a fix is scoped
 
@@ -589,7 +589,7 @@ An *instruction* is a sentence whose last word is a second-person imperative (`[
 
 <!-- client:end -->
 
-**FA-T1-21 Sentence-length variance** — standard deviation of sentence length across a section. Flag if it drops below 4 words over any span of 5 or more sentences. Same measure as English; the threshold is provisional for the same reason as FA-T1-20. Fix: generative, shared call.
+**FA-T1-21 Sentence-length variance** — standard deviation of sentence length across a section. Flag if it drops below 4 words over any span of 5 or more sentences. Same measure as English; the threshold is provisional for the same reason as FA-T1-20. Only sentences in paragraphs count (not list items, headings or table rows), and overlapping spans merge: one flag per monotonous stretch, spanning it (owner, 2026-10-19). No fix: where to vary the rhythm is the writer's call.
 
 **FA-T1-22 List-item length variance** — for lists of four or more items, flag if every item falls within a 20% character-count band of the others. Fix: generative, shared call.
 

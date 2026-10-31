@@ -188,6 +188,56 @@ interface ResultHandle {
   prev: () => void
 }
 
+// The overview ruler (VS Code's name): a strip beside the diff with a mark
+// for every change, placed where it sits in the document, in the diff's
+// colours — teal added, red removed, both for a change. Click one to go
+// there. Positions are measured on the changed side's editor, so folded
+// unchanged stretches count at their folded height; the strip stands for
+// the whole scroll range, or the pane when the text is shorter.
+interface Tick {
+  top: number // fraction of the content height
+  height: number
+  kind: 'add' | 'del' | 'mod'
+  pos: number
+}
+
+function ticksOf(view: EditorView, chunks: readonly Chunk[], paneHeight: number): Tick[] {
+  const h = Math.max(view.contentHeight, paneHeight) || 1
+  const end = view.state.doc.length
+  return chunks.map((c) => {
+    const from = Math.min(c.fromB, end)
+    const a = view.lineBlockAt(from)
+    const b = view.lineBlockAt(Math.min(Math.max(from, c.toB - 1), end))
+    const kind = c.fromA === c.toA ? 'add' : c.fromB === c.toB ? 'del' : 'mod'
+    return { top: a.top / h, height: Math.max(0, b.bottom - a.top) / h, kind, pos: from }
+  })
+}
+
+const TICK_INK: Record<Tick['kind'], string> = {
+  add: 'var(--diff-add)',
+  del: 'var(--diff-del)',
+  mod: 'linear-gradient(90deg, var(--diff-del) 50%, var(--diff-add) 50%)',
+}
+
+function OverviewRuler({ ticks, onJump }: { ticks: Tick[]; onJump: (pos: number) => void }) {
+  return (
+    <div className="relative w-[11px] flex-none border-l border-border-subtle bg-card">
+      {ticks.map((t, i) => (
+        <button
+          key={i}
+          type="button"
+          tabIndex={-1}
+          aria-label={`change ${i + 1} of ${ticks.length}`}
+          title={`change ${i + 1} of ${ticks.length}`}
+          onClick={() => onJump(t.pos)}
+          className="absolute inset-x-[2px] min-h-[3px] rounded-[1px] opacity-80 hover:opacity-100"
+          style={{ top: `${t.top * 100}%`, height: `${t.height * 100}%`, background: TICK_INK[t.kind] }}
+        />
+      ))}
+    </div>
+  )
+}
+
 function ResultEditors({
   cmp,
   left,
@@ -204,6 +254,9 @@ function ResultEditors({
   handle: React.RefObject<ResultHandle | null>
 }) {
   const host = useRef<HTMLDivElement>(null)
+  const [ticks, setTicks] = useState<Tick[]>([])
+  // The changed side's editor: where the ruler measures and jumps.
+  const measured = useRef<EditorView | null>(null)
   const latest = useRef({ left, right, onCounts })
   useLayoutEffect(() => {
     latest.current = { left, right, onCounts }
@@ -218,25 +271,27 @@ function ResultEditors({
     const scratch = (name: SideName) => (t: string) => latest.current[name].onScratch(t)
     const diffConfig = { override: diffOverride(cmp.precision, cmp.ignoreWhitespace) }
     const collapseUnchanged = cmp.hideUnchanged ? { margin: 0, minSize: 3 } : undefined
-    const report = (state: EditorState, a: Text) => {
-      const chunks = getChunks(state)?.chunks ?? []
-      latest.current.onCounts(countChunks(chunks, a, state.doc))
+    const report = (view: EditorView, a: Text) => {
+      const chunks = getChunks(view.state)?.chunks ?? []
+      latest.current.onCounts(countChunks(chunks, a, view.state.doc))
+      setTicks(ticksOf(view, chunks, host.current?.clientHeight ?? 0))
     }
     const detaches: (() => void)[] = []
     let destroy: () => void
     if (unified) {
       const rb = sideExtensions({ ...r, onScratch: scratch('right') }, [
         unifiedMergeView({ original: sideText(l.side, l.doc), gutter: true, highlightChanges: true, mergeControls: false, collapseUnchanged, diffConfig }),
-        EditorView.updateListener.of((u) => report(u.state, getOriginalDoc(u.state))),
+        EditorView.updateListener.of((u) => report(u.view, getOriginalDoc(u.state))),
       ])
       const view = new EditorView({ parent: host.current!, state: EditorState.create({ doc: sideText(r.side, r.doc), extensions: rb.ext }) })
       detaches.push(rb.attach(view))
-      report(view.state, getOriginalDoc(view.state))
+      measured.current = view
+      report(view, getOriginalDoc(view.state))
       handle.current = { next: () => goToNextChunk(view) && view.focus(), prev: () => goToPreviousChunk(view) && view.focus() }
       destroy = () => view.destroy()
     } else {
       let mv: MergeView | null = null
-      const update = () => mv && report(mv.b.state, mv.a.state.doc)
+      const update = () => mv && report(mv.b, mv.a.state.doc)
       const la = sideExtensions({ ...l, onScratch: scratch('left') }, [EditorView.updateListener.of(() => queueMicrotask(update))])
       const rb = sideExtensions({ ...r, onScratch: scratch('right') }, [EditorView.updateListener.of(() => queueMicrotask(update))])
       mv = new MergeView({
@@ -249,6 +304,7 @@ function ResultEditors({
         diffConfig,
       })
       detaches.push(la.attach(mv.a), rb.attach(mv.b))
+      measured.current = mv.b
       update()
       const view = mv.b
       handle.current = { next: () => goToNextChunk(view) && view.focus(), prev: () => goToPreviousChunk(view) && view.focus() }
@@ -258,11 +314,24 @@ function ResultEditors({
       for (const d of detaches) d()
       destroy()
       handle.current = null
+      measured.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key])
 
-  return <div ref={host} className="jot-diff min-h-0 flex-auto overflow-auto [&_.cm-mergeView]:min-h-full" />
+  const jump = (pos: number) => {
+    const view = measured.current
+    if (!view) return
+    view.dispatch({ selection: { anchor: pos }, effects: EditorView.scrollIntoView(pos, { y: 'center' }) })
+    view.focus()
+  }
+
+  return (
+    <div className="jot-results flex min-h-0 flex-auto">
+      <div ref={host} className="jot-diff min-h-0 min-w-0 flex-auto overflow-auto [&_.cm-mergeView]:min-h-full" />
+      {ticks.length > 0 && <OverviewRuler ticks={ticks} onJump={jump} />}
+    </div>
+  )
 }
 
 // ---- the picker ----
@@ -593,7 +662,7 @@ export function DiffView({ tabId }: { tabId: string; paneId: string }) {
                 ready ? 'bg-primary font-semibold text-primary-foreground hover:brightness-110' : 'border border-dashed border-border-strong text-ink-dim',
               )}
             >
-              find difference <span className={ready ? 'opacity-70' : ''}>⌘↵</span>
+              find difference
             </button>
             {!ready && (
               <span className="font-mono text-[11px] text-muted-foreground">

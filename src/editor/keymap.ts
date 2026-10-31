@@ -1,4 +1,4 @@
-import { simplifySelection } from '@codemirror/commands'
+import { insertBlankLine, simplifySelection } from '@codemirror/commands'
 import { insertNewlineContinueMarkupCommand } from '@codemirror/lang-markdown'
 import { syntaxTree } from '@codemirror/language'
 import type { StateCommand } from '@codemirror/state'
@@ -40,6 +40,10 @@ export const supplementKeymap: readonly KeyBinding[] = [
   // Mac only: on Windows/Linux, Ctrl-g is the vscode keymap's go-to-line.
   { mac: 'Mod-g', run: findNext, shift: findPrevious, preventDefault: true },
   { key: 'F3', run: findNext, shift: findPrevious, preventDefault: true },
+  // VSCode's ⌘↵ / Ctrl+Enter: a new line below, the cursor on it. Bound
+  // here so the key is the editor's, not left to the browser (owner,
+  // 2026-10-31: it was opening find).
+  { key: 'Mod-Enter', run: insertBlankLine, preventDefault: true },
 ]
 
 export const escapeFallback: readonly KeyBinding[] = [{ key: 'Escape', run: simplifySelection }]
@@ -63,4 +67,26 @@ const listEnter: StateCommand = (target) => inListItem(target) && continueList(t
 
 export const listContinuation: readonly KeyBinding[] = [{ key: 'Enter', run: listEnter }]
 
-export const editorKeymap: readonly KeyBinding[] = [...listContinuation, ...vscodeKeymap, ...supplementKeymap, ...escapeFallback]
+// The vscode keymap's ⌘K chords give way to the command palette (owner,
+// round 4): fold all, unfold all, and the chord forms of comment and
+// uncomment. ⌘/ stays the comment toggle.
+const withoutChords = vscodeKeymap.filter((b) => ![b.key, b.mac, b.win, b.linux].some((k) => k && /^(Mod|Cmd|Ctrl)-k /i.test(k)))
+
+export const editorKeymap: readonly KeyBinding[] = [...listContinuation, ...withoutChords, ...supplementKeymap, ...escapeFallback]
+
+// ⌘X / Ctrl+X with nothing selected cuts the whole line, as in VSCode —
+// CodeMirror's own line-wise cut takes the line and the break after it, so
+// on an empty last line (no break after) it removed nothing. There, the
+// break before goes instead.
+export const cutEmptyLastLine = EditorView.domEventHandlers({
+  cut(event, view) {
+    const { state } = view
+    if (state.readOnly || state.selection.ranges.length > 1 || !state.selection.main.empty) return false
+    const line = state.doc.lineAt(state.selection.main.head)
+    if (line.number !== state.doc.lines || line.number === 1 || line.length > 0) return false
+    event.preventDefault()
+    event.clipboardData?.setData('text/plain', '\n')
+    view.dispatch({ changes: { from: line.from - 1, to: line.to }, userEvent: 'delete.cut', scrollIntoView: true })
+    return true
+  },
+})

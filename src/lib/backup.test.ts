@@ -59,3 +59,12 @@ describe('pack and unpack', () => {
     expect(back[0]).toEqual({ title: 'a', content: 'A', color: null, pinned: false, createdAt: 7, updatedAt: 7 })
   })
 })
+
+describe('annotations in a backup', () => {
+  it('travel with their document and come back', async () => {
+    const doc = { id: 'd1', title: 'a', content: 'one two', color: null, pinned: false, createdAt: 1, updatedAt: 1 }
+    const ann = { id: 'x', documentId: 'd1', kind: 'highlight' as const, color: 2 as const, from: 0, to: 3, quote: 'one', createdAt: 1, updatedAt: 1 }
+    const [back] = await unpackWorkspace(await packWorkspace([doc], 1, [ann]))
+    expect(back.annotations).toEqual([{ kind: 'highlight', color: 2, from: 0, to: 3, quote: 'one', body: undefined, createdAt: 1, updatedAt: 1 }].map((a) => JSON.parse(JSON.stringify(a))))
+  })
+})

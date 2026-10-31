@@ -21,6 +21,9 @@ export interface PdfOptions {
   size: number // body, in points
   preset: Preset
   pageNumbers: boolean
+  // Highlights, underlines and notes in the PDF (Phase 16): none, the marks,
+  // or the marks with notes as footnotes on their page.
+  annotations: 'off' | 'highlights' | 'notes'
   customCss: string
   // The card's "advanced" section, remembered with the rest.
   advancedOpen: boolean
@@ -34,6 +37,7 @@ export const PDF_DEFAULTS: PdfOptions = {
   size: 11,
   preset: 'jot',
   pageNumbers: true,
+  annotations: 'highlights',
   customCss: '',
   advancedOpen: false,
 }
@@ -136,7 +140,9 @@ export function pdfCss(o: PdfOptions, rtl = false): string {
     size: ${PAGE_SIZE[o.page]} ${o.orientation};
     margin: ${m}mm;
     ${pageNumber}
+    @footnote { border-top: 0.25mm solid #CCD0D3; padding-top: 2mm; margin-top: 3mm; }
   }
+  @page { counter-reset: footnote; }
   html, body { background: #fff; }
   /* Fills and rules print even with the print dialog's "Background
      graphics" unticked (its default). */
@@ -145,7 +151,8 @@ export function pdfCss(o: PdfOptions, rtl = false): string {
   /* Sizes scale with the body, as the rendered view's 22 / 19 / 16 over
      14.5. */
   h1, h2, h3, h4, h5, h6 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; margin: 1.3em 0 0.45em; break-after: avoid; }
-  h1 { font-size: 1.52em; } h2 { font-size: 1.31em; } h3 { font-size: 1.1em; } h4, h5, h6 { font-size: 1em; }
+  /* Top-level headings and tables sit centred (owner, 2026-10-31). */
+  h1 { font-size: 1.52em; text-align: center; } h2 { font-size: 1.31em; } h3 { font-size: 1.1em; } h4, h5, h6 { font-size: 1em; }
   body > :first-child, .jot-keep:first-child > :first-child { margin-top: 0; }
   p { orphans: 3; widows: 3; }
   p, ul, ol, blockquote, pre, table { margin: 0 0 0.9em; }
@@ -159,7 +166,7 @@ export function pdfCss(o: PdfOptions, rtl = false): string {
   pre { white-space: pre-wrap; direction: ltr; text-align: left; }
   /* Tables run a little smaller, and long cell text wraps, so wide tables
      fit the text width. */
-  table { border-collapse: collapse; font-size: 0.9em; line-height: 1.4; max-width: 100%; }
+  table { border-collapse: collapse; font-size: 0.9em; line-height: 1.4; max-width: 100%; margin-left: auto; margin-right: auto; }
   th, td { padding: 3px 6px; text-align: start; overflow-wrap: anywhere; }
   tr { break-inside: avoid; }
   hr { border: none; border-top: 1px solid #CCD0D3; margin: 1.6em 0; }
@@ -174,12 +181,22 @@ export function pdfCss(o: PdfOptions, rtl = false): string {
   /* Farsi and mixed documents, as in the rendered view. */
   :not(pre) > code, .katex, a[dir="ltr"] { direction: ltr; unicode-bidi: isolate; }
   [dir="rtl"] { line-height: 1.8; }
-  /* A table only as wide as its content sits at the right edge when it
-     reads right-to-left (the page itself stays left-to-right). */
-  table[dir="rtl"] { margin-left: auto; margin-right: 0; }
   :is(h1, h2, h3, h4, h5, h6)[dir="rtl"] { letter-spacing: 0; line-height: 1.5; }
   em .jot-fa { font-style: normal; font-weight: 600; }
   strong .jot-fa { font-style: normal; font-weight: 800; }
+  /* Annotations (round 4, frame 9d): highlights print in the light washes
+     whatever the preset (monochrome: 15% grey), underline plain, a note's
+     text dotted; notes as footnotes above the page number, numbered per
+     page, 7.5pt. */
+  .jot-hl-1 { background: color-mix(in oklab, #5D8F5E 22%, #FBFCFD); }
+  .jot-hl-2 { background: color-mix(in oklab, #AE615C 18%, #FBFCFD); }
+  .jot-hl-3 { background: color-mix(in oklab, #4E72AC 18%, #FBFCFD); }
+  .jot-ul { text-decoration: underline solid #383E43; text-decoration-thickness: 0.4mm; text-underline-offset: 2px; }
+  .jot-note { text-decoration: underline dotted #383E43; text-decoration-thickness: 0.4mm; text-underline-offset: 3px; }
+  .jot-footnote { float: footnote; font-size: 7.5pt; line-height: 1.45; color: #383E43; text-align: start; }
+  .jot-footnote::footnote-call { content: counter(footnote); font-size: 65%; vertical-align: super; line-height: 0; }
+  .jot-footnote::footnote-marker { content: counter(footnote) '. '; font-family: ${MONO}; color: #868B91; }
+  ${o.preset === 'monochrome' ? '.jot-hl-1, .jot-hl-2, .jot-hl-3 { background: #D9D9D9; }' : ''}
   ${PRESETS[o.preset]}
   /* Custom CSS, applied last. */
   ${o.customCss}

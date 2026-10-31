@@ -1,5 +1,5 @@
 import type { Candidate, FixRequest, PassAResult, RawFlag } from '../passA'
-import { analyzeProse, type Sentence } from '../text'
+import { analyzeProse, monotonousRuns, runRationale, type Sentence } from '../text'
 import { L, M, W, WB, WE, Z, countWordsFa, farsiSentences, isArabicText, isFarsiText, normalise, unitAt } from './text'
 import {
   aiTell,
@@ -356,18 +356,10 @@ export function runPassAFa(text: string): PassAResult {
     requestFix({ ruleId: 'FA-T1-19', family: 'tier1', start: s.from, end: s.to, span: slice(s.from, s.to), instruction: 'This sentence stacks hedges. Rewrite it in Farsi with at most one, keeping the claim.', rationale: `Hedging stack — ${n} hedges in one sentence.` })
   }
 
-  // FA-T1-21 Sentence-length variance — std dev below 4 words over 5+.
-  const bySection = new Map<number, Sentence[]>()
-  for (const s of sentences) if (s.block.kind !== 'heading') bySection.set(s.block.headingSection, [...(bySection.get(s.block.headingSection) ?? []), s])
-  const flat = new Set<Sentence>()
-  for (const list of bySection.values()) {
-    for (let i = 0; i + 5 <= list.length; i++) {
-      const win = list.slice(i, i + 5)
-      const mean = win.reduce((a, s) => a + s.words, 0) / 5
-      if (Math.sqrt(win.reduce((a, s) => a + (s.words - mean) ** 2, 0) / 5) < 4) win.forEach((s) => flat.add(s))
-    }
-  }
-  for (const s of flat) requestFix({ ruleId: 'FA-T1-21', family: 'tier1', start: s.from, end: s.to, span: slice(s.from, s.to), instruction: 'This sentence is part of a run of near-identical sentence lengths. Rewrite it in Farsi to vary the rhythm, keeping the content.', rationale: 'Sentence-length variance below 4 words across 5+ sentences. Flagged as part of that run.' })
+  // FA-T1-21 Sentence-length variance — one finding per monotonous stretch
+  // of paragraph sentences (shared with English, review/text.ts), no
+  // generated fix.
+  for (const run of monotonousRuns(sentences)) flag('FA-T1-21', run[0].from, run[run.length - 1].to, null, runRationale(run))
 
   // FA-T1-22 List-item length variance — 4+ items within a 20% band.
   const lists = new Map<number, { from: number; to: number }[]>()

@@ -5,6 +5,8 @@ import { exportPdf } from '@/lib/export'
 import { customSetsPage, PDF_DEFAULTS, SIZES, type PdfOptions } from '@/lib/pdfOptions'
 import { getSettings, updateSettings } from '@/lib/settings'
 import { cn } from '@/lib/utils'
+import { useAnnotations } from '@/state/annotations'
+import { printable } from '@/lib/annotations'
 
 // The PDF options card (design accepted 2026-10-05, frames 1–2): opens in
 // place of the export menu on every PDF export, filled with the last
@@ -69,7 +71,9 @@ export function PdfOptionsCard({ doc, text, onDone }: { doc: JotDocument; text: 
     if (!opts) return
     await updateSettings({ pdf: opts })
     onDone()
-    void exportPdf(doc.title, text(), opts, doc.dir ?? 'auto')
+    const content = text()
+    const annotations = await useAnnotations.getState().load(doc.id, content)
+    void exportPdf(doc.title, content, opts, doc.dir ?? 'auto', printable(annotations))
   }
 
   useEffect(() => {
@@ -142,6 +146,11 @@ export function PdfOptionsCard({ doc, text, onDone }: { doc: JotDocument; text: 
         <Row label="page numbers">
           <Choices value={opts.pageNumbers ? 'on' : 'off'} options={['on', 'off'] as const} onChange={(v) => set({ pageNumbers: v === 'on' })} />
         </Row>
+        {/* Highlights, underlines and notes (round 4, frame 9a). */}
+        <Row label="annotations">
+          <Choices value={opts.annotations ?? 'highlights'} options={['off', 'highlights', 'notes'] as const} onChange={(annotations) => set({ annotations })} render={(v) => (v === 'notes' ? '+ notes' : v)} />
+        </Row>
+        {(opts.annotations ?? 'highlights') === 'notes' && <div className="pl-[104px] text-[11.5px] leading-snug text-muted-foreground">Notes print as footnotes on their page, numbered at the marked text.</div>}
       </div>
       <div className="border-t border-border px-4 py-2">
         <button type="button" aria-expanded={opts.advancedOpen} onClick={() => set({ advancedOpen: !opts.advancedOpen })} className="flex w-full items-center gap-2 font-mono text-[11.5px] text-secondary-foreground hover:text-foreground">

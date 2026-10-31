@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position: relative; width: 600px; height: 360px; display: flex; flex-direction: column; background: var(--doc); border: 1px solid var(--edge); border-radius: 12px; color: var(--ink); font-family: 'Public Sans', 'Jot Farsi', sans-serif; overflow: hidden">
+  <div style="flex: 0 0 38px; display: flex; align-items: stretch; background: var(--panel); border-bottom: 1px solid var(--hair)">
+    <div style="display: flex; align-items: center; gap: 9px; padding: 0 12px 0 16px; background: var(--doc); border-top: 2px solid var(--accent); border-right: 1px solid var(--hair); margin-bottom: -1px; border-radius: 0 6px 0 0"><span style="font-size: 13px; font-weight: 500">{{ title }}</span><span style="font-family: 'Source Code Pro', monospace; font-size: 13px; color: var(--faint)">×</span></div>
+    <div style="flex: 1 1 auto"></div>
+    <sc-if value="{{ aiMode }}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; padding: 0 10px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">ai mode</div></sc-if>
+  </div>
+  <div style="flex: 1 1 auto; padding: 14px 0; font-family: 'Source Code Pro', 'Jot Farsi', monospace; font-size: 13px; line-height: 1.65">
+    <sc-if value="{{ bodyA }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column">
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">1</span><span style="padding-left: 20px; color: var(--sxh); font-weight: 600">## writing</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">2</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--ink); font-weight: 500; border-right: 1px solid var(--rule)">3</span><span style="padding: 0 20px">Everything is <span style="background: var(--mark)">saved as you type</span>. There's no save button, and Cmd/Ctrl + S does nothing on purpose.</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">4</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">5</span><span style="padding-left: 20px"><span style="color: var(--sxp)">-</span> Lists continue when you press Enter.</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">6</span><span style="padding-left: 20px"><span style="color: var(--sxp)">-</span> Tasks work too.</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">7</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">8</span><span style="padding-left: 20px; color: var(--sxh); font-weight: 600">## seeing it rendered</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">9</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">10</span><span style="padding-left: 20px">Press Cmd/Ctrl + Shift + V to open the rendered view.</span></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ bodyF }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column">
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">1</span><span dir="rtl" style="flex: 1 1 auto; padding: 0 20px; text-align: right; color: var(--sxh); font-weight: 600">## نوشتن</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">2</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--ink); font-weight: 500; border-right: 1px solid var(--rule)">3</span><span dir="rtl" style="flex: 1 1 auto; padding: 0 20px; text-align: right">همه‌چیز <span style="background: var(--mark)">همان‌طور که می‌نویسید ذخیره می‌شود</span>. دکمه‌ی ذخیره‌ای وجود ندارد و <span dir="ltr">Cmd/Ctrl + S</span> عمداً کاری نمی‌کند.</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">4</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">5</span><span dir="rtl" style="flex: 1 1 auto; padding: 0 20px; text-align: right"><span style="color: var(--sxp)">-</span> فهرست‌ها با زدن <span dir="ltr">Enter</span> ادامه پیدا می‌کنند.</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">6</span><span dir="rtl" style="flex: 1 1 auto; padding: 0 20px; text-align: right"><span style="color: var(--sxp)">-</span> کارها هم همین‌طور.</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">7</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">8</span><span dir="rtl" style="flex: 1 1 auto; padding: 0 20px; text-align: right; color: var(--sxh); font-weight: 600">## دیدن نسخه‌ی نهایی</span></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ bodyM }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column">
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">1</span><span style="padding-left: 20px; color: var(--sxh); font-weight: 600">## writing</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">2</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">3</span><span style="padding: 0 20px">Everything is saved as you type. <span style="background: var(--hl1)">There's no save button</span>, and Cmd/Ctrl + S does <span style="text-decoration: underline solid var(--ink2); text-decoration-thickness: 1.5px; text-underline-offset: 3px">nothing on purpose</span>.</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">4</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">5</span><span style="padding: 0 20px"><span style="color: var(--sxp)">-</span> Lists continue when you press Enter. <span style="background: var(--hl2)">Numbered items count up by themselves.</span></span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">6</span><span style="padding-left: 20px"><span style="color: var(--sxp)">-</span> <span style="background: var(--hl3)">Tasks work too</span>, and <span style="background: var(--hl1); text-decoration: underline solid var(--ink2); text-decoration-thickness: 1.5px; text-underline-offset: 3px">both marks can overlap</span>.</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">7</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">8</span><span dir="rtl" style="flex: 1 1 auto; padding: 0 20px; text-align: right">همه‌چیز <span style="background: var(--hl1)">همان‌طور که می‌نویسید ذخیره می‌شود</span>. دکمه‌ی ذخیره‌ای <span style="text-decoration: underline solid var(--ink2); text-decoration-thickness: 1.5px; text-underline-offset: 5px">وجود ندارد</span>.</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">9</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">10</span><span style="padding-left: 20px">Search matches still use <span style="background: var(--mark)">the selection wash</span>.</span></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ bodyN }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column">
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">1</span><span style="padding-left: 20px; color: var(--sxh); font-weight: 600">## writing</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">2</span></div>
+        <div style="display: flex"><span style="position: relative; flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">3<span style="position: absolute; right: -4px; top: 8px; width: 7px; height: 7px; background: {{ noteMark }}; border-radius: 1px"></span></span><span style="padding: 0 20px">Everything is saved as you type. There's no save button, and <span style="text-decoration: underline dotted var(--ink2); text-decoration-thickness: 1.5px; text-underline-offset: 4px; background: {{ noteWash }}">Cmd/Ctrl + S does nothing on purpose</span>.</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">4</span></div>
+        <div style="display: flex"><span style="position: relative; flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">5<sc-if value="{{ many }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; right: -4px; top: 8px; width: 7px; height: 7px; background: var(--ink2); border-radius: 1px"></span></sc-if></span><span style="padding: 0 20px"><span style="color: var(--sxp)">-</span> Lists continue when you <span style="text-decoration: {{ manyLine }}; text-decoration-thickness: 1.5px; text-underline-offset: 4px">press Enter</span>.</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">6</span><span style="padding-left: 20px"><span style="color: var(--sxp)">-</span> Tasks work too.</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">7</span></div>
+        <div style="display: flex"><span style="position: relative; flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">8<sc-if value="{{ many }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; right: -4px; top: 8px; width: 7px; height: 7px; background: var(--ink2); border-radius: 1px"></span></sc-if></span><span dir="rtl" style="flex: 1 1 auto; padding: 0 20px; text-align: right">همه‌چیز <span style="text-decoration: {{ manyLine }}; text-decoration-thickness: 1.5px; text-underline-offset: 6px">ذخیره می‌شود</span>. دکمه‌ای وجود ندارد.</span></div>
+        <div style="display: flex"><span style="flex: 0 0 46px; border-right: 1px solid var(--rule); color: var(--dim); text-align: right; padding-right: 10px">9</span></div>
+        <div style="display: flex"><span style="position: relative; flex: 0 0 46px; padding-right: 10px; text-align: right; color: var(--dim); border-right: 1px solid var(--rule)">10<sc-if value="{{ many }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; right: -4px; top: 8px; width: 7px; height: 7px; background: var(--ink2); border-radius: 1px"></span></sc-if></span><span style="padding-left: 20px">Press <span style="text-decoration: {{ manyLine }}; text-decoration-thickness: 1.5px; text-underline-offset: 4px">Cmd/Ctrl + Shift + V</span> to open the rendered view.</span></div>
+      </div>
+    </sc-if>
+  </div>
+  <sc-if value="{{ many }}" hint-placeholder-val="{{ false }}">
+    <div style="flex: 0 0 26px; display: flex; align-items: center; gap: 14px; padding: 0 12px; border-top: 1px solid var(--hair); background: var(--panel); font-family: 'Source Code Pro', monospace; font-size: 11.5px; color: var(--ink3)"><span style="flex: 1 1 auto"></span><span>words <span style="color: var(--ink)">552</span></span><span style="display: flex; align-items: center; height: 20px; padding: 0 7px; border: 1px solid var(--edge); background: var(--hover); border-radius: 5px">notes <span style="color: var(--ink); padding-left: 6px">4</span></span></div>
+  </sc-if>
+
+  <sc-if value="{{ showMenu }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; top: {{ menuTop }}; left: {{ menuLeft }}; width: 228px; display: flex; flex-direction: column; padding: 4px; background: var(--elev); border: 1px solid var(--pop); border-radius: 8px; font-size: 12.5px">
+      <div style="display: flex; align-items: center; height: 26px; padding: 0 8px; border-radius: 5px"><span style="flex: 1 1 auto">cut</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⌘X</span></div>
+      <div style="display: flex; align-items: center; height: 26px; padding: 0 8px; border-radius: 5px"><span style="flex: 1 1 auto">copy</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⌘C</span></div>
+      <div style="display: flex; align-items: center; height: 26px; padding: 0 8px; border-radius: 5px"><span style="flex: 1 1 auto">paste</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⌘V</span></div>
+      <div style="height: 1px; margin: 4px 0; background: var(--rule)"></div>
+      <div style="display: flex; align-items: center; gap: 5px; height: 26px; padding: 0 8px; border-radius: 5px; background: var(--hover)"><span style="flex: 1 1 auto">highlight</span><span style="width: 14px; height: 14px; background: var(--hl1); border: 1px solid var(--ink3); border-radius: 3px"></span><span style="width: 14px; height: 14px; background: var(--hl2); border: 1px solid var(--hair); border-radius: 3px"></span><span style="width: 14px; height: 14px; background: var(--hl3); border: 1px solid var(--hair); border-radius: 3px"></span><span style="padding-left: 4px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⇧⌘H</span></div>
+      <div style="display: flex; align-items: center; height: 26px; padding: 0 8px; border-radius: 5px"><span style="flex: 1 1 auto">underline</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⇧⌘U</span></div>
+      <div style="display: flex; align-items: center; height: 26px; padding: 0 8px; border-radius: 5px"><span style="flex: 1 1 auto">add note</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⌥⌘M</span></div>
+      <div style="height: 1px; margin: 4px 0; background: var(--rule)"></div>
+      <div style="display: flex; align-items: center; height: 26px; padding: 0 8px; border-radius: 5px"><span style="flex: 1 1 auto">translate</span><span style="padding-right: 8px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">{{ trDir }}</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⌥⌘T</span></div>
+      <sc-if value="{{ aiMode }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column">
+          <div style="height: 1px; margin: 4px 0; background: var(--rule)"></div>
+          <div style="display: flex; align-items: center; gap: 8px; height: 26px; padding: 0 8px; border-radius: 5px"><span style="display: flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; background: var(--ink); color: var(--doc); border-radius: 8px; font-family: 'Source Code Pro', monospace; font-size: 10px; font-weight: 600">3</span><span style="flex: 1 1 auto">add ai note</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">⌥⌘I</span></div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ noteOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; top: 132px; left: 300px; width: 280px; display: flex; flex-direction: column; background: var(--elev); border: 1px solid var(--pop); border-radius: 8px">
+      <div style="display: flex; align-items: center; gap: 8px; padding: 9px 12px 0; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)"><span style="width: 7px; height: 7px; background: var(--ink2); border-radius: 1px"></span><span style="flex: 1 1 auto">note · 2d</span><span>1 of 1</span></div>
+      <div style="padding: 7px 12px 10px; font-size: 13px; line-height: 1.5; text-wrap: pretty">Check this is still true once the PDF card remembers choices. People will try ⌘S to "save" the options.</div>
+      <div style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-top: 1px solid var(--rule); font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2)"><span style="flex: 1 1 auto; color: var(--faint)">click to edit</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px">edit</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px">delete</span></div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ noteEdit }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; top: 132px; left: 300px; width: 280px; display: flex; flex-direction: column; gap: 8px; padding: 9px 12px 10px; background: var(--elev); border: 1px solid var(--pop); border-radius: 8px">
+      <div style="display: flex; align-items: center; gap: 8px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)"><span style="width: 7px; height: 7px; background: var(--ink2); border-radius: 1px"></span><span style="flex: 1 1 auto">note · editing</span><span>saved</span></div>
+      <div style="display: flex; flex-direction: column; min-height: 76px; padding: 7px 9px; background: var(--inset); border: 1px solid var(--accent); border-radius: 6px; font-size: 13px; line-height: 1.5">Check this is still true once the PDF card remembers choices. People will try ⌘S to "save" the options, and nothing will<span style="display: inline-block; width: 1.5px; height: 15px; margin-left: 1px; vertical-align: -2px; background: var(--ink)"></span></div>
+      <div style="display: flex; align-items: center; gap: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2)"><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border-radius: 6px; color: var(--err)">delete note</span><span style="flex: 1 1 auto"></span><span style="color: var(--faint)">esc</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--ink); background: var(--ink); border-radius: 6px; color: var(--doc)">done</span></div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ many }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; right: 10px; bottom: 34px; width: 330px; display: flex; flex-direction: column; background: var(--elev); border: 1px solid var(--pop); border-radius: 8px; font-size: 12.5px">
+      <div style="display: flex; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--rule)"><span style="flex: 1 1 auto; font-weight: 600">notes</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--faint)">4 · in document order</span></div>
+      <div style="display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 2px 8px; padding: 7px 12px; border-bottom: 1px solid var(--rule); background: var(--hover)"><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">3</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Cmd/Ctrl + S does nothing on purpose</span><span></span><span>Check this is still true once the PDF card…</span></div>
+      <div style="display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 2px 8px; padding: 7px 12px; border-bottom: 1px solid var(--rule)"><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">5</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">press Enter</span><span></span><span>Also Shift+Enter for a soft break?</span></div>
+      <div style="display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 2px 8px; padding: 7px 12px; border-bottom: 1px solid var(--rule)"><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">8</span><span dir="rtl" style="text-align: left; font-size: 12px; color: var(--ink3)">ذخیره می‌شود</span><span></span><span>Use the same verb as the English line.</span></div>
+      <div style="display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 2px 8px; padding: 7px 12px"><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">10</span><span style="font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)">Cmd/Ctrl + Shift + V</span><span></span><span>Windows shows Ctrl only.</span></div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ trShow }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; top: 118px; left: {{ trLeft }}; width: 330px; display: flex; flex-direction: column; background: var(--elev); border: 1px solid var(--pop); border-radius: 8px">
+      <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--rule); font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink3)"><span style="flex: 1 1 auto; color: var(--ink); font-family: 'Public Sans', sans-serif; font-size: 12.5px; font-weight: 600">translate</span><span>{{ trFrom }}</span><span>→</span><span style="display: flex; align-items: center; gap: 4px; height: 20px; padding: 0 6px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 5px; color: var(--ink2)">{{ trTo }} <span style="color: var(--faint)">▾</span></span></div>
+      <sc-if value="{{ trHasKey }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column">
+          <div dir="{{ srcDir }}" style="padding: 9px 12px 0; font-size: 12.5px; line-height: 1.55; color: var(--ink3)">{{ trSrc }}</div>
+          <div dir="{{ dstDir }}" style="padding: 6px 12px 11px; font-size: 14px; line-height: 1.7; color: var(--ink)">{{ trDst }}</div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-top: 1px solid var(--rule); font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--ink2)"><span style="flex: 1 1 auto; color: var(--faint)">google translate · no ai</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px">copy</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--ink); background: var(--ink); border-radius: 6px; color: var(--doc)">replace selection</span></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ trNoKey }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 10px 12px 12px">
+          <div style="font-size: 13px; line-height: 1.5; text-wrap: pretty">Translating a selection needs a Google Cloud Translation key. It's separate from your AI key, and no AI is involved.</div>
+          <div style="display: flex; align-items: center; gap: 6px; font-family: 'Source Code Pro', monospace; font-size: 11px"><span style="flex: 1 1 auto; color: var(--faint)">settings → translation</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--hair); background: var(--canvas); border-radius: 6px; color: var(--ink2)">cancel</span><span style="display: flex; align-items: center; height: 22px; padding: 0 7px; border: 1px solid var(--ink); background: var(--ink); border-radius: 6px; color: var(--doc)">open settings</span></div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:620,&quot;height&quot;:380},&quot;scene&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;menu-en&quot;,&quot;menu-fa&quot;,&quot;menu-ai&quot;,&quot;marks&quot;,&quot;note-open&quot;,&quot;note-edit&quot;,&quot;notes-many&quot;,&quot;tr-en&quot;,&quot;tr-fa&quot;,&quot;tr-nokey&quot;],&quot;default&quot;:&quot;menu-en&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.scene ?? 'menu-en';
+    const fa = s === 'menu-fa' || s === 'tr-fa';
+    const notes = s.startsWith('note') || s === 'notes-many';
+    const tr = s.startsWith('tr-');
+    const many = s === 'notes-many';
+    const active = s === 'note-open' || s === 'note-edit';
+    return {
+      title: fa ? 'سفرنامه' : 'welcome to jot',
+      aiMode: s === 'menu-ai',
+      bodyA: !fa && !notes && s !== 'marks', bodyF: fa, bodyM: s === 'marks', bodyN: notes,
+      showMenu: s.startsWith('menu'), menuTop: '102px', menuLeft: fa ? '200px' : '250px',
+      trDir: fa ? 'fa → en' : 'en → fa',
+      noteOpen: s === 'note-open', noteEdit: s === 'note-edit', many,
+      noteMark: active ? 'var(--ink)' : 'var(--ink2)',
+      noteWash: active ? 'var(--hover)' : 'transparent',
+      manyLine: many ? 'underline dotted var(--ink2)' : 'none',
+      trShow: tr, trHasKey: s !== 'tr-nokey', trNoKey: s === 'tr-nokey',
+      trLeft: fa ? '150px' : '170px',
+      trFrom: fa ? 'farsi' : 'english', trTo: fa ? 'english' : 'farsi',
+      srcDir: fa ? 'rtl' : 'ltr', dstDir: fa ? 'ltr' : 'rtl',
+      trSrc: fa ? 'همان‌طور که می‌نویسید ذخیره می‌شود' : 'saved as you type',
+      trDst: fa ? 'is saved as you write' : 'همان‌طور که تایپ می‌کنید ذخیره می‌شود'
+    };
+  }
+}
+</script>
+</body>
+</html>

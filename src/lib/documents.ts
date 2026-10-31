@@ -1,9 +1,10 @@
 import { db, type JotDocument } from './db'
+import { titleFromContent } from './autoTitle'
 
 // Document CRUD against IndexedDB (PRD §5). Deletion here is the hard
 // delete; the undo-toast flow in T3.5 sits on top of it.
 
-export type DocumentPatch = Partial<Pick<JotDocument, 'title' | 'content' | 'color' | 'pinned' | 'dir'>>
+export type DocumentPatch = Partial<Pick<JotDocument, 'title' | 'content' | 'color' | 'pinned' | 'dir' | 'autoTitle'>>
 
 export async function createDocument(init: DocumentPatch = {}): Promise<JotDocument> {
   const now = Date.now()
@@ -13,6 +14,7 @@ export async function createDocument(init: DocumentPatch = {}): Promise<JotDocum
     content: init.content ?? '',
     color: init.color ?? null,
     pinned: init.pinned ?? false,
+    ...(init.autoTitle ? { autoTitle: true } : {}),
     createdAt: now,
     updatedAt: now,
   }
@@ -32,6 +34,11 @@ export function listDocuments(): Promise<JotDocument[]> {
 // document itself (content, title) move updatedAt — it drives the relative
 // timestamp and date sort, so recoloring or pinning mustn't reorder the list.
 export async function updateDocument(id: string, patch: DocumentPatch): Promise<boolean> {
+  if (patch.content !== undefined && patch.title === undefined) {
+    const doc = await db.documents.get(id)
+    const title = doc?.autoTitle ? titleFromContent(patch.content) : null
+    if (title && title !== doc!.title) patch = { ...patch, title }
+  }
   const edit = patch.content !== undefined || patch.title !== undefined
   const changed = await db.documents.update(id, edit ? { ...patch, updatedAt: Date.now() } : patch)
   return changed === 1

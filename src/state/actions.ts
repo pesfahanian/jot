@@ -2,6 +2,7 @@ import { db, type Comparison, type JotDocument, type TagColor } from '@/lib/db'
 import { uniqueTitle } from '@/lib/docList'
 import { createDocument, deleteDocument, listDocuments, restoreDocument, updateDocument } from '@/lib/documents'
 import { diffTab } from './layout'
+import { useAnnotations } from './annotations'
 import { useWorkspace } from './workspace'
 import { openContent } from '@/editor/sessions'
 import { requestPersistence } from '@/lib/storage'
@@ -10,29 +11,90 @@ import { requestPersistence } from '@/lib/storage'
 
 export const UNDO_WINDOW_MS = 8000
 
-// New-document flow (T3.8): the + button creates "untitled" (or the next
-// free "untitled-N"), opens it as a new tab in the focused pane, and puts its
-// sidebar row straight into rename. Search's "new document "q"" passes the
-// query as the title instead, and skips rename — the name is already chosen.
+// New-document flow (T3.8): creates "untitled" (or the next free
+// "untitled-N") and opens it as a new tab in the focused pane. Its title
+// then follows its first line, as Apple Notes (owner, 2026-10-14). The +
+// buttons and ⌘⌥N start a draft instead (workspace.draft, commitDraft), so
+// a new document is only written once it's named or written in. Search's
+// "new document "q"" creates one straight away, the name already chosen.
 export async function newDocument(title?: string): Promise<JotDocument> {
   void requestPersistence()
   const docs = await listDocuments()
-  const doc = await createDocument({ title: title?.trim() || uniqueTitle('untitled', docs) })
+  const doc = await createDocument(title?.trim() ? { title: title.trim() } : { title: uniqueTitle('untitled', docs), autoTitle: true })
   const ws = useWorkspace.getState()
   ws.openDocument(doc.id)
   if (!title) {
-    // Its row has to be visible to rename it: an untagged new document would
-    // be hidden by an active color filter or an open search.
+    // Its row should be visible: an untagged new document would be hidden
+    // by an active color filter or an open search.
     ws.clearColorFilter()
     ws.setSearch(false)
-    ws.setRenaming(doc.id)
   }
   return doc
 }
 
+// The draft becomes a document (see workspace.draft): with the name typed,
+// or untitled when it's empty or the page was clicked. Once only.
+let committing = false
+export async function commitDraft(title = ''): Promise<void> {
+  const draft = useWorkspace.getState().draft
+  if (!draft || committing) return
+  committing = true
+  const typed = typeAhead()
+  try {
+    void requestPersistence()
+    const docs = await listDocuments()
+    const name = title.trim()
+    const doc = await createDocument(name ? { title: name } : { title: uniqueTitle('untitled', docs), autoTitle: true })
+    typed.docId = doc.id
+    const ws = useWorkspace.getState()
+    ws.openDocument(doc.id, { paneId: ws.panes.some((p) => p.id === draft.paneId) ? draft.paneId : undefined })
+  } finally {
+    committing = false
+  }
+}
+
+// Writing straight after ↩ (or the click) reaches the editor before it
+// exists: keys are held from the commit until the new document's editor
+// takes them (takeTypeAhead), so nothing typed in between is lost.
+let pending: { docId: string | null; text: string; stop: () => void } | null = null
+function typeAhead() {
+  pending?.stop()
+  const held = { docId: null as string | null, text: '', stop: () => {} }
+  const onKey = (e: KeyboardEvent) => {
+    if (e.metaKey || e.ctrlKey || e.altKey || e.isComposing) return
+    const insert = e.key === 'Enter' ? '\n' : e.key === 'Tab' ? '\t' : e.key.length === 1 ? e.key : null
+    if (insert === null && e.key !== 'Backspace') return
+    e.preventDefault()
+    e.stopPropagation()
+    held.text = insert === null ? held.text.slice(0, -1) : held.text + insert
+  }
+  window.addEventListener('keydown', onKey, { capture: true })
+  // Never held for long: an editor that doesn't come lets the keys go.
+  const timer = setTimeout(() => held.stop(), 3000)
+  held.stop = () => {
+    window.removeEventListener('keydown', onKey, { capture: true })
+    clearTimeout(timer)
+    if (pending === held) pending = null
+  }
+  pending = held
+  return held
+}
+
+export function takeTypeAhead(documentId: string): string {
+  if (!pending || pending.docId !== documentId) return ''
+  const { text } = pending
+  pending.stop()
+  return text
+}
+
+// A rename fixes the title: it stops following the first line. Confirming
+// the name unchanged leaves an auto title as it is.
 export async function renameDocument(id: string, title: string): Promise<void> {
   const next = title.trim()
-  if (next) await updateDocument(id, { title: next })
+  if (!next) return
+  const doc = await db.documents.get(id)
+  if (doc && next === doc.title) return
+  await updateDocument(id, { title: next, autoTitle: false })
 }
 
 // One color per document; assigning replaces (ADR-007). null clears it.
@@ -80,9 +142,12 @@ export async function importFiles(files: FileList | File[]): Promise<number> {
       count++
     } else if (/\.zip$/i.test(f.name)) {
       const { unpackWorkspace } = await import('@/lib/backup')
-      for (const d of await unpackWorkspace(new Uint8Array(await f.arrayBuffer()))) {
+      for (const { annotations, chat, ...d } of await unpackWorkspace(new Uint8Array(await f.arrayBuffer()))) {
         last = { ...d, id: crypto.randomUUID() }
         await restoreDocument(last)
+        const documentId = last.id
+        if (annotations?.length) await db.annotations.bulkAdd(annotations.map((a) => ({ ...a, id: crypto.randomUUID(), documentId })))
+        if (chat?.length) await db.chats.put({ documentId, messages: chat })
         count++
       }
     }
@@ -91,12 +156,42 @@ export async function importFiles(files: FileList | File[]): Promise<number> {
   return count
 }
 
+// Import from a picker (bulk import): several files at once, or a whole
+// folder — its .md / .markdown / .txt files and workspace .zips, at any
+// depth; everything else is skipped. A folder picker is a plain file input
+// (webkitdirectory, in every browser), not the File System Access API
+// (ADR-003). Documents import alongside, as a drop does.
+export function pickImport(kind: 'files' | 'folder'): void {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.multiple = true
+  if (kind === 'folder') input.webkitdirectory = true
+  else input.accept = '.md,.markdown,.txt,.zip'
+  input.addEventListener('change', async () => {
+    const files = [...(input.files ?? [])]
+    if (!files.length) return
+    const count = await importFiles(files)
+    const skipped = files.filter((f) => !IMPORTABLE.test(f.name) && !/\.zip$/i.test(f.name)).length
+    useWorkspace.getState().showToast({
+      kind: 'notice',
+      id: Date.now(),
+      lead: `imported ${count} document${count === 1 ? '' : 's'}${skipped ? ';' : ''}`,
+      detail: skipped ? `${skipped} other file${skipped === 1 ? '' : 's'} skipped` : '',
+    })
+  })
+  input.click()
+}
+
 // The whole workspace as one .zip download (lib/backup.ts). Open documents
 // are taken as they stand in the editor, ahead of autosave.
 export async function exportWorkspace(): Promise<void> {
   const { backupName, packWorkspace } = await import('@/lib/backup')
   const docs = (await listDocuments()).map((d) => ({ ...d, content: openContent(d.id) ?? d.content }))
-  const bytes = await packWorkspace(docs)
+  // Annotations as they stand: an open document's live list, else stored.
+  const live = useAnnotations.getState().byDoc
+  const annotations = [...(await db.annotations.toArray()).filter((a) => !live[a.documentId]), ...Object.values(live).flat()]
+  const chats = Object.fromEntries((await db.chats.toArray()).map((c) => [c.documentId, c.messages]))
+  const bytes = await packWorkspace(docs, Date.now(), annotations, chats)
   const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/zip' }))
   const a = document.createElement('a')
   a.href = url
