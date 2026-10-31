@@ -208,7 +208,6 @@ export function SettingsModal() {
         >
           <div className="flex h-11 flex-none items-center gap-2.5 border-b border-border pr-2.5 pl-[18px]">
             <D.Title className="flex-auto text-[15px] font-semibold tracking-[-0.02em]">settings</D.Title>
-            <span className="font-mono text-[11px] text-muted-foreground">esc</span>
             <D.Close className="flex size-6 items-center justify-center rounded-md font-mono text-[14px] text-secondary-foreground hover:bg-hover-lift hover:text-foreground" aria-label="close">
               ×
             </D.Close>

@@ -662,7 +662,7 @@ export function DiffView({ tabId }: { tabId: string; paneId: string }) {
                 ready ? 'bg-primary font-semibold text-primary-foreground hover:brightness-110' : 'border border-dashed border-border-strong text-ink-dim',
               )}
             >
-              find difference <span className={ready ? 'opacity-70' : ''}>⌘↵</span>
+              find difference
             </button>
             {!ready && (
               <span className="font-mono text-[11px] text-muted-foreground">

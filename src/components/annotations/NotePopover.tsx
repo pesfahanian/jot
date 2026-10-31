@@ -107,7 +107,6 @@ export function NotePopover() {
                 delete note
               </button>
               <span className="flex-auto" />
-              <span className="text-muted-foreground">esc</span>
               <button type="button" onClick={close} className="flex h-[22px] items-center rounded-md border border-foreground bg-foreground px-[7px] text-document">
                 done
               </button>

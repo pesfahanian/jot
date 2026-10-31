@@ -17,8 +17,6 @@ import { useReview } from '@/state/review'
 import { columnsOf, docIdOf } from '@/state/layout'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 import { NotesCell } from '@/components/annotations/NotesCell'
-import { formatKey } from '@/lib/shortcuts'
-import { keysOf } from '@/state/commands'
 import { modelChain, PROVIDERS } from '@/review/providers'
 
 // Counts hug their values and pack against the bar's right edge (§1.8:
@@ -237,20 +235,19 @@ function ReviewControl({ doc, text }: { doc: JotDocument; text: string }) {
 
 // Into AI mode (round 4): the status bar's left end, where the style
 // review control was.
+// An icon, named on hover (owner, 2026-10-31: icons over labels).
 function AiModeButton({ disabled }: { disabled: boolean }) {
-  const key = keysOf('aiMode')[0]
   return (
     <div className="flex items-center px-[5px]">
       <button
         type="button"
         disabled={disabled}
         onClick={() => useWorkspace.getState().enterAiMode()}
-        title="work on this document with AI"
-        className="flex h-5 items-center gap-[7px] rounded-[5px] border border-border bg-background px-2 text-foreground hover:bg-hover-lift disabled:pointer-events-none disabled:text-ink-dim"
+        title="ai mode"
+        aria-label="ai mode"
+        className="flex h-5 w-7 items-center justify-center rounded-[5px] border border-border bg-background text-primary hover:bg-hover-lift disabled:pointer-events-none disabled:text-ink-dim"
       >
-        <span className="size-1.5 rounded-full bg-primary" />
-        ai mode
-        {key && <span className="text-muted-foreground">{formatKey(key)}</span>}
+        <Sparkles size={12} strokeWidth={1.75} aria-hidden />
       </button>
     </div>
   )
@@ -265,7 +262,7 @@ function AiModeStatus() {
     <div className="flex min-w-0 items-center gap-2 px-2.5 whitespace-nowrap">
       <button type="button" onClick={() => useWorkspace.getState().leaveAiMode()} className="flex flex-none items-center gap-[7px] text-foreground hover:underline">
         <span className="size-1.5 rounded-full bg-primary" />
-        ai mode <span className="text-muted-foreground">· esc to leave</span>
+        ai mode <span className="text-muted-foreground">· leave</span>
       </button>
       <span className="truncate text-muted-foreground">
         {PROVIDERS[provider].label.toLowerCase()} · {model}

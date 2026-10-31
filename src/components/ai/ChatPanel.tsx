@@ -71,7 +71,7 @@ export function ChatPanel({ documentId }: { documentId: string }) {
           {doc?.title}
         </span>
         <button type="button" onClick={() => useWorkspace.getState().leaveAiMode()} className={quiet}>
-          leave <span className="pl-1.5 text-muted-foreground">esc</span>
+          leave
         </button>
       </header>
       <div className="flex flex-none flex-wrap gap-[5px] border-b border-border-subtle px-3 py-2">

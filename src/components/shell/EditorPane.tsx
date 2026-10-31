@@ -10,10 +10,11 @@ import { DraftPage, DraftTab } from './Draft'
 import { Editor } from '@/editor/Editor'
 import { openContent } from '@/editor/sessions'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Download } from 'lucide-react'
 import { db, type DiffSide, type JotDocument, type PaneLayout } from '@/lib/db'
 import { exportMarkdown, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
-import { exportWorkspace, newComparison } from '@/state/actions'
+import { newComparison } from '@/state/actions'
 import { useReview } from '@/state/review'
 import { useDocuments } from '@/state/hooks'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
@@ -93,25 +94,6 @@ function ExportItems({ doc, onPdf }: { doc: JotDocument; onPdf: () => void }) {
         <span className="flex-auto">PDF</span>
         <span className="font-mono text-[11px] text-muted-foreground">.pdf</span>
       </DropdownMenuItem>
-      <WorkspaceExport />
-    </>
-  )
-}
-
-// Set apart from the document's own formats so it can't be mistaken for
-// one: the whole workspace, every document, as a .zip backup (data safety).
-function WorkspaceExport() {
-  const count = useLiveQuery(() => db.documents.count(), []) ?? 0
-  return (
-    <>
-      <DropdownMenuSeparator />
-      <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">whole workspace</div>
-      <DropdownMenuItem onSelect={() => void exportWorkspace()} title="every document, with tags and pins — a backup you can import by dropping it on jot">
-        <span className="flex-auto">
-          all {count} document{count === 1 ? '' : 's'}
-        </span>
-        <span className="font-mono text-[11px] text-muted-foreground">.zip</span>
-      </DropdownMenuItem>
     </>
   )
 }
@@ -169,10 +151,10 @@ function PaneControls({ paneId, doc, narrow }: { paneId: string; doc: JotDocumen
       className={control}
       disabled={!canSplit}
       onClick={split}
-      title={edge === 'bottom' ? 'open this document in a new pane below' : edge ? 'open this document in a new pane to the right' : 'no room for another pane here'}
+      title={edge ? 'split' : 'no room for another pane here'}
+      aria-label="split"
     >
       <SplitIcon down={edge === 'bottom'} />
-      {!narrow && 'split'}
     </button>
   )
   if (narrow) {
@@ -222,8 +204,8 @@ function PaneControls({ paneId, doc, narrow }: { paneId: string; doc: JotDocumen
           <PopoverAnchor asChild>
             <DropdownMenuTrigger asChild>
               {/* Held while the card is open: the card stands in for this menu. */}
-              <button type="button" className={cn(control, pdfOpen && 'text-foreground')} disabled={!doc} data-pdf-anchor="">
-                export <span className="text-muted-foreground">▾</span>
+              <button type="button" className={cn(control, pdfOpen && 'text-foreground')} disabled={!doc} title="export" aria-label="export" data-pdf-anchor="">
+                <Download size={13} strokeWidth={1.75} aria-hidden />
               </button>
             </DropdownMenuTrigger>
           </PopoverAnchor>
