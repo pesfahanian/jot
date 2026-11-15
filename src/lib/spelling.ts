@@ -10,7 +10,8 @@ import type NSpell from 'nspell'
 // The rule fixes only what's unambiguous: a lowercase word of 3+ letters,
 // unknown to the dictionary, where swapping one pair of neighbouring
 // letters makes exactly one real word ("teh" → "the"), or else the
-// dictionary offers exactly one suggestion ("definately" → "definitely").
+// dictionary offers exactly one suggestion ("definately" → "definitely"),
+// or the word only lacks its capital ("october" → "October").
 // It never marks a real word, so "form" for "from" is left alone — the
 // price of never suggesting a change to a correct word.
 
@@ -48,6 +49,10 @@ function lookUp(spell: Pick<NSpell, 'correct' | 'suggest'>, word: string): strin
   if (swaps.size === 1) return [...swaps][0]
   if (swaps.size > 1) return null
   const suggestions = spell.suggest(word)
+  // A name or a day, month or language written in lowercase ("october"):
+  // the same word with its capital is never a guess.
+  const capital = suggestions.find((s) => s !== word && s.toLowerCase() === word)
+  if (capital) return capital
   return suggestions.length === 1 && /^[a-z]+$/.test(suggestions[0]) ? suggestions[0] : null
 }
 
