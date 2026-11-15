@@ -538,8 +538,13 @@
 .cm-jot-notes { width: 0; position: relative; }
 .cm-jot-notes .cm-gutterElement { position: relative; padding: 0 !important; }
 .jot-note-square { position: absolute; left: -4px; top: 8px; width: 7px; height: 7px; border-radius: 1px; background: var(--secondary-foreground); cursor: pointer; }
-/* A typo with a suggestion (editor/spelling.ts): a wavy amber underline,
-   apart from the browser's red one and the plain and dotted marks; a click
-   fixes it. */
-.jot-typo { text-decoration: underline wavy var(--flag-check); text-decoration-thickness: 1px; text-underline-offset: 3px; cursor: pointer; }
+/* A typo with a suggestion (editor/spelling.ts): hard to miss — a red wash
+   with a solid red underline (owner, 2026-11-15: the wavy line was too
+   quiet). Red is no highlight's colour and not the selection's yellow; a
+   click fixes it. */
+.jot-typo {
+    background: color-mix(in oklab, var(--destructive) 16%, var(--document)); border-radius: 2px; cursor: pointer;
+    text-decoration: underline solid var(--destructive); text-decoration-thickness: 2px; text-underline-offset: 3px;
+}
+.jot-typo:hover { background: color-mix(in oklab, var(--destructive) 26%, var(--document)); }
 [dir="rtl"] .jot-typo { text-underline-offset: 5px; }
