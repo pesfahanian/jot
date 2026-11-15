@@ -78,6 +78,7 @@ Select some text and right-click it for Jot's own menu:
 
 - **highlight** it in one of three colours, or **underline** it. These are marks on the page, like a highlighter on a printout, not part of your markdown.
 - **add note** pins a note of your own to the text. A dotted underline and a small square in the margin show where; click either to read or edit it. **notes** in the status bar lists them all.
+- Cmd/Ctrl + Z undoes a highlight, an underline, or adding or deleting a note, in order with your typing; Cmd/Ctrl + Shift + Z (or Y) brings it back.
 - **translate** shows the selection in English or Farsi, through Google Translate with your own key (settings → translation). No AI is involved, and replacing your text is a separate click.
 
 Highlights and notes show in the rendered view too. In a PDF they print if you ask (the PDF card's **annotations** row), with notes as footnotes. Markdown export can keep them as ==highlights== and footnotes.

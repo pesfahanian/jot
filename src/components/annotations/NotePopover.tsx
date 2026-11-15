@@ -3,7 +3,7 @@ import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { notesInOrder } from '@/lib/annotations'
 import { relativeTime } from '@/lib/docList'
 import { cn } from '@/lib/utils'
-import { activeEditor } from '@/editor/annotations'
+import { activeEditor, recordMarks } from '@/editor/annotations'
 import { useAnnotations } from '@/state/annotations'
 import { useNow } from '@/state/hooks'
 import { useOverlays } from '@/state/overlays'
@@ -42,15 +42,17 @@ export function NotePopover() {
       list.map((a) => (a.id === note.id ? { ...a, ...patch, updatedAt: Date.now() } : a)),
     )
   }
+  // Deleting a note is an undo step; an empty new one just goes.
   const remove = () => {
-    useAnnotations.getState().set(
-      open.documentId,
-      list.filter((a) => a.id !== note.id),
-    )
+    const next = list.filter((a) => a.id !== note.id)
+    useAnnotations.getState().set(open.documentId, next)
+    if (!open.fresh) recordMarks(open.documentId, list, next)
     set({ note: null })
   }
   const close = () => {
     if (!note.body?.trim()) return remove()
+    // A new note becomes an undo step now, written as it is.
+    if (open.fresh) recordMarks(open.documentId, list.filter((a) => a.id !== note.id), list)
     set({ note: null })
     activeEditor()?.view.focus()
   }

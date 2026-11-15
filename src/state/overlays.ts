@@ -13,7 +13,9 @@ export interface Anchor {
 
 interface OverlayState {
   menu: { documentId: string; from: number; to: number; x: number; y: number } | null
-  note: { documentId: string; id: string; anchor: Anchor; editing: boolean } | null
+  // fresh: a note just added, not yet an undo step (it becomes one when
+  // closed with something written).
+  note: { documentId: string; id: string; anchor: Anchor; editing: boolean; fresh?: boolean } | null
   notesList: boolean
   translate: { documentId: string; from: number; to: number; text: string; anchor: Anchor } | null
   typo: { documentId: string; typo: Typo; x: number; y: number } | null

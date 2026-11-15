@@ -1,8 +1,10 @@
-import { RangeSet, RangeSetBuilder, StateEffect, type Extension } from '@codemirror/state'
+import { invertedEffects, isolateHistory } from '@codemirror/commands'
+import { RangeSet, RangeSetBuilder, StateEffect, Transaction, type Extension } from '@codemirror/state'
 import { Decoration, EditorView, gutter, GutterMarker, ViewPlugin, type DecorationSet, type ViewUpdate } from '@codemirror/view'
 import { notesInOrder } from '@/lib/annotations'
 import type { Annotation } from '@/lib/db'
 import { useAnnotations } from '@/state/annotations'
+import { viewsOf } from './sessions'
 import { useOverlays, type Anchor } from '@/state/overlays'
 
 // Highlights, underlines and notes in the editor (round 4, frames 6–7).
@@ -18,6 +20,29 @@ const refresh = StateEffect.define<null>()
 let active: { view: EditorView; documentId: string } | null = null
 export function activeEditor() {
   return active && active.view.dom.isConnected ? active : null
+}
+
+// Undo and redo for marks (owner, 2026-11-15): adding or removing a
+// highlight, underline or note is a step in the editor's own history, so
+// Cmd+Z and Cmd+Shift+Z / Cmd+Y step through marks and typing in the order
+// they happened. The step carries the document's list before and after;
+// undoing it puts back the "before". Steps are undone in order, so the
+// text is as it was when the list was taken. A note's wording isn't a step.
+const marksChanged = StateEffect.define<{ before: Annotation[]; after: Annotation[] }>()
+const undoableMarks = invertedEffects.of((tr) => tr.effects.filter((e) => e.is(marksChanged)).map((e) => marksChanged.of({ before: e.value.after, after: e.value.before })))
+const marksFromHistory = (documentId: string) =>
+  EditorView.updateListener.of((u) => {
+    for (const tr of u.transactions) {
+      if (!tr.isUserEvent('undo') && !tr.isUserEvent('redo')) continue
+      for (const e of tr.effects) if (e.is(marksChanged)) useAnnotations.getState().set(documentId, e.value.after)
+    }
+  })
+
+// Records a change to a document's marks (already made in the store) as an
+// undo step, in the editor last focused on it.
+export function recordMarks(documentId: string, before: Annotation[], after: Annotation[]) {
+  const view = active?.documentId === documentId && active.view.dom.isConnected ? active.view : viewsOf(documentId)[0]
+  view?.dispatch({ effects: marksChanged.of({ before, after }), annotations: [Transaction.addToHistory.of(true), isolateHistory.of('full'), Transaction.userEvent.of('annotate')] })
 }
 
 const markFor = (a: Annotation) =>
@@ -114,6 +139,8 @@ export function annotationsExtension(documentId: string): Extension {
   )
   return [
     plugin,
+    undoableMarks,
+    marksFromHistory(documentId),
     gutter({
       class: 'cm-jot-notes',
       markers: (view) => view.plugin(plugin)?.gutter ?? RangeSet.empty,
