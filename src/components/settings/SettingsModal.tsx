@@ -43,11 +43,19 @@ function Page({ children }: { children: ReactNode }) {
 function EditorPage() {
   const renderIn = useLiveQuery(() => getSettings().then((s) => s.renderIn ?? 'tab'), []) ?? 'tab'
   const autofix = useLiveQuery(() => getSettings().then((s) => s.autofix ?? false), []) ?? false
+  const centerHeadings = useLiveQuery(() => getSettings().then((s) => s.centerHeadings ?? true), []) ?? true
+  const centerTables = useLiveQuery(() => getSettings().then((s) => s.centerTables ?? true), []) ?? true
   return (
     <Page>
       <SectionHead title="editor" />
       <Row title="rendered view" detail={renderIn === 'tab' ? 'Opens as a new tab beside the document, in the same pane.' : 'Opens in a split beside the document.'}>
         <Segmented value={renderIn} options={['tab', 'split'] as const} onChange={(renderIn) => void updateSettings({ renderIn })} />
+      </Row>
+      <Row title="centre top-level headings" detail="# headings sit centred in the rendered view and the PDF.">
+        <Switch label="centre top-level headings" on={centerHeadings} onChange={(on) => void updateSettings({ centerHeadings: on })} />
+      </Row>
+      <Row title="centre tables" detail="Tables narrower than the page sit centred in the rendered view and the PDF.">
+        <Switch label="centre tables" on={centerTables} onChange={(on) => void updateSettings({ centerTables: on })} />
       </Row>
       <Row
         title="auto-fix spelling"

@@ -41,6 +41,10 @@ export interface Settings {
   // Animations (round 4, motion spec); on unless turned off. The system's
   // reduced-motion request turns them off regardless.
   animations?: boolean
+  // Top-level headings and tables centred in the rendered view and the PDF
+  // (owner, 2026-10-31); on unless turned off.
+  centerHeadings?: boolean
+  centerTables?: boolean
   // Auto-fix spelling behind the cursor (Phase 16); off unless turned on.
   autofix?: boolean
   // The person's own keyboard shortcuts (round 4): command id → keys, an

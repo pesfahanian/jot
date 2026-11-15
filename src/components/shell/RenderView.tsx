@@ -1,7 +1,10 @@
 import type { EditorView } from '@codemirror/view'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef, useState } from 'react'
 import { followContent, openContent, viewsOf } from '@/editor/sessions'
 import type { JotDocument } from '@/lib/db'
+import { getSettings } from '@/lib/settings'
+import { cn } from '@/lib/utils'
 import { renderBlocks, type RenderedBlock } from '@/lib/render'
 import { useWorkspace } from '@/state/workspace'
 import { useAnnotations } from '@/state/annotations'
@@ -61,11 +64,12 @@ export function RenderView({ doc }: { doc: JotDocument }) {
   }, [doc.id, doc.content, doc.dir])
 
   useScrollSync(doc.id, scroller, blocks)
+  const settings = useLiveQuery(() => getSettings(), [])
 
   return (
     // Full pane width, as VSCode's preview (owner) — no measure cap.
     <div ref={scroller} className="relative min-h-0 flex-auto overflow-y-auto px-7 py-6">
-      <div className="jot-rendered">
+      <div className={cn('jot-rendered', (settings?.centerHeadings ?? true) && 'jot-center-h1', (settings?.centerTables ?? true) && 'jot-center-tables')}>
         {blocks?.map((b) => (
           <div key={`${b.line}:${b.html.length}`} data-line={b.line} dangerouslySetInnerHTML={{ __html: b.html }} />
         ))}
