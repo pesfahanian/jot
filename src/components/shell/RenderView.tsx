@@ -5,7 +5,6 @@ import type { JotDocument } from '@/lib/db'
 import { renderBlocks, type RenderedBlock } from '@/lib/render'
 import { useWorkspace } from '@/state/workspace'
 import { useAnnotations } from '@/state/annotations'
-import { printable } from '@/lib/annotations'
 
 // The rendered view (2g): one document, rendered — the body of a rendered
 // tab ("render:" + id), which moves like any tab. It follows the text as
@@ -30,7 +29,7 @@ export function RenderView({ doc }: { doc: JotDocument }) {
     const theme = () => (document.documentElement.classList.contains('dark') ? 'dark' : 'light')
     const render = () => {
       const n = ++latest
-      const annotations = printable(useAnnotations.getState().byDoc[doc.id] ?? [])
+      const annotations = useAnnotations.getState().byDoc[doc.id] ?? []
       void renderBlocks(text, { theme: theme(), dir: doc.dir ?? 'auto', annotations }).then((b) => n === latest && setBlocks(b))
     }
     render()
@@ -57,7 +56,7 @@ export function RenderView({ doc }: { doc: JotDocument }) {
       stopMarks()
       themeWatch.disconnect()
     }
-    // doc.content: a change saved from elsewhere (e.g. an applied review);
+    // doc.content: a change saved from elsewhere (e.g. another pane);
     // doc.dir: the document's direction setting changed.
   }, [doc.id, doc.content, doc.dir])
 

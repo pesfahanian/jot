@@ -138,7 +138,7 @@ describe('grid', () => {
   })
 })
 
-describe('AI mode parking', () => {
+describe('parking for a one-document mode', () => {
   it('keeps one pane and brings the rest back as they were, with anything opened meanwhile', async () => {
     const { parkFor, unpark } = await import('./layout')
     const panes = [

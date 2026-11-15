@@ -64,7 +64,7 @@ def greet(name):
 ## organising
 
 - The sidebar holds your documents. **+** makes a new one; beside it are search, and one button to sort and filter by colour tag. The last icon (or Cmd/Ctrl + B) hides the sidebar, or brings it back.
-- The gear at the bottom of the sidebar (Cmd/Ctrl + ,) opens settings: your AI provider, the theme, animations, keyboard shortcuts, import and your storage. Every shortcut can be changed there.
+- The gear at the bottom of the sidebar (Cmd/Ctrl + ,) opens settings: the theme, animations, keyboard shortcuts, import and your storage. Every shortcut can be changed there.
 - **+** asks for a name first: type one and press Enter, or just click into the empty page to start writing. Esc, or clicking elsewhere, makes nothing. An unnamed document names itself after its first line as you write; rename it and the name stays.
 - Right-click a document to tag it with a colour, rename, pin or delete it. Double-click it to rename.
 - Drag tabs to reorder them, or onto another pane. Drop one on a pane's left or right edge for a new column, or on its top or bottom edge to stack two panes, up to three columns of two. Documents drag in from the sidebar too.
@@ -92,20 +92,9 @@ To see what changed between two texts, right-click a document and choose **compa
 
 Farsi works as naturally as English. Each paragraph, list or table reads right-to-left or left-to-right by its own majority script, while code, links and formulas inside Farsi text keep reading left-to-right. When a document has Farsi in it, the **dir** cell in the bar at the bottom shows the direction, and can set the whole document right-to-left or left-to-right instead. For a diagram that flows right-to-left, write **flowchart RL**.
 
-## ai mode
-
-jot can work on a document with AI, using your own key. Your text goes straight from this browser to your provider; nothing passes through jot.
-
-1. Open **settings** at the bottom of the sidebar, pick a provider (OpenRouter, Google AI Studio, OpenAI or Anthropic) and add your key. Below the key you can choose the model, and fallbacks to try if it's busy.
-2. Press the sparkle at the bottom left (or Cmd/Ctrl + J). A chat opens where the sidebar was; Esc leaves, and your other panes come back as they were.
-3. Ask a question, or ask for a change ("make the intro friendlier"). To point at a passage, select it, right-click and choose **add ai note**; notes go with your next message. Switch on **my notes as context** to send your own notes along too.
-4. Changes come back as proposals. Open the results to accept, reject or rewrite each one, or switch to **diff** to see the whole result. Nothing changes until you press **apply**.
-
-From the chat you can also run **review style**, which checks your prose against a style guide (English or Farsi). Very short documents, or ones that are all code, are skipped; **review anyway** overrides that. **translate document** writes a translation into a new document beside this one, section by section. The conversation is kept with its document, in this browser.
-
 ## where your writing lives
 
-Everything stays in this browser. There's no account and no server, and your key only ever goes to the provider you chose.
+Everything stays in this browser. There's no account and no server.
 
 That makes this browser the only copy. Each browser, profile and installed app keeps its own separate workspace, and clearing site data erases it. So now and then, export the whole workspace as a .zip: it's your backup, and dropping it on jot brings everything back, alongside whatever is already here. Safari deletes a site's data on its own after a week without use, so jot is better in Chrome, Firefox or Edge.
 `

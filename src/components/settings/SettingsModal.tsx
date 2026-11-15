@@ -7,33 +7,24 @@ import { useMotion } from '@/lib/motion'
 import { getSettings, updateSettings } from '@/lib/settings'
 import { cn } from '@/lib/utils'
 import { exportWorkspace, pickImport } from '@/state/actions'
-import { useReview } from '@/state/review'
 import { useTheme } from '@/state/theme'
 import { useUi, type SettingsSection } from '@/state/ui'
-import { AiProviderSection } from './AiProviderSection'
 import { Grid, Label, quietButton, Rule, SectionHead, Segmented, Switch } from './controls'
 import { ShortcutsSection } from './ShortcutsSection'
 import { TranslationSection } from './TranslationSection'
 
 // Settings (round 4, frames 3a–3e): a modal, 780 × 540, sections grouped
-// ai / app / data. Opened from the sidebar foot, the palette and ⌘, — and
-// by asking for a review with no key, which lands on ai provider.
+// app / data. Opened from the sidebar foot, the palette and ⌘,.
 
 // Every item has its own view.
 const NAV: { group: string; items: { label: string; section: SettingsSection }[] }[] = [
-  {
-    group: 'ai',
-    items: [
-      { label: 'ai provider', section: 'ai' },
-      { label: 'translation', section: 'translation' },
-    ],
-  },
   {
     group: 'app',
     items: [
       { label: 'editor', section: 'editor' },
       { label: 'appearance', section: 'appearance' },
       { label: 'keyboard shortcuts', section: 'shortcuts' },
+      { label: 'translation', section: 'translation' },
     ],
   },
   {
@@ -77,7 +68,7 @@ function AppearancePage() {
       <Row title="theme" detail={preference === 'system' ? `Follows your system, light or dark — now ${resolved}.` : 'Light and dark share every shape; only colour changes.'}>
         <Segmented value={preference} options={['light', 'dark', 'system'] as const} onChange={(theme) => void updateSettings({ theme })} />
       </Row>
-      <Row title="animations" detail={motion.systemReduced ? 'Your system asks for reduced motion.' : 'Menus, the palette, panes and ai mode move briefly as they open.'}>
+      <Row title="animations" detail={motion.systemReduced ? 'Your system asks for reduced motion.' : 'Menus, the palette and panes move briefly as they open.'}>
         <Switch label="animations" on={motion.on} disabled={motion.systemReduced} onChange={(on) => void updateSettings({ animations: on })} />
       </Row>
     </Page>
@@ -185,18 +176,9 @@ function AboutPage() {
 }
 
 export function SettingsModal() {
-  const { open: settingsOpen, section: chosen } = useUi((s) => s.settings)
-  const keyPanelOpen = useReview((s) => s.keyPanel.open)
+  const { open, section } = useUi((s) => s.settings)
   const setSection = useUi((s) => s.setSettingsSection)
-  const closeSettings = useUi((s) => s.closeSettings)
-  const closeKeyPanel = useReview((s) => s.closeKeyPanel)
-  const open = settingsOpen || keyPanelOpen
-  // Asking for a review with no key lands on the provider.
-  const section = keyPanelOpen ? 'ai' : chosen
-  const close = () => {
-    closeSettings()
-    closeKeyPanel()
-  }
+  const close = useUi((s) => s.closeSettings)
 
   return (
     <D.Root open={open} onOpenChange={(o) => !o && close()}>
@@ -224,7 +206,6 @@ export function SettingsModal() {
                         key={it.label}
                         type="button"
                         onClick={() => {
-                          if (keyPanelOpen) closeKeyPanel()
                           setSection(it.section)
                           document.getElementById('settings-body')?.scrollTo({ top: 0 })
                         }}
@@ -241,11 +222,6 @@ export function SettingsModal() {
               ))}
             </nav>
             <div id="settings-body" className="min-w-0 flex-auto overflow-y-auto">
-              {section === 'ai' && (
-                <Page>
-                  <AiProviderSection onDone={close} />
-                </Page>
-              )}
               {section === 'translation' && (
                 <Page>
                   <TranslationSection />

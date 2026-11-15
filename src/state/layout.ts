@@ -185,11 +185,11 @@ export function canSplit(panes: PaneLayout[], tab: DraggedTab, target: string, e
   return splitWithTab(panes, tab, target, edge, '?') !== null
 }
 
-// AI mode (round 4, frames 10–11): one document's pane stays; the others
-// are parked and come back exactly as they were. Entering keeps only the
-// working pane; leaving puts the parked layout back, with the working pane
-// as it is now — and anything opened beside it meanwhile (a translation's
-// draft) joins it as a tab.
+// A mode about one document (AI mode did this; comfy mode will): its pane
+// stays, the others are parked and come back exactly as they were.
+// Entering keeps only the working pane; leaving puts the parked layout
+// back, with the working pane as it is now — and anything opened beside it
+// meanwhile joins it as a tab.
 export interface Parked {
   panes: PaneLayout[]
   focusedPaneId: string

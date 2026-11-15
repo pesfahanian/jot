@@ -2,7 +2,7 @@ import type { CSSProperties, HTMLAttributes, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 // The one elevation exception in the design system (§1.9, §1.10), reserved
-// for the AI review panel and the shortcut keys inside it. Everything else in
+// for the guide card and the shortcut keys inside it. Everything else in
 // Jot is flat: a border weight plus a luminance step.
 //
 // The ground is part of the token, not a choice: on light the bevel only
@@ -25,8 +25,7 @@ export function KeycapPanel({ className, style, children, ...rest }: HTMLAttribu
 }
 
 // A shortcut key (3g). Keys sit inside a KeycapPanel only. The guide card
-// (sidebar foot "?", Phase 10) is their first use; the review keyboard
-// model is still deferred (interaction spec §6).
+// (sidebar foot "?", Phase 10) is where they're used.
 export function Keycap({ children }: { children: ReactNode }) {
   return (
     <kbd

@@ -4,8 +4,7 @@ import { commitDraft } from '@/state/actions'
 import { draftFieldInSidebar, useWorkspace } from '@/state/workspace'
 
 // A new document before it exists (workspace.draft): a name field — in the
-// sidebar, or in the draft's tab while the sidebar is hidden or AI mode has
-// its place — and an empty page in the pane. ↩ creates it with the name
+// sidebar, or in the draft's tab while the sidebar is hidden — and an empty page in the pane. ↩ creates it with the name
 // typed (untitled when empty); a click into the page creates it untitled;
 // esc, or focus going anywhere else, drops it.
 

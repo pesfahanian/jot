@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { JotDocument } from '@/lib/db'
 import { welcomeDocumentId } from '@/lib/welcome'
-import { Keycap, KeycapPanel } from '@/components/review/Keycap'
+import { Keycap, KeycapPanel } from '@/components/shell/Keycap'
 import {
   arrangeDocuments,
   colorCounts,
@@ -496,8 +496,8 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
         {draftHere && !search && <DraftRow />}
         {body}
       </div>
-      {/* The foot: settings and the guide. Import, the AI provider and the
-          theme live in settings. */}
+      {/* The foot: settings and the guide. Import and the theme live in
+          settings. */}
       <div className="flex h-[34px] flex-none items-center gap-0.5 border-t border-border pr-1.5 pl-2 text-secondary-foreground">
         <button type="button" onClick={() => openSettings()} className={iconButton} title="settings" aria-label="settings">
           <Settings2 size={14} strokeWidth={1.75} aria-hidden />

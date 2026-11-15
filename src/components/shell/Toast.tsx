@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import { UNDO_WINDOW_MS, undoDelete } from '@/state/actions'
-import { undoApply } from '@/state/reviewActions'
 import { db, type Comparison } from '@/lib/db'
 
 // Undo a cleared comparison: put it back as it was.
@@ -40,20 +39,16 @@ export function Toast() {
             </>
           ) : toast.kind === 'cleared' ? (
             <>comparison cleared</>
-          ) : toast.kind === 'notice' ? (
-            <>
-              {toast.lead} <span className="text-toast-muted">{toast.detail}</span>
-            </>
           ) : (
             <>
-              {toast.changed} {toast.changed === 1 ? 'change' : 'changes'} applied <span className="text-toast-muted">{toast.kept} kept</span>
+              {toast.lead} <span className="text-toast-muted">{toast.detail}</span>
             </>
           )}
         </span>
         {toast.kind !== 'notice' && (
         <button
           type="button"
-          onClick={() => (toast.kind === 'deleted' ? void undoDelete(toast.id) : toast.kind === 'cleared' ? void undoClear(toast.comparison) : undoApply(toast.documentId))}
+          onClick={() => (toast.kind === 'deleted' ? void undoDelete(toast.id) : void undoClear(toast.comparison))}
           className="rounded-sm border border-(--toast-line) px-2 py-0.5 hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           undo

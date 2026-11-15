@@ -1,7 +1,6 @@
 import { RangeSet, RangeSetBuilder, StateEffect, type Extension } from '@codemirror/state'
-import { Decoration, EditorView, gutter, GutterMarker, ViewPlugin, WidgetType, type DecorationSet, type ViewUpdate } from '@codemirror/view'
-import { aiNotesInOrder, notesInOrder } from '@/lib/annotations'
-import { useWorkspace } from '@/state/workspace'
+import { Decoration, EditorView, gutter, GutterMarker, ViewPlugin, type DecorationSet, type ViewUpdate } from '@codemirror/view'
+import { notesInOrder } from '@/lib/annotations'
 import type { Annotation } from '@/lib/db'
 import { useAnnotations } from '@/state/annotations'
 import { useOverlays, type Anchor } from '@/state/overlays'
@@ -28,31 +27,6 @@ const markFor = (a: Annotation) =>
       ? Decoration.mark({ class: 'jot-ul' })
       : Decoration.mark({ class: 'jot-note', attributes: { 'data-note': a.id } })
 
-// An AI note's number (round 4, frame 11): an inverted pill before its
-// text — the number the queue and the chat refer to it by.
-class AiPill extends WidgetType {
-  readonly n: number
-  readonly id: string
-  constructor(n: number, id: string) {
-    super()
-    this.n = n
-    this.id = id
-  }
-  eq(other: AiPill) {
-    return other.n === this.n && other.id === this.id
-  }
-  toDOM() {
-    const el = document.createElement('span')
-    el.className = 'jot-ai-pill'
-    el.dataset.ainote = this.id
-    el.textContent = String(this.n)
-    return el
-  }
-  ignoreEvent() {
-    return false
-  }
-}
-
 class NoteMarker extends GutterMarker {
   readonly id: string
   constructor(id: string) {
@@ -71,23 +45,12 @@ class NoteMarker extends GutterMarker {
   }
 }
 
-// AI notes show only while their document is in AI mode.
-const inAiMode = (documentId: string) => useWorkspace.getState().aiMode?.documentId === documentId
-
 function build(view: EditorView, documentId: string) {
-  const all = useAnnotations.getState().byDoc[documentId] ?? []
-  const list = all.filter((a) => a.kind !== 'ai-note')
+  const list = useAnnotations.getState().byDoc[documentId] ?? []
   const len = view.state.doc.length
   const ranges = list
     .filter((a) => a.to > a.from && a.to <= len)
     .map((a) => markFor(a).range(a.from, a.to))
-  if (inAiMode(documentId)) {
-    aiNotesInOrder(all).forEach((a, i) => {
-      if (a.from > len) return
-      ranges.push(Decoration.widget({ widget: new AiPill(i + 1, a.id), side: -1 }).range(a.from))
-      if (a.to > a.from) ranges.push(Decoration.mark({ class: 'jot-ainote', attributes: { 'data-ainote': a.id } }).range(a.from, Math.min(a.to, len)))
-    })
-  }
   const decorations: DecorationSet = Decoration.set(ranges, true)
   const gutterSet = new RangeSetBuilder<GutterMarker>()
   let lastLine = -1
@@ -123,7 +86,6 @@ export function annotationsExtension(documentId: string): Extension {
         this.view = view
         ;({ decorations: this.decorations, gutter: this.gutter } = build(view, documentId))
         let last = useAnnotations.getState().byDoc[documentId]
-        let lastMode = inAiMode(documentId)
         const kick = () => queueMicrotask(() => view.dom.isConnected && view.dispatch({ effects: refresh.of(null) }))
         const offMarks = useAnnotations.subscribe((s) => {
           const now = s.byDoc[documentId]
@@ -131,16 +93,7 @@ export function annotationsExtension(documentId: string): Extension {
           last = now
           kick()
         })
-        const offMode = useWorkspace.subscribe(() => {
-          const now = inAiMode(documentId)
-          if (now === lastMode) return
-          lastMode = now
-          kick()
-        })
-        this.unsubscribe = () => {
-          offMarks()
-          offMode()
-        }
+        this.unsubscribe = offMarks
         void useAnnotations.getState().load(documentId, view.state.doc.toString())
       }
       update(u: ViewUpdate) {
@@ -175,11 +128,6 @@ export function annotationsExtension(documentId: string): Extension {
     }),
     EditorView.domEventHandlers({
       click(event, view) {
-        const ai = (event.target as Element).closest?.('[data-ainote]') as HTMLElement | null
-        if (ai && view.state.selection.main.empty) {
-          useOverlays.getState().set({ note: { documentId, id: ai.dataset.ainote!, anchor: anchorOf(ai), editing: false }, menu: null })
-          return false
-        }
         const el = (event.target as Element).closest?.('.jot-note[data-note]')
         // A plain click reads the note; a selection drag doesn't.
         if (!el || !view.state.selection.main.empty) return false

@@ -16,7 +16,6 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef } from 'react'
 import { getSettings } from '@/lib/settings'
 import { takeTypeAhead } from '@/state/actions'
-import { isLocked, useReview } from '@/state/review'
 import { useWorkspace } from '@/state/workspace'
 import { columnsOf } from '@/state/layout'
 import { markdownWithCode } from './codeLanguages'
@@ -41,9 +40,6 @@ interface EditorProps {
 // CSS variables, which CodeMirror can't see, but dark's line-height differs
 // (1.7 vs 1.65), so without this the selection layer and gutter go stale.
 const themeMode = new Compartment()
-// Read-only while a review view of this document is open (spec §1).
-const lock = new Compartment()
-const lockFor = (locked: boolean) => (locked ? [EditorState.readOnly.of(true), EditorView.editable.of(false)] : [])
 const themeModeFor = (dark: boolean) => EditorView.theme({}, { dark })
 const isDark = () => document.documentElement.classList.contains('dark')
 
@@ -123,7 +119,6 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
           autofixCompartment.of(autofixFor(autofixRef.current)),
           directionExtension(dirRef.current),
           themeMode.of(themeModeFor(isDark())),
-          lock.of(lockFor(isLocked(useReview.getState().openIn, documentId))),
           EditorView.updateListener.of((u) => {
             session.handleUpdate(u)
             if (u.focusChanged && u.view.hasFocus) useWorkspace.getState().focusPane(paneId)
@@ -183,11 +178,6 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
   useEffect(() => {
     viewRef.current?.dispatch({ effects: dirCompartment.reconfigure(dirSettingFor(dir)) })
   }, [dir])
-
-  const locked = useReview((s) => isLocked(s.openIn, documentId))
-  useEffect(() => {
-    viewRef.current?.dispatch({ effects: lock.reconfigure(lockFor(locked)) })
-  }, [locked])
 
   // Jump requests (a search hit's line) for this document, in the focused pane.
   const reveal = useWorkspace((s) => s.reveal)
