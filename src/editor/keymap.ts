@@ -1,7 +1,7 @@
 import { insertBlankLine, simplifySelection } from '@codemirror/commands'
 import { insertNewlineContinueMarkupCommand } from '@codemirror/lang-markdown'
 import { syntaxTree } from '@codemirror/language'
-import type { StateCommand } from '@codemirror/state'
+import { EditorSelection, type StateCommand } from '@codemirror/state'
 import { findNext, findPrevious } from '@codemirror/search'
 import { EditorView, type KeyBinding } from '@codemirror/view'
 import { vscodeKeymap } from '@replit/codemirror-vscode-keymap'
@@ -89,4 +89,22 @@ export const cutEmptyLastLine = EditorView.domEventHandlers({
     view.dispatch({ changes: { from: line.from - 1, to: line.to }, userEvent: 'delete.cut', scrollIntoView: true })
     return true
   },
+})
+
+// A backtick typed over a selection wraps it in backticks, as VSCode does
+// for markdown; quotes and brackets already wrap (closeBrackets). With
+// nothing selected it's an ordinary backtick, so typing a ``` fence is
+// undisturbed. The selection stays on the wrapped text.
+export const wrapInBackticks = EditorView.inputHandler.of((view, _from, _to, text) => {
+  const { state } = view
+  if (text !== '`' || state.readOnly || state.selection.ranges.every((r) => r.empty)) return false
+  view.dispatch(
+    state.changeByRange((r) =>
+      r.empty
+        ? { changes: { from: r.from, insert: '`' }, range: EditorSelection.cursor(r.from + 1) }
+        : { changes: [{ from: r.from, insert: '`' }, { from: r.to, insert: '`' }], range: EditorSelection.range(r.anchor + 1, r.head + 1) },
+    ),
+    { userEvent: 'input.type', scrollIntoView: true },
+  )
+  return true
 })
