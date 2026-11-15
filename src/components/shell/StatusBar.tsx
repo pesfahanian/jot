@@ -6,6 +6,7 @@ import { updateDocument } from '@/lib/documents'
 import { openContent } from '@/editor/sessions'
 import type { JotDocument } from '@/lib/db'
 import { countText, groupDigits } from '@/lib/counts'
+import { applyUpdate, useUpdateReady } from '@/lib/offline'
 import { getSettings, updateSettings } from '@/lib/settings'
 import { cn } from '@/lib/utils'
 import { columnsOf, docIdOf } from '@/state/layout'
@@ -68,6 +69,19 @@ function DirCell({ doc, text, line }: { doc: JotDocument; text: string; line: nu
   )
 }
 
+// A new version of Jot is downloaded and waiting (lib/offline.ts): a quiet
+// offer at the bar's left. Every edit is saved, so reloading loses nothing.
+function UpdateReady() {
+  const ready = useUpdateReady()
+  if (!ready) return null
+  return (
+    <button type="button" onClick={applyUpdate} title="a new version of jot is ready" className="flex items-center gap-[7px] px-2.5 hover:bg-hover-lift">
+      <span className="size-1.5 rounded-full bg-primary" />
+      updated <span className="text-muted-foreground">· reload</span>
+    </button>
+  )
+}
+
 // Minimap on/off (Phase 8; in the status bar since the owner moved it), one
 // setting for every editor. Lit while on. With three columns open the
 // editors hide it regardless — the tooltip says so.
@@ -102,8 +116,9 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
 
   return (
     <footer className="flex h-7 flex-none items-stretch overflow-hidden rounded-(--radius-status) border border-border-strong bg-card font-mono text-[11.5px]">
-      {/* The bar is about the focused document; the one global control
-          here is the minimap toggle (owner). */}
+      {/* The bar is about the focused document; the global controls are an
+          update waiting, at the left, and the minimap toggle (owner). */}
+      <UpdateReady />
       <div className="flex-auto" />
       {doc && (
         <>

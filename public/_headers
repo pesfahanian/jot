@@ -21,3 +21,8 @@
 # The spelling dictionary changes only with a release.
 /dict/*
   Cache-Control: public, max-age=604800
+
+# The service worker (scripts/sw.template.js) is checked for a new version
+# on every load; never served from a cache.
+/sw.js
+  Cache-Control: no-cache

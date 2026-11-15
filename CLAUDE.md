@@ -52,5 +52,6 @@ Scaffolded in T0.1. Package manager is pnpm (pinned via `packageManager` in `pac
 - `scripts/keymap-collisions.mjs` — `pnpm check:keymap`; run after any keymap change (T2.2).
 - `@/` is aliased to `src/` (see `vite.config.ts`, `tsconfig*.json`).
 - `.claude/launch.json` — dev-server config for the preview browser.
+- `scripts/sw.template.js` + `src/lib/offline.ts` — the service worker: the `jot-offline` plugin in `vite.config.ts` writes it into the build as `/sw.js` with every file the app is made of, so after one good load Jot opens, renders and prints with no network (for connections that can't reach Cloudflare). A new version installs in the background and waits; the status bar offers "updated · reload". Production builds only — test with `pnpm build` + the `jot-preview` server.
 - `public/_headers` — production response headers (strict Content-Security-Policy: own code only, network only to Google's Translation API, for translating a selection); Cloudflare Pages applies it, and `vite.config.ts` feeds it to `pnpm preview`. Any new network host must be added to `connect-src`, or its calls will be blocked.
 - `README.md`, `LICENSE` (MIT), `.node-version` (22, read by Cloudflare Pages).
