@@ -357,6 +357,16 @@
     .jot-rendered code { background: var(--inset); padding: 1px 4px; border-radius: 3px; }
     .jot-rendered pre { background: var(--inset); padding: 10px 12px; border-radius: 6px; overflow-x: auto; line-height: 1.55; }
     .jot-rendered pre code { background: none; padding: 0; }
+    /* The copy button (rendered view only): over the block's top right
+       corner, shown while the block is hovered or the button has focus. */
+    .jot-rendered .jot-code { position: relative; }
+    .jot-rendered .jot-copy {
+        position: absolute; top: 6px; right: 6px; display: flex; align-items: center; justify-content: center;
+        width: 26px; height: 24px; border-radius: 5px; border: 1px solid var(--border); background: var(--inset);
+        color: var(--muted-foreground); opacity: 0; transition: opacity var(--motion-fast) var(--ease-enter);
+    }
+    .jot-rendered .jot-code:hover .jot-copy, .jot-rendered .jot-copy:focus-visible { opacity: 1; }
+    .jot-rendered .jot-copy:hover { color: var(--foreground); border-color: var(--border-strong); }
     .jot-rendered .code-keyword { color: var(--code-keyword); }
     .jot-rendered .code-string { color: var(--code-string); }
     .jot-rendered .code-number { color: var(--code-number); }

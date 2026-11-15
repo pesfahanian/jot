@@ -18,6 +18,52 @@ import { useAnnotations } from '@/state/annotations'
 
 const RENDER_DELAY = 120
 
+// Code blocks get a copy button, top right on hover, as GitHub has it —
+// added here, so the PDF never shows one. The block is wrapped so the
+// button stays put while wide code scrolls sideways.
+const COPY_ICON = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'
+const DONE_ICON = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>'
+
+function addCopyButtons(root: HTMLElement) {
+  for (const pre of root.querySelectorAll<HTMLPreElement>('pre')) {
+    if (pre.parentElement?.classList.contains('jot-code')) continue
+    const wrap = document.createElement('div')
+    wrap.className = 'jot-code'
+    pre.replaceWith(wrap)
+    wrap.append(pre)
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'jot-copy'
+    button.title = 'copy'
+    button.setAttribute('aria-label', 'copy code')
+    button.innerHTML = COPY_ICON
+    let reset: ReturnType<typeof setTimeout> | undefined
+    const done = () => {
+      button.innerHTML = DONE_ICON
+      button.title = 'copied'
+      clearTimeout(reset)
+      reset = setTimeout(() => {
+        button.innerHTML = COPY_ICON
+        button.title = 'copy'
+      }, 1200)
+    }
+    button.addEventListener('click', () => {
+      const text = pre.textContent ?? ''
+      // Where the clipboard API is refused, the older copy command.
+      navigator.clipboard.writeText(text).then(done, () => {
+        const area = document.createElement('textarea')
+        area.value = text
+        area.style.cssText = 'position:fixed;opacity:0'
+        document.body.append(area)
+        area.select()
+        if (document.execCommand('copy')) done()
+        area.remove()
+      })
+    })
+    wrap.append(button)
+  }
+}
+
 export function RenderView({ doc }: { doc: JotDocument }) {
   const [blocks, setBlocks] = useState<RenderedBlock[] | null>(null)
   const scroller = useRef<HTMLDivElement>(null)
@@ -64,6 +110,9 @@ export function RenderView({ doc }: { doc: JotDocument }) {
   }, [doc.id, doc.content, doc.dir])
 
   useScrollSync(doc.id, scroller, blocks)
+  useEffect(() => {
+    if (scroller.current) addCopyButtons(scroller.current)
+  }, [blocks])
   const settings = useLiveQuery(() => getSettings(), [])
 
   return (
