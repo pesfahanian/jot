@@ -139,7 +139,7 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
   const cur = cursor && doc && cursor.documentId === doc.id ? cursor : { line: 1, col: 1 }
 
   return (
-    <footer className="@container flex h-7 flex-none items-stretch overflow-hidden rounded-(--radius-status) border border-border-strong bg-card font-mono text-[11.5px] whitespace-nowrap">
+    <footer className="@container flex h-[35px] flex-none items-stretch overflow-hidden rounded-(--radius-status) border border-border-strong bg-card font-mono text-[11.5px] whitespace-nowrap">
       {/* The bar is about the focused document; the global controls are an
           update waiting, at the left, and the minimap toggle (owner). */}
       <UpdateReady />
