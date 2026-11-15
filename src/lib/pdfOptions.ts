@@ -171,6 +171,8 @@ export function pdfCss(o: PdfOptions, rtl = false, center = { headings: true, ta
   th, td { padding: 3px 6px; text-align: start; overflow-wrap: anywhere; }
   tr { break-inside: avoid; }
   hr { border: none; border-top: 1px solid #CCD0D3; margin: 1.6em 0; }
+  /* \\newpage: the next block starts a new page; nothing printed. */
+  .jot-pagebreak { break-after: page; height: 0; margin: 0; }
   img { max-width: 100%; }
   pre, blockquote, figure, img, .jot-math-block, .jot-keep { break-inside: avoid; }
   .jot-diagram { margin: 0 0 0.9em; }

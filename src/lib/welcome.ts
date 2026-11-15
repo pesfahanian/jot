@@ -69,7 +69,7 @@ def greet(name):
 - Right-click a document to tag it with a colour, rename, pin or delete it. Double-click it to rename.
 - Drag tabs to reorder them, or onto another pane. Drop one on a pane's left or right edge for a new column, or on its top or bottom edge to stack two panes, up to three columns of two. Documents drag in from the sidebar too.
 - Drag the gaps between panes to resize them. Double-click a gap to even it out.
-- Drop .md files anywhere to import them, or pick files or a whole folder in settings → storage and backup, where the whole workspace exports as one .zip too. The export icon at the top right of a document saves it as Markdown, plain text or PDF (with page, font and colour options).
+- Drop .md files anywhere to import them, or pick files or a whole folder in settings → storage and backup, where the whole workspace exports as one .zip too. The export icon at the top right of a document saves it as Markdown, plain text or PDF (with page, font and colour options). In a PDF, a line with only **\newpage** on it starts a new page; the rendered view shows it as a dashed line.
 - The **+** at the end of the tabs makes a new document, as in a browser. So does double-clicking the empty space beside the tabs, or below the documents in the sidebar.
 
 ## marking it up

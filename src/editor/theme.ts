@@ -38,6 +38,8 @@ const codeBlockLine = Decoration.line({ class: 'cm-jot-codeblock' })
 const linkText = Decoration.mark({ class: 'cm-jot-link-text' })
 const inlineCode = Decoration.mark({ class: 'cm-jot-inline-code' })
 const doneTask = Decoration.mark({ class: 'cm-jot-task-done' })
+// \newpage (lib/render.ts) is an instruction for the PDF, not text: dimmed.
+const pageBreak = Decoration.mark({ class: 'cm-jot-pagebreak' })
 
 function buildDecorations(view: EditorView): DecorationSet {
   const builder = new RangeSetBuilder<Decoration>()
@@ -54,6 +56,10 @@ function buildDecorations(view: EditorView): DecorationSet {
             const line = state.doc.line(n)
             builder.add(line.from, line.from, codeBlockLine)
           }
+          return false
+        }
+        if (node.name === 'Paragraph' && state.sliceDoc(node.from, node.to).trim() === '\\newpage') {
+          builder.add(node.from, node.to, pageBreak)
           return false
         }
         if (node.name === 'HeaderMark') {
@@ -165,6 +171,7 @@ const baseTheme = EditorView.theme({
   // Inline code's ground is drawn by codeBlockGround too, for the same
   // reason.
   '.cm-jot-inline-code-rect': { backgroundColor: 'var(--code-inline)', borderRadius: '3px' },
+  '.cm-jot-pagebreak': { color: 'var(--ink-tertiary)' },
   '.cm-jot-task-done': { color: 'var(--muted-foreground)', textDecoration: 'line-through' },
 
   // Search panel (Cmd+F). Undrawn in the design docs — kept to existing

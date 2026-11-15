@@ -1,5 +1,5 @@
 import { highlightCode, tagHighlighter } from '@lezer/highlight'
-import type { Marked, Token, TokensList } from 'marked'
+import type { Marked, Token, TokenizerAndRendererExtension, TokensList } from 'marked'
 import { CODE_GROUPS, findCodeLanguage } from './code'
 import { markSource, unmarkHtml } from './annotatedSource'
 import type { Annotation } from './db'
@@ -73,10 +73,27 @@ async function prepare(md: string, opts: RenderOptions): Promise<Marked> {
 const SAFE_HREF = /^(https?:|mailto:|#)/i
 const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
+// \newpage on a line of its own (owner, 2026-11-15, as in LaTeX): the PDF
+// starts a new page there; the rendered view shows a dashed "page break"
+// line. Inside code it's just text — the code block takes the line first.
+const NEWPAGE = /^[ \t]*\\newpage[ \t]*(?:\n|$)/
+const pageBreak: TokenizerAndRendererExtension = {
+  name: 'pagebreak',
+  level: 'block',
+  // Where one could begin, so it can end a paragraph above it.
+  start: (src) => src.match(/^[ \t]*\\newpage[ \t]*$/m)?.index,
+  tokenizer(src) {
+    const m = NEWPAGE.exec(src)
+    if (m) return { type: 'pagebreak', raw: m[0] }
+  },
+  renderer: () => '<div class="jot-pagebreak" role="separator" aria-label="page break"></div>\n',
+}
+
 function load(): Promise<Marked> {
   instance ??= import('marked').then(({ Marked }) => {
     const m = new Marked({ gfm: true })
     m.use(mathExtension)
+    m.use({ extensions: [pageBreak] })
     m.use({
       renderer: {
         html({ text }) {

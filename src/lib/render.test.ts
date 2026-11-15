@@ -108,3 +108,23 @@ describe('diagram frame', () => {
     expect(diagramType('---\ntitle: x\n---\npie\n  "a": 1')).toBe('pie')
   })
 })
+
+describe('\\newpage', () => {
+  const BREAK = '<div class="jot-pagebreak"'
+  it('breaks the page on a line of its own, even right under a paragraph', async () => {
+    const html = await renderHtml('one\n\\newpage\ntwo\n\n  \\newpage  \n\nthree')
+    expect(html.split(BREAK)).toHaveLength(3)
+    expect(html).toContain('<p>one</p>')
+    expect(html).toContain('<p>two</p>')
+    expect(html).not.toContain('newpage')
+  })
+  it('is plain text inside code, or with other text on its line', async () => {
+    expect(await renderHtml('```\n\\newpage\n```')).not.toContain(BREAK)
+    expect(await renderHtml('`\\newpage`')).not.toContain(BREAK)
+    expect(await renderHtml('see \\newpage here')).not.toContain(BREAK)
+  })
+  it('keeps the blocks after it on their own source lines', async () => {
+    const blocks = await renderBlocks('a\n\n\\newpage\n\nb')
+    expect(blocks.map((b) => b.line)).toEqual([0, 2, 4])
+  })
+})
