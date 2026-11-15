@@ -1,9 +1,8 @@
 import { covers, erase, paint } from '@/lib/annotations'
-import { activeEditor, anchorOf } from '@/editor/annotations'
+import { activeEditor, anchorOf, recordMarks } from '@/editor/annotations'
 import { directionOf } from '@/lib/direction'
 import { useAnnotations } from './annotations'
 import { useOverlays, type Anchor } from './overlays'
-import { useWorkspace } from './workspace'
 
 // What the right-click menu and its keys do to the selection (Phase 16).
 // A highlight or underline over text already wholly marked that way takes
@@ -19,6 +18,13 @@ function selection() {
 
 const listOf = (documentId: string) => useAnnotations.getState().byDoc[documentId] ?? []
 
+// A change to the marks, as one undo step.
+function commit(documentId: string, next: ReturnType<typeof listOf>) {
+  const before = listOf(documentId)
+  useAnnotations.getState().set(documentId, next)
+  recordMarks(documentId, before, next)
+}
+
 export const hasSelection = () => !!selection()
 
 export function highlightSelection(color?: 1 | 2 | 3) {
@@ -27,7 +33,7 @@ export function highlightSelection(color?: 1 | 2 | 3) {
   const c = color ?? useOverlays.getState().lastColor
   const list = listOf(s.documentId)
   const next = covers(list, 'highlight', s.from, s.to, c) ? erase(list, 'highlight', s.from, s.to, s.text) : paint(list, { documentId: s.documentId, kind: 'highlight', color: c }, s.from, s.to, s.text)
-  useAnnotations.getState().set(s.documentId, next)
+  commit(s.documentId, next)
   useOverlays.getState().set({ lastColor: c, menu: null })
 }
 
@@ -36,7 +42,7 @@ export function underlineSelection() {
   if (!s) return
   const list = listOf(s.documentId)
   const next = covers(list, 'underline', s.from, s.to) ? erase(list, 'underline', s.from, s.to, s.text) : paint(list, { documentId: s.documentId, kind: 'underline' }, s.from, s.to, s.text)
-  useAnnotations.getState().set(s.documentId, next)
+  commit(s.documentId, next)
   useOverlays.getState().set({ menu: null })
 }
 
@@ -50,16 +56,18 @@ function anchorFor(from: number, to: number): Anchor | null {
   return { left: Math.min(a.left, b.left), top: Math.min(a.top, b.top), bottom: Math.max(a.bottom, b.bottom) }
 }
 
-export function addNote(kind: 'note' | 'ai-note' = 'note') {
+// The note becomes an undo step when it's closed with something written
+// (NotePopover); an empty one just goes.
+export function addNote() {
   const s = selection()
   if (!s) return
   const now = Date.now()
   const id = crypto.randomUUID()
-  useAnnotations.getState().set(s.documentId, [...listOf(s.documentId), { id, documentId: s.documentId, kind, from: s.from, to: s.to, quote: s.text.slice(s.from, s.to), body: '', createdAt: now, updatedAt: now }])
+  useAnnotations.getState().set(s.documentId, [...listOf(s.documentId), { id, documentId: s.documentId, kind: 'note', from: s.from, to: s.to, quote: s.text.slice(s.from, s.to), body: '', createdAt: now, updatedAt: now }])
   const anchor = anchorFor(s.from, s.to)
   // Collapse the selection so the new note's underline shows at once.
   s.view.dispatch({ selection: { anchor: s.to } })
-  if (anchor) useOverlays.getState().set({ menu: null, note: { documentId: s.documentId, id, anchor, editing: true } })
+  if (anchor) useOverlays.getState().set({ menu: null, note: { documentId: s.documentId, id, anchor, editing: true, fresh: true } })
 }
 
 export function translateSelection() {
@@ -74,11 +82,3 @@ export function translateSelection() {
 export const translationTarget = (text: string) => (directionOf(text) === 'rtl' ? 'en' : 'fa')
 
 export { anchorOf }
-
-// AI notes belong to AI mode: only there, on its document.
-export const inAiModeOn = (documentId: string | undefined) => !!documentId && useWorkspace.getState().aiMode?.documentId === documentId
-export const canAddAiNote = () => {
-  const ed = activeEditor()
-  return hasSelection() && inAiModeOn(ed?.documentId)
-}
-export const addAiNote = () => canAddAiNote() && addNote('ai-note')

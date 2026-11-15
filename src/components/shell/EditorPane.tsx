@@ -10,12 +10,11 @@ import { DraftPage, DraftTab } from './Draft'
 import { Editor } from '@/editor/Editor'
 import { openContent } from '@/editor/sessions'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Download, Eye } from 'lucide-react'
+import { Armchair, Download, Eye } from 'lucide-react'
 import { db, type DiffSide, type JotDocument, type PaneLayout } from '@/lib/db'
 import { exportMarkdown, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
 import { newComparison } from '@/state/actions'
-import { useReview } from '@/state/review'
 import { useDocuments } from '@/state/hooks'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { canSplit, columnsOf, comparisonIdOf, docIdOf, isDiffTab, isRenderTab, renderTab, type Edge } from '@/state/layout'
@@ -35,9 +34,6 @@ import { useAnnotations } from '@/state/annotations'
 
 // The diff checker loads the first time a comparison opens.
 const DiffView = lazy(() => import('@/components/diff/DiffView').then((m) => ({ default: m.DiffView })))
-
-// The review view loads the first time a review opens.
-const ReviewView = lazy(() => import('@/components/review/ReviewView').then((m) => ({ default: m.ReviewView })))
 
 // Below this pane width, render and export fold into the ⋯ menu and split
 // drops its label (6f). Two panes at 1400 keep the full set (2g); three fold.
@@ -103,6 +99,7 @@ function PaneControls({ paneId, doc, narrow }: { paneId: string; doc: JotDocumen
   const toggleRender = useWorkspace((s) => s.toggleRender)
   const edge = useWorkspace((s) => splitEdge(s.panes, s.focusedPaneId))
   const rendered = useWorkspace((s) => !!doc && s.panes.some((p) => p.tabs.includes(renderTab(doc.id))))
+  const enterComfy = useWorkspace((s) => s.enterComfy)
   const canSplit = !!doc && !!edge
   // Render toggles this document's rendered tab (2g) — in a new pane where
   // split would open one, or in the neighbouring pane when the grid is full.
@@ -175,6 +172,7 @@ function PaneControls({ paneId, doc, narrow }: { paneId: string; doc: JotDocumen
                 <DropdownMenuItem disabled={!canRender} title={renderTitle} onSelect={toggleRender}>
                   {rendered ? 'close render' : 'render'}
                 </DropdownMenuItem>
+                <DropdownMenuItem onSelect={enterComfy}>comfy mode</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">export</div>
                 <ExportItems doc={doc} onPdf={openPdf} />
@@ -199,6 +197,10 @@ function PaneControls({ paneId, doc, narrow }: { paneId: string; doc: JotDocumen
         onClick={toggleRender}
       >
         <Eye size={13} strokeWidth={1.75} aria-hidden />
+      </button>
+      {/* Comfy mode: this document alone, centred and larger. */}
+      <button type="button" className={control} disabled={!doc} title="comfy mode" aria-label="comfy mode" onClick={enterComfy}>
+        <Armchair size={13} strokeWidth={1.75} aria-hidden />
       </button>
       <Popover open={pdfOpen} onOpenChange={setPdfOpen}>
         <DropdownMenu>
@@ -226,7 +228,6 @@ function PaneControls({ paneId, doc, narrow }: { paneId: string; doc: JotDocumen
 // labelled "rendered") — both move, close and reorder the same way.
 function Tab({ tabId, doc, active, focused, paneId }: { tabId: string; doc: JotDocument; active: boolean; focused: boolean; paneId: string }) {
   const rendered = isRenderTab(tabId)
-  const inReview = useReview((s) => !rendered && s.openIn[paneId] === doc.id)
   const activateTab = useWorkspace((s) => s.activateTab)
   const closeTab = useWorkspace((s) => s.closeTab)
   const setDragTab = useWorkspace((s) => s.setDragTab)
@@ -234,8 +235,8 @@ function Tab({ tabId, doc, active, focused, paneId }: { tabId: string; doc: JotD
     <DocumentMenu doc={doc}>
       <div
         // Drag to reorder, into another pane, or onto a pane's edge (Phase
-        // 8). Not while its review is open: the review belongs to this pane.
-        draggable={!inReview}
+        // 8).
+        draggable
         onDragStart={(e) => {
           e.dataTransfer.setData('application/x-jot-tab', tabId)
           e.dataTransfer.effectAllowed = 'move'
@@ -258,7 +259,6 @@ function Tab({ tabId, doc, active, focused, paneId }: { tabId: string; doc: JotD
       >
         <TagMark color={doc.color} className="size-[7px]" />
         <span className={cn('truncate text-[13px]', active && 'font-medium')}>{doc.title}</span>
-        {inReview && <span className="font-mono text-[11px] text-muted-foreground">review</span>}
         {rendered && <span className="font-mono text-[11px] text-muted-foreground">rendered</span>}
         <button
           type="button"
@@ -600,8 +600,6 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
   // view when the active tab is a rendered one.
   const doc = pane.active ? docsById.get(docIdOf(pane.active)) : undefined
   const showRendered = isRenderTab(pane.active)
-  const reviewHere = useReview((s) => !!doc && !showRendered && s.openIn[pane.id] === doc.id)
-  const session = useReview((s) => (doc ? s.sessions[doc.id] : undefined))
   const drafting = useWorkspace((s) => s.draft?.paneId === pane.id)
   const startDraft = useWorkspace((s) => s.startDraft)
 
@@ -612,8 +610,8 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
       style={{ ...density[columnCount], ...style }}
       className={cn('jot-pane absolute flex min-h-0 min-w-0 flex-col overflow-hidden rounded-(--radius-panel) border border-border-strong bg-document', fresh && 'jot-pane-new')}
     >
-      {!reviewHere && <DropZones paneId={pane.id} />}
-      <div className="flex h-[38px] flex-none items-stretch border-b border-border bg-card">
+      <DropZones paneId={pane.id} />
+      <div data-pane-header="" className="flex h-[38px] flex-none items-stretch border-b border-border bg-card">
         {/* With the sidebar hidden, its toggle and the wordmark start the
             first pane's tab strip, so the app is still named (round 4, 2). */}
         {first && !sidebarOpen && (
@@ -641,18 +639,9 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
       ) : doc && showRendered ? (
         <RenderView key={doc.id} doc={doc} />
       ) : doc ? (
-        <>
-          {session && reviewHere && (
-            <Suspense fallback={<div className="flex-auto" />}>
-              <ReviewView doc={doc} session={session} paneId={pane.id} />
-            </Suspense>
-          )}
-          {/* The editor stays mounted under an open review: Apply writes
-              through it as one transaction, so undo can reverse it. */}
-          <div className={cn('flex min-h-0 flex-auto flex-col', session && reviewHere && 'hidden')}>
-            <Editor key={doc.id} documentId={doc.id} initialContent={doc.content} paneId={pane.id} focused={focused && !(session && reviewHere)} />
-          </div>
-        </>
+        <div className="flex min-h-0 flex-auto flex-col">
+          <Editor key={doc.id} documentId={doc.id} initialContent={doc.content} paneId={pane.id} focused={focused} />
+        </div>
       ) : (
         // A pane with nothing open — only possible for the last pane, since
         // closing the last tab of any other pane closes that pane.

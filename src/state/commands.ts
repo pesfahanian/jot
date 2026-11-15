@@ -7,10 +7,9 @@ import { normKey } from '@/lib/shortcuts'
 import { welcomeDocumentId } from '@/lib/welcome'
 import { openContent } from '@/editor/sessions'
 import { exportWorkspace, newComparison, pickImport } from './actions'
-import { addAiNote, addNote, canAddAiNote, hasSelection, highlightSelection, translateSelection, underlineSelection } from './annotate'
+import { addNote, hasSelection, highlightSelection, translateSelection, underlineSelection } from './annotate'
 import { useOverlays } from './overlays'
 import { docIdOf, isDiffTab } from './layout'
-import { useReview } from './review'
 import { nextTheme } from './theme'
 import { useUi } from './ui'
 import { focusedPane, useWorkspace } from './workspace'
@@ -94,22 +93,20 @@ export const COMMANDS: Command[] = [
   { id: 'highlight', title: 'highlight', keys: ['Mod-Shift-h'], run: () => highlightSelection(), enabled: () => hasSelection() },
   { id: 'underline', title: 'underline', keys: ['Mod-Shift-u'], run: () => underlineSelection(), enabled: () => hasSelection() },
   { id: 'addNote', title: 'add note', keys: ['Mod-Alt-m'], run: () => addNote(), enabled: () => hasSelection() },
-  { id: 'addAiNote', title: 'add ai note', keys: ['Mod-Alt-i'], run: () => void addAiNote(), enabled: () => canAddAiNote() },
   { id: 'translate', title: 'translate', keys: ['Mod-Alt-t'], run: () => translateSelection(), enabled: () => hasSelection() },
   { id: 'notes', title: 'notes in this document', keys: [], run: () => useOverlays.getState().set({ notesList: true }), enabled: (c) => c.hasDocument },
   {
-    id: 'aiMode',
-    title: 'toggle ai mode',
-    keys: ['Mod-j'],
+    id: 'comfyMode',
+    title: 'toggle comfy mode',
+    keys: ['Mod-Shift-Enter'],
     run: () => {
       const ws = useWorkspace.getState()
-      if (ws.aiMode) ws.leaveAiMode()
-      else ws.enterAiMode()
+      if (ws.comfy) ws.leaveComfy()
+      else ws.enterComfy()
     },
-    enabled: (c) => c.hasDocument || !!useWorkspace.getState().aiMode,
-    state: () => (useWorkspace.getState().aiMode ? 'on' : 'off'),
+    enabled: (c) => c.hasDocument || !!useWorkspace.getState().comfy,
+    state: () => (useWorkspace.getState().comfy ? 'on' : 'off'),
   },
-  { id: 'reviewStyle', title: 'review style', keys: [], run: withDocument((d) => void useReview.getState().requestReview(d.id)), enabled: (c) => c.hasDocument },
   { id: 'openWelcome', title: 'open the welcome document', keys: [], run: () => void welcomeDocumentId().then((id) => useWorkspace.getState().openDocument(id)) },
 ]
 

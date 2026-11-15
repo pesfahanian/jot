@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils'
 import { Grid, Label, quietButton, SectionHead } from './controls'
 
 // Settings → translation (round 4, frame 3a): a Google Cloud Translation
-// key, used only to translate a selection — separate from the AI provider,
-// and no AI involved. Stored once a test passes, like the AI keys.
+// key, used only to translate a selection; no AI involved. Stored once a
+// test passes.
 
 const strong = 'flex h-[26px] items-center rounded-md border border-ink-tertiary bg-hover-lift px-[9px] font-mono text-[11px] text-foreground hover:border-foreground'
 
@@ -32,7 +32,7 @@ export function TranslationSection() {
   return (
     <>
       <SectionHead title="translation" id="settings-translation">
-        A Google Cloud Translation key, used only to translate a selection. Separate from the AI provider; no AI is involved. It needs a Google Cloud project with the Cloud Translation API turned on and billing set up — the first 500,000 characters a month are free. Restrict the key to this site and that one API.
+        A Google Cloud Translation key, used only to translate a selection. No AI is involved. It needs a Google Cloud project with the Cloud Translation API turned on and billing set up — the first 500,000 characters a month are free. Restrict the key to this site and that one API.
       </SectionHead>
       <Grid>
         <Label>key</Label>

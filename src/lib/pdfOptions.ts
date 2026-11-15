@@ -129,7 +129,7 @@ const PRESETS: Record<Preset, string> = {
 
 // The whole print stylesheet for a set of choices. `rtl`: the document as a
 // whole reads right-to-left, so page numbers take Persian digits.
-export function pdfCss(o: PdfOptions, rtl = false): string {
+export function pdfCss(o: PdfOptions, rtl = false, center = { headings: true, tables: true }): string {
   const font = FONT_STACK[o.font]
   const m = marginMm(o.margins, o.page)
   const pageNumber = o.pageNumbers
@@ -151,8 +151,9 @@ export function pdfCss(o: PdfOptions, rtl = false): string {
   /* Sizes scale with the body, as the rendered view's 22 / 19 / 16 over
      14.5. */
   h1, h2, h3, h4, h5, h6 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; margin: 1.3em 0 0.45em; break-after: avoid; }
-  /* Top-level headings and tables sit centred (owner, 2026-10-31). */
-  h1 { font-size: 1.52em; text-align: center; } h2 { font-size: 1.31em; } h3 { font-size: 1.1em; } h4, h5, h6 { font-size: 1em; }
+  /* Top-level headings and tables sit centred (owner, 2026-10-31), each
+     unless turned off in settings. */
+  h1 { font-size: 1.52em;${center.headings ? ' text-align: center;' : ''} } h2 { font-size: 1.31em; } h3 { font-size: 1.1em; } h4, h5, h6 { font-size: 1em; }
   body > :first-child, .jot-keep:first-child > :first-child { margin-top: 0; }
   p { orphans: 3; widows: 3; }
   p, ul, ol, blockquote, pre, table { margin: 0 0 0.9em; }
@@ -166,10 +167,12 @@ export function pdfCss(o: PdfOptions, rtl = false): string {
   pre { white-space: pre-wrap; direction: ltr; text-align: left; }
   /* Tables run a little smaller, and long cell text wraps, so wide tables
      fit the text width. */
-  table { border-collapse: collapse; font-size: 0.9em; line-height: 1.4; max-width: 100%; margin-left: auto; margin-right: auto; }
+  table { border-collapse: collapse; font-size: 0.9em; line-height: 1.4; max-width: 100%;${center.tables ? ' margin-left: auto; margin-right: auto;' : ''} }
   th, td { padding: 3px 6px; text-align: start; overflow-wrap: anywhere; }
   tr { break-inside: avoid; }
   hr { border: none; border-top: 1px solid #CCD0D3; margin: 1.6em 0; }
+  /* \\newpage: the next block starts a new page; nothing printed. */
+  .jot-pagebreak { break-after: page; height: 0; margin: 0; }
   img { max-width: 100%; }
   pre, blockquote, figure, img, .jot-math-block, .jot-keep { break-inside: avoid; }
   .jot-diagram { margin: 0 0 0.9em; }

@@ -2,6 +2,7 @@ import { directionOf, type DirSetting } from './direction'
 import { PDF_DEFAULTS, pdfCss, type PdfOptions } from './pdfOptions'
 import { renderHtml } from './render'
 import type { Annotation } from './db'
+import { getSettings } from './settings'
 
 // Export (T3.6, 6a): three formats, triggered straight from the menu — no
 // intermediate dialog of Jot's own.
@@ -112,7 +113,8 @@ export async function exportPdf(title: string, content: string, options: PdfOpti
   // A document that reads right-to-left as a whole numbers its pages in
   // Persian digits (Farsi design, frame 8).
   const rtl = dir === 'rtl' || (dir === 'auto' && directionOf(content) === 'rtl')
-  const printCss = pdfCss(options, rtl)
+  const settings = await getSettings()
+  const printCss = pdfCss(options, rtl, { headings: settings.centerHeadings ?? true, tables: settings.centerTables ?? true })
   // Off-screen but laid out: Paged.js measures real boxes to paginate.
   const frame = document.createElement('iframe')
   frame.style.cssText = 'position:fixed;left:-10000px;top:0;width:1000px;height:1000px;border:0;visibility:hidden'

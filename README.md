@@ -18,14 +18,13 @@ Open it and write. There's no account and no server. Your documents stay on your
 - Renders LaTeX math and Mermaid diagrams in the preview and in exported PDFs, with page, font and colour options for the PDF
 - Writes Farsi and mixed Farsi/English properly: right-to-left by paragraph, in the editor, preview and PDF
 - Compares two documents, or pasted text, side by side
-- An optional AI mode, with your own key: chat about the document, pin instructions to passages, review its style in English or Farsi, or translate it. Every change is a proposal; nothing changes until you say so
 - Highlights, underlines and notes of your own, kept beside the text; they show in the preview, and print or export if you ask
 - Translates a selection between English and Farsi, and can fix clear typos as you write
 - A command palette (Cmd/Ctrl + K) for every command and any document, with keyboard shortcuts you can change
 
 ## Privacy
 
-Everything is stored in your browser. The AI review is off until you add your own API key (OpenRouter, Google AI Studio, OpenAI or Anthropic), and it only sends the document you're reviewing to the provider you picked.
+Everything is stored in your browser; there is no account and no server. The one thing that leaves it is a selection you choose to translate, sent to Google Translate with your own key.
 
 That also means the browser holds the only copy. Each browser (and profile, and installed app) has its own separate workspace, and clearing site data erases it. Export the whole workspace as a `.zip` now and then: it's your backup, and dropping it on jot brings everything back. Safari deletes a site's data on its own after a week without use, so jot is better in Chrome, Firefox or Edge.
 

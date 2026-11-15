@@ -60,16 +60,21 @@ def greet(name):
 | Cmd/Ctrl + F | find and replace |
 | Cmd/Ctrl + K | the command palette: every command, and any document by name |
 | Cmd/Ctrl + B | hide or show the sidebar |
+| Cmd/Ctrl + Shift + Enter | comfy mode |
+
+## comfy mode
+
+The armchair at the top right of a document (or Cmd/Ctrl + Shift + Enter) leaves just the writing: the document alone, centred in a narrower column and a little larger, with the sidebar, tabs and status bar gone. Esc, the same key, or **leave** at the top right (it shows when you move the mouse) brings everything back as it was.
 
 ## organising
 
 - The sidebar holds your documents. **+** makes a new one; beside it are search, and one button to sort and filter by colour tag. The last icon (or Cmd/Ctrl + B) hides the sidebar, or brings it back.
-- The gear at the bottom of the sidebar (Cmd/Ctrl + ,) opens settings: your AI provider, the theme, animations, keyboard shortcuts, import and your storage. Every shortcut can be changed there.
+- The gear at the bottom of the sidebar (Cmd/Ctrl + ,) opens settings: the theme, animations, keyboard shortcuts, import and your storage. Every shortcut can be changed there.
 - **+** asks for a name first: type one and press Enter, or just click into the empty page to start writing. Esc, or clicking elsewhere, makes nothing. An unnamed document names itself after its first line as you write; rename it and the name stays.
 - Right-click a document to tag it with a colour, rename, pin or delete it. Double-click it to rename.
 - Drag tabs to reorder them, or onto another pane. Drop one on a pane's left or right edge for a new column, or on its top or bottom edge to stack two panes, up to three columns of two. Documents drag in from the sidebar too.
 - Drag the gaps between panes to resize them. Double-click a gap to even it out.
-- Drop .md files anywhere to import them, or pick files or a whole folder in settings → storage and backup, where the whole workspace exports as one .zip too. The export icon at the top right of a document saves it as Markdown, plain text or PDF (with page, font and colour options).
+- Drop .md files anywhere to import them, or pick files or a whole folder in settings → storage and backup, where the whole workspace exports as one .zip too. The export icon at the top right of a document saves it as Markdown, plain text or PDF (with page, font and colour options). In a PDF, a line with only **\newpage** on it starts a new page; the rendered view shows it as a dashed line.
 - The **+** at the end of the tabs makes a new document, as in a browser. So does double-clicking the empty space beside the tabs, or below the documents in the sidebar.
 
 ## marking it up
@@ -78,11 +83,12 @@ Select some text and right-click it for Jot's own menu:
 
 - **highlight** it in one of three colours, or **underline** it. These are marks on the page, like a highlighter on a printout, not part of your markdown.
 - **add note** pins a note of your own to the text. A dotted underline and a small square in the margin show where; click either to read or edit it. **notes** in the status bar lists them all.
+- Cmd/Ctrl + Z undoes a highlight, an underline, or adding or deleting a note, in order with your typing; Cmd/Ctrl + Shift + Z (or Y) brings it back.
 - **translate** shows the selection in English or Farsi, through Google Translate with your own key (settings → translation). No AI is involved, and replacing your text is a separate click.
 
 Highlights and notes show in the rendered view too. In a PDF they print if you ask (the PDF card's **annotations** row), with notes as footnotes. Markdown export can keep them as ==highlights== and footnotes.
 
-Turn on **auto-fix spelling** in settings, and clear typos (teh, recieve, definately) get fixed a couple of words behind you as you write. It works in English only, never touches a real word, and Cmd/Ctrl + Z undoes a fix.
+Turn on **spelling suggestions** in settings, and clear typos (teh, recieve, definately) are highlighted in red. Click one to fix it, or **fix all** from the status bar; right-click one to ignore that word. Nothing changes until you click. It works in English only and never marks a real word.
 
 ## comparing
 
@@ -92,20 +98,9 @@ To see what changed between two texts, right-click a document and choose **compa
 
 Farsi works as naturally as English. Each paragraph, list or table reads right-to-left or left-to-right by its own majority script, while code, links and formulas inside Farsi text keep reading left-to-right. When a document has Farsi in it, the **dir** cell in the bar at the bottom shows the direction, and can set the whole document right-to-left or left-to-right instead. For a diagram that flows right-to-left, write **flowchart RL**.
 
-## ai mode
-
-jot can work on a document with AI, using your own key. Your text goes straight from this browser to your provider; nothing passes through jot.
-
-1. Open **settings** at the bottom of the sidebar, pick a provider (OpenRouter, Google AI Studio, OpenAI or Anthropic) and add your key. Below the key you can choose the model, and fallbacks to try if it's busy.
-2. Press the sparkle at the bottom left (or Cmd/Ctrl + J). A chat opens where the sidebar was; Esc leaves, and your other panes come back as they were.
-3. Ask a question, or ask for a change ("make the intro friendlier"). To point at a passage, select it, right-click and choose **add ai note**; notes go with your next message. Switch on **my notes as context** to send your own notes along too.
-4. Changes come back as proposals. Open the results to accept, reject or rewrite each one, or switch to **diff** to see the whole result. Nothing changes until you press **apply**.
-
-From the chat you can also run **review style**, which checks your prose against a style guide (English or Farsi). Very short documents, or ones that are all code, are skipped; **review anyway** overrides that. **translate document** writes a translation into a new document beside this one, section by section. The conversation is kept with its document, in this browser.
-
 ## where your writing lives
 
-Everything stays in this browser. There's no account and no server, and your key only ever goes to the provider you chose.
+Everything stays in this browser. There's no account and no server.
 
 That makes this browser the only copy. Each browser, profile and installed app keeps its own separate workspace, and clearing site data erases it. So now and then, export the whole workspace as a .zip: it's your backup, and dropping it on jot brings everything back, alongside whatever is already here. Safari deletes a site's data on its own after a week without use, so jot is better in Chrome, Firefox or Edge.
 `

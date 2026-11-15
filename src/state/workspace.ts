@@ -15,7 +15,7 @@ export const SIDEBAR_DEFAULT = 248
 
 // Where a draft's name field goes (components/shell/Draft.tsx): the sidebar
 // while it's showing, else the draft's own tab. One place only.
-export const draftFieldInSidebar = (s: { sidebarOpen: boolean; aiMode: unknown }) => s.sidebarOpen && !s.aiMode
+export const draftFieldInSidebar = (s: { sidebarOpen: boolean }) => s.sidebarOpen
 
 export interface CursorStatus {
   documentId: string
@@ -31,8 +31,6 @@ export interface DeletedEntry {
 
 export type Toast =
   | { kind: 'deleted'; id: number; entry: DeletedEntry }
-  // After Apply (6c): how much text moved, with undo as one editor step.
-  | { kind: 'applied'; id: number; documentId: string; changed: number; kept: number }
   // A comparison cleared (diff checker), with undo; or a plain notice.
   | { kind: 'cleared'; id: number; comparison: Comparison }
   | { kind: 'notice'; id: number; lead: string; detail: string }
@@ -43,9 +41,10 @@ interface WorkspaceState {
   focusedPaneId: string
   sidebarWidth: number
   sidebarOpen: boolean
-  // AI mode (round 4): the document worked on with AI, its pane, and the
-  // layout parked while it lasts.
-  aiMode: { documentId: string; paneId: string; parked: Parked } | null
+  // Comfy mode (owner, 2026-11-15): one pane's document alone, centred,
+  // larger, with nothing else on screen; the other panes are parked and
+  // come back as they were.
+  comfy: { paneId: string; parked: Parked } | null
   sort: SortMode
   colorFilter: ReadonlySet<TagColor>
   searchOpen: boolean
@@ -81,9 +80,9 @@ interface WorkspaceState {
   setSidebarWidth(px: number): void
   // Hides the sidebar entirely, or brings it back (Cmd+B, as VS Code).
   toggleSidebar(): void
-  // Into AI mode on the focused pane's document, and back out.
-  enterAiMode(): void
-  leaveAiMode(): void
+  // Into comfy mode on the focused pane, and back out.
+  enterComfy(): void
+  leaveComfy(): void
   toggleSort(): void
   toggleColor(color: TagColor): void
   clearColorFilter(): void
@@ -106,7 +105,7 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   focusedPaneId: '',
   sidebarWidth: SIDEBAR_DEFAULT,
   sidebarOpen: true,
-  aiMode: null,
+  comfy: null,
   sort: 'date',
   colorFilter: new Set(),
   searchOpen: false,
@@ -312,19 +311,18 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
 
   setSidebarWidth: (px) => set({ sidebarWidth: clampWidth(px) }),
   toggleSidebar: () => set({ sidebarOpen: !get().sidebarOpen }),
-  enterAiMode() {
-    const { panes, focusedPaneId, aiMode } = get()
-    if (aiMode) return
+  enterComfy() {
+    const { panes, focusedPaneId, comfy } = get()
+    if (comfy) return
     const pane = panes.find((p) => p.id === focusedPaneId)
     const tab = pane?.active
     if (!pane || !tab || isDiffTab(tab)) return
-    const documentId = docIdOf(tab)
-    set({ aiMode: { documentId, paneId: pane.id, parked: { panes, focusedPaneId } }, panes: parkFor(panes, pane.id, documentId), focusedPaneId: pane.id })
+    set({ comfy: { paneId: pane.id, parked: { panes, focusedPaneId } }, panes: parkFor(panes, pane.id, tab), focusedPaneId: pane.id })
   },
-  leaveAiMode() {
-    const { aiMode, panes } = get()
-    if (!aiMode) return
-    set({ aiMode: null, panes: tidy(unpark(aiMode.parked, panes, aiMode.paneId)), focusedPaneId: aiMode.paneId })
+  leaveComfy() {
+    const { comfy, panes } = get()
+    if (!comfy) return
+    set({ comfy: null, panes: tidy(unpark(comfy.parked, panes, comfy.paneId)), focusedPaneId: comfy.paneId })
   },
   toggleSort: () => set({ sort: get().sort === 'date' ? 'name' : 'date' }),
   toggleColor(color) {
@@ -339,6 +337,8 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   // Its name field should be visible: a filter or an open search would hide
   // the row.
   startDraft() {
+    // A new document's name field needs the sidebar or the tabs.
+    get().leaveComfy()
     const ws = get()
     ws.clearColorFilter()
     ws.setSearch(false)
@@ -357,11 +357,11 @@ useWorkspace.subscribe((s, prev) => {
   if (s.panes === prev.panes && s.focusedPaneId === prev.focusedPaneId && s.sidebarWidth === prev.sidebarWidth && s.sidebarOpen === prev.sidebarOpen && s.sort === prev.sort) return
   clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
-    const { panes: live, focusedPaneId: liveFocus, sidebarWidth, sidebarOpen, sort, aiMode } = useWorkspace.getState()
-    // In AI mode the saved layout is the one leaving would restore, so a
+    const { panes: live, focusedPaneId: liveFocus, sidebarWidth, sidebarOpen, sort, comfy } = useWorkspace.getState()
+    // In comfy mode the saved layout is the one leaving would restore, so a
     // reload never loses the parked panes.
-    const panes = aiMode ? tidy(unpark(aiMode.parked, live, aiMode.paneId)) : live
-    const focusedPaneId = aiMode ? aiMode.paneId : liveFocus
+    const panes = comfy ? tidy(unpark(comfy.parked, live, comfy.paneId)) : live
+    const focusedPaneId = comfy ? comfy.paneId : liveFocus
     void db.workspace.put({ id: 'workspace', panes, focusedPaneId, sidebarWidth, sidebarOpen, sort })
   }, 200)
 })

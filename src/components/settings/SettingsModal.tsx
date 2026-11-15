@@ -7,33 +7,24 @@ import { useMotion } from '@/lib/motion'
 import { getSettings, updateSettings } from '@/lib/settings'
 import { cn } from '@/lib/utils'
 import { exportWorkspace, pickImport } from '@/state/actions'
-import { useReview } from '@/state/review'
 import { useTheme } from '@/state/theme'
 import { useUi, type SettingsSection } from '@/state/ui'
-import { AiProviderSection } from './AiProviderSection'
 import { Grid, Label, quietButton, Rule, SectionHead, Segmented, Switch } from './controls'
 import { ShortcutsSection } from './ShortcutsSection'
 import { TranslationSection } from './TranslationSection'
 
 // Settings (round 4, frames 3a–3e): a modal, 780 × 540, sections grouped
-// ai / app / data. Opened from the sidebar foot, the palette and ⌘, — and
-// by asking for a review with no key, which lands on ai provider.
+// app / data. Opened from the sidebar foot, the palette and ⌘,.
 
 // Every item has its own view.
 const NAV: { group: string; items: { label: string; section: SettingsSection }[] }[] = [
-  {
-    group: 'ai',
-    items: [
-      { label: 'ai provider', section: 'ai' },
-      { label: 'translation', section: 'translation' },
-    ],
-  },
   {
     group: 'app',
     items: [
       { label: 'editor', section: 'editor' },
       { label: 'appearance', section: 'appearance' },
       { label: 'keyboard shortcuts', section: 'shortcuts' },
+      { label: 'translation', section: 'translation' },
     ],
   },
   {
@@ -52,18 +43,40 @@ function Page({ children }: { children: ReactNode }) {
 function EditorPage() {
   const renderIn = useLiveQuery(() => getSettings().then((s) => s.renderIn ?? 'tab'), []) ?? 'tab'
   const autofix = useLiveQuery(() => getSettings().then((s) => s.autofix ?? false), []) ?? false
+  const ignored = useLiveQuery(() => getSettings().then((s) => s.spellIgnore ?? []), []) ?? []
+  const centerHeadings = useLiveQuery(() => getSettings().then((s) => s.centerHeadings ?? true), []) ?? true
+  const centerTables = useLiveQuery(() => getSettings().then((s) => s.centerTables ?? true), []) ?? true
   return (
     <Page>
       <SectionHead title="editor" />
       <Row title="rendered view" detail={renderIn === 'tab' ? 'Opens as a new tab beside the document, in the same pane.' : 'Opens in a split beside the document.'}>
         <Segmented value={renderIn} options={['tab', 'split'] as const} onChange={(renderIn) => void updateSettings({ renderIn })} />
       </Row>
-      <Row
-        title="auto-fix spelling"
-        detail="Quietly corrects clear typos a couple of words behind you — English only, never inside code or links, each fix its own undo. Downloads a 200 KB dictionary the first time."
-      >
-        <Switch label="auto-fix spelling" on={autofix} onChange={(on) => void updateSettings({ autofix: on })} />
+      <Row title="centre top-level headings" detail="# headings sit centred in the rendered view and the PDF.">
+        <Switch label="centre top-level headings" on={centerHeadings} onChange={(on) => void updateSettings({ centerHeadings: on })} />
       </Row>
+      <Row title="centre tables" detail="Tables narrower than the page sit centred in the rendered view and the PDF.">
+        <Switch label="centre tables" on={centerTables} onChange={(on) => void updateSettings({ centerTables: on })} />
+      </Row>
+      <Row
+        title="spelling suggestions"
+        detail="Highlights clear English typos in red, never inside code or links. Click one to fix it, fix them all from the status bar, or right-click to ignore a word. Downloads a 200 KB dictionary the first time."
+      >
+        <Switch label="spelling suggestions" on={autofix} onChange={(on) => void updateSettings({ autofix: on })} />
+      </Row>
+      {autofix && ignored.length > 0 && (
+        <div className="-mt-2 flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+          ignored
+          {ignored.map((w) => (
+            <span key={w} className="flex items-center gap-1 rounded-sm border border-border px-1.5 py-px text-secondary-foreground">
+              {w}
+              <button type="button" aria-label={`stop ignoring ${w}`} title="stop ignoring" onClick={() => void updateSettings({ spellIgnore: ignored.filter((x) => x !== w) })} className="hover:text-foreground">
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </Page>
   )
 }
@@ -77,7 +90,7 @@ function AppearancePage() {
       <Row title="theme" detail={preference === 'system' ? `Follows your system, light or dark — now ${resolved}.` : 'Light and dark share every shape; only colour changes.'}>
         <Segmented value={preference} options={['light', 'dark', 'system'] as const} onChange={(theme) => void updateSettings({ theme })} />
       </Row>
-      <Row title="animations" detail={motion.systemReduced ? 'Your system asks for reduced motion.' : 'Menus, the palette, panes and ai mode move briefly as they open.'}>
+      <Row title="animations" detail={motion.systemReduced ? 'Your system asks for reduced motion.' : 'Menus, the palette and panes move briefly as they open.'}>
         <Switch label="animations" on={motion.on} disabled={motion.systemReduced} onChange={(on) => void updateSettings({ animations: on })} />
       </Row>
     </Page>
@@ -185,18 +198,9 @@ function AboutPage() {
 }
 
 export function SettingsModal() {
-  const { open: settingsOpen, section: chosen } = useUi((s) => s.settings)
-  const keyPanelOpen = useReview((s) => s.keyPanel.open)
+  const { open, section } = useUi((s) => s.settings)
   const setSection = useUi((s) => s.setSettingsSection)
-  const closeSettings = useUi((s) => s.closeSettings)
-  const closeKeyPanel = useReview((s) => s.closeKeyPanel)
-  const open = settingsOpen || keyPanelOpen
-  // Asking for a review with no key lands on the provider.
-  const section = keyPanelOpen ? 'ai' : chosen
-  const close = () => {
-    closeSettings()
-    closeKeyPanel()
-  }
+  const close = useUi((s) => s.closeSettings)
 
   return (
     <D.Root open={open} onOpenChange={(o) => !o && close()}>
@@ -224,7 +228,6 @@ export function SettingsModal() {
                         key={it.label}
                         type="button"
                         onClick={() => {
-                          if (keyPanelOpen) closeKeyPanel()
                           setSection(it.section)
                           document.getElementById('settings-body')?.scrollTo({ top: 0 })
                         }}
@@ -241,11 +244,6 @@ export function SettingsModal() {
               ))}
             </nav>
             <div id="settings-body" className="min-w-0 flex-auto overflow-y-auto">
-              {section === 'ai' && (
-                <Page>
-                  <AiProviderSection onDone={close} />
-                </Page>
-              )}
               {section === 'translation' && (
                 <Page>
                   <TranslationSection />

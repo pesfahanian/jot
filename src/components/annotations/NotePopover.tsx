@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
-import { aiNotesInOrder, notesInOrder } from '@/lib/annotations'
+import { notesInOrder } from '@/lib/annotations'
 import { relativeTime } from '@/lib/docList'
 import { cn } from '@/lib/utils'
-import { activeEditor } from '@/editor/annotations'
+import { activeEditor, recordMarks } from '@/editor/annotations'
 import { useAnnotations } from '@/state/annotations'
 import { useNow } from '@/state/hooks'
 import { useOverlays } from '@/state/overlays'
@@ -21,10 +21,7 @@ export function NotePopover() {
   const list = useAnnotations((s) => (open ? s.byDoc[open.documentId] : undefined)) ?? NONE
   const now = useNow()
   const area = useRef<HTMLTextAreaElement>(null)
-  // A personal note, or an AI note (an instruction for AI mode's next
-  // message, numbered as it is in the queue).
-  const isAi = !!open && list.find((a) => a.id === open.id)?.kind === 'ai-note'
-  const notes = isAi ? aiNotesInOrder(list) : notesInOrder(list)
+  const notes = notesInOrder(list)
   const index = open ? notes.findIndex((n) => n.id === open.id) : -1
   const note = notes[index]
 
@@ -45,15 +42,17 @@ export function NotePopover() {
       list.map((a) => (a.id === note.id ? { ...a, ...patch, updatedAt: Date.now() } : a)),
     )
   }
+  // Deleting a note is an undo step; an empty new one just goes.
   const remove = () => {
-    useAnnotations.getState().set(
-      open.documentId,
-      list.filter((a) => a.id !== note.id),
-    )
+    const next = list.filter((a) => a.id !== note.id)
+    useAnnotations.getState().set(open.documentId, next)
+    if (!open.fresh) recordMarks(open.documentId, list, next)
     set({ note: null })
   }
   const close = () => {
     if (!note.body?.trim()) return remove()
+    // A new note becomes an undo step now, written as it is.
+    if (open.fresh) recordMarks(open.documentId, list.filter((a) => a.id !== note.id), list)
     set({ note: null })
     activeEditor()?.view.focus()
   }
@@ -81,13 +80,9 @@ export function NotePopover() {
         }}
       >
         <div className="flex items-center gap-2 px-3 pt-[9px] font-mono text-[11px] text-muted-foreground">
-          {isAi ? (
-            <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-semibold text-document">{index + 1}</span>
-          ) : (
-            <span className="size-[7px] rounded-[1px] bg-secondary-foreground" />
-          )}
-          <span className="flex-auto">{isAi ? (open.editing ? 'ai note · instruction' : 'ai note · goes with your next message') : open.editing ? 'note · editing' : `note · ${relativeTime(note.updatedAt, now)}`}</span>
-          <span>{open.editing ? (note.body ? 'saved' : '') : isAi ? '' : `${index + 1} of ${notes.length}`}</span>
+          <span className="size-[7px] rounded-[1px] bg-secondary-foreground" />
+          <span className="flex-auto">{open.editing ? 'note · editing' : `note · ${relativeTime(note.updatedAt, now)}`}</span>
+          <span>{open.editing ? (note.body ? 'saved' : '') : `${index + 1} of ${notes.length}`}</span>
         </div>
         {open.editing ? (
           <div className="flex flex-col gap-2 px-3 pt-2 pb-2.5">
@@ -98,7 +93,7 @@ export function NotePopover() {
               value={note.body ?? ''}
               onChange={(e) => update({ body: e.target.value })}
               rows={4}
-              placeholder={isAi ? 'what should change here?' : 'write a note'}
+              placeholder="write a note"
               aria-label="note"
               className="min-h-[76px] resize-none rounded-md border border-primary bg-inset px-[9px] py-[7px] text-[13px] leading-normal text-foreground outline-none placeholder:text-ink-dim"
             />

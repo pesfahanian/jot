@@ -41,6 +41,19 @@ AI mode itself wasn't tested yet; these came first.
 - ⌘X on an empty last line removes it.
 - H1 headings and tables centred in the rendered view and the PDF.
 
+## Polish round 2 (owner, daily driving, 2026-11-15; branch polish-2)
+
+- **The AI suite is gone** (owner: nobody used it): AI mode, its chat, AI notes, document translation, and the style review with its providers and rule sets. Parked whole on the `parked/ai` branch (main as merged in PR #5). Kept: translating a selection (Google, no AI) and the diff checker. The upgrade drops review sessions, chats, AI notes and stored provider keys; the CSP allows only Google's Translation API.
+- Centring top-level headings and tables: two switches in settings → editor, both on by default.
+- A backtick typed over a selection wraps it (wrap only; with nothing selected it's a plain backtick, so fences type as before).
+- The selection shows inside inline code (its ground is drawn under the selection, as code blocks').
+- A copy button on code blocks in the rendered view, on hover; never in the PDF.
+- **Offline:** a service worker keeps the whole app after one good load, so Jot opens, renders and prints without reaching Cloudflare (owner: unreliable from Iran without a VPN). No hosting change. New versions wait; the status bar offers "updated · reload". Production builds only.
+- **Spelling suggestions replace auto-fix** (owner: fixes behind the cursor changed names): a wavy amber underline, nothing changes until a click; "typos N · fix all" in the status bar; right-click to ignore a word (listed in settings). A capitalised word is checked only at a sentence start.
+- Undo and redo for highlights, underlines, and adding or deleting a note, in the editor's own history. No setting (owner).
+- `\newpage` alone on a line: a page break in the PDF, a dashed line in the rendered view, dimmed in the editor. Only that macro for now (owner).
+- **Comfy mode**, designed here (owner preferred no Claude Design round): the armchair in the pane controls, ⌘⇧↩, or the palette. One document, a ~72-character column, 16.5px, no sidebar, tabs, gutter, minimap or status bar; the other panes parked. Esc, the key, or a faint "leave" on mouse move. Works on a rendered tab too.
+
 ## Done from testing after Phases 12–13
 
 - Style review can decline text there's nothing to judge in (open-decisions #27).

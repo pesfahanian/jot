@@ -1,4 +1,4 @@
-import { Keycap, KeycapPanel } from '@/components/review/Keycap'
+import { Keycap, KeycapPanel } from '@/components/shell/Keycap'
 
 // Dev-only check for T4.2 (open /?specimen=keycap). Both themes side by side:
 // the keycap panel on its required panel ground, and — for comparison only —
@@ -10,18 +10,18 @@ function Column({ dark }: { dark: boolean }) {
         <div className="font-mono text-[11px] text-muted-foreground">{dark ? 'dark' : 'light'} · panel ground (the token)</div>
         <div className="rounded-(--radius-panel) border border-border-strong bg-card p-5">
           <KeycapPanel className="px-4 py-3.5">
-            <div className="mb-2 text-[15px] font-semibold tracking-[-0.02em]">Style review</div>
+            <div className="mb-2 text-[15px] font-semibold tracking-[-0.02em]">Shortcuts</div>
             <div className="flex items-center gap-1 font-mono text-[11px] text-ink-tertiary">
               <Keycap>A</Keycap>
               <Keycap>R</Keycap>
-              <span className="ml-1.5">accept / reject</span>
+              <span className="ml-1.5">example keys</span>
             </div>
           </KeycapPanel>
         </div>
         <div className="font-mono text-[11px] text-muted-foreground">reference only · same bevel on surface ground</div>
         <div className="rounded-(--radius-panel) border border-border-strong bg-popover p-5">
           <div className="rounded-(--radius-panel) border border-border-float bg-popover px-4 py-3.5" style={{ boxShadow: 'var(--keycap)' }}>
-            <div className="text-[15px] font-semibold tracking-[-0.02em]">Style review</div>
+            <div className="text-[15px] font-semibold tracking-[-0.02em]">Shortcuts</div>
           </div>
         </div>
       </div>

@@ -21,10 +21,9 @@ export interface JotDocument {
   autoTitle?: boolean
 }
 
-export type Provider = 'openrouter' | 'google' | 'openai' | 'anthropic'
 export type KeyStatus = 'untested' | 'valid' | 'invalid' | 'offline'
 
-// One provider's key and what its last test said.
+// A key (Google Cloud Translation's) and what its last test said.
 export interface ProviderKey {
   key: string | null
   status: KeyStatus
@@ -33,14 +32,6 @@ export interface ProviderKey {
 
 export interface Settings {
   id: 'settings'
-  // The AI provider reviews run on (ADR-004 amendment). Each provider keeps
-  // its own key and its own model chain, so switching back and forth never
-  // loses either.
-  provider: Provider
-  keys: Partial<Record<Provider, ProviderKey>>
-  // Per provider: the model reviews run on, then its fallbacks in order
-  // (Phase 12). Missing = the provider's default chain.
-  models: Partial<Record<Provider, string[]>>
   theme: 'light' | 'dark' | 'system'
   // The editor's minimap (Phase 8); on unless turned off.
   minimap: boolean
@@ -50,14 +41,20 @@ export interface Settings {
   // Animations (round 4, motion spec); on unless turned off. The system's
   // reduced-motion request turns them off regardless.
   animations?: boolean
-  // Auto-fix spelling behind the cursor (Phase 16); off unless turned on.
+  // Top-level headings and tables centred in the rendered view and the PDF
+  // (owner, 2026-10-31); on unless turned off.
+  centerHeadings?: boolean
+  centerTables?: boolean
+  // Spelling suggestions (Phase 16; was auto-fix, hence the name); off
+  // unless turned on. spellIgnore: words never marked, lowercase.
   autofix?: boolean
+  spellIgnore?: string[]
   // The person's own keyboard shortcuts (round 4): command id → keys, an
   // empty list for none. Missing commands keep their defaults
   // (state/commands.ts).
   shortcuts?: Record<string, string[]>
-  // A Google Cloud Translation key, for translating a selection (Phase 16):
-  // separate from the AI provider; no AI involved.
+  // A Google Cloud Translation key, for translating a selection (Phase 16);
+  // no AI involved.
   translateKey?: ProviderKey
   // First run (Phase 10): when the welcome document was created (or the
   // workspace was found already in use), and which document it is.
@@ -69,45 +66,6 @@ export interface Settings {
   // The PDF options card's last choices (lib/pdfOptions.ts), one set for
   // every document.
   pdf?: import('./pdfOptions').PdfOptions
-}
-
-// 'chat': a change asked for in AI mode — in a chat message or an AI note.
-export type FlagFamily = 'tier1' | 'tier1b' | 'tier2' | 'spelling' | 'grammar' | 'punctuation' | 'chat'
-export type FlagKind = 'replace' | 'delete' | 'insert' | 'flag'
-// superseded: set by Jot, not chosen — a pending flag inside a wider flag
-// that was accepted or edited (its text is gone; open-decisions #16).
-export type FlagStatus = 'pending' | 'accepted' | 'rejected' | 'ignored' | 'dismissed' | 'edited' | 'superseded'
-
-export interface ReviewFlag {
-  // Unique per record: aggregate rules emit several flags sharing one rule id.
-  key: string
-  // Rule id (T1-01…T1-12, T1b-01…T1b-06, T2-01…T2-08) or proofing id (SPL-/GRM-/PNC-).
-  id: string
-  family: FlagFamily
-  kind: FlagKind
-  // Anchors into the review's source text. Both null for a comment-only
-  // note: a model quote that didn't match the document.
-  spanStart: number | null
-  spanEnd: number | null
-  before: string
-  after: string | null
-  rationale: string
-  status: FlagStatus
-  userText?: string
-  // For a superseded flag: the key of the wider flag that took its text.
-  supersededBy?: string
-}
-
-export interface ReviewSession {
-  documentId: string
-  rulesetVersion: string
-  model: string
-  // The document text the flags anchor into. Editing is locked while the
-  // review is open; a resumed review whose document changed since is
-  // re-anchored against the new text.
-  source: string
-  createdAt: number
-  flags: ReviewFlag[]
 }
 
 // Shell layout, restored on reload: which documents are open where, plus
@@ -164,41 +122,24 @@ export interface Comparison {
 export interface Annotation {
   id: string
   documentId: string
-  // ai-note: an instruction for AI mode, queued for the next message
-  // (round 4, frame 11); shown only in AI mode, never printed or exported.
-  kind: 'highlight' | 'underline' | 'note' | 'ai-note'
+  kind: 'highlight' | 'underline' | 'note'
   // Highlights: one of the three washes (--hl-1…3).
   color?: 1 | 2 | 3
   from: number
   to: number
   quote: string
-  // Notes: what the note says; AI notes: the instruction.
+  // Notes: what the note says.
   body?: string
   createdAt: number
   updatedAt: number
 }
 
-// AI mode's conversation with one document (round 4, frame 11), kept with
-// the document in this browser and gone with it.
-export type ChatMessage =
-  | { id: string; at: number; role: 'user'; text: string; notes: { n: number; quote: string; body: string }[]; context: number }
-  | { id: string; at: number; role: 'assistant'; text: string; model: string; proposals: number; unmatched: number; keys?: string[] }
-  | { id: string; at: number; role: 'action'; action: 'review' | 'translate'; text: string; documentId?: string }
-  | { id: string; at: number; role: 'error'; kind: 'no-key' | 'provider' | 'declined'; message: string; detail?: string; model?: string; retry?: string }
-
-export interface Chat {
-  documentId: string
-  messages: ChatMessage[]
-}
-
 export const db = new Dexie('jot') as Dexie & {
   documents: EntityTable<JotDocument, 'id'>
   settings: EntityTable<Settings, 'id'>
-  reviewSessions: EntityTable<ReviewSession, 'documentId'>
   workspace: EntityTable<Workspace, 'id'>
   comparisons: EntityTable<Comparison, 'id'>
   annotations: EntityTable<Annotation, 'id'>
-  chats: EntityTable<Chat, 'documentId'>
 }
 
 db.version(1).stores({
@@ -211,22 +152,8 @@ db.version(2).stores({
   workspace: 'id',
 })
 
-// Phase 12: keys move from one field set per provider to a map keyed by
-// provider, so adding a provider doesn't add fields.
-const LEGACY_KEY_FIELDS = ['openRouterApiKey', 'keyStatus', 'lastValidatedAt', 'googleApiKey', 'googleKeyStatus', 'googleLastValidatedAt']
-export function migrateKeys(s: Record<string, unknown>): void {
-  const keys: Partial<Record<Provider, ProviderKey>> = {}
-  const record = (key: unknown, status: unknown, at: unknown): ProviderKey => ({ key: key as string, status: (status as KeyStatus) ?? 'untested', lastValidatedAt: (at as number) ?? null })
-  if (s.openRouterApiKey) keys.openrouter = record(s.openRouterApiKey, s.keyStatus, s.lastValidatedAt)
-  if (s.googleApiKey) keys.google = record(s.googleApiKey, s.googleKeyStatus, s.googleLastValidatedAt)
-  s.keys = keys
-  s.models = {}
-  for (const f of LEGACY_KEY_FIELDS) delete s[f]
-}
-
-db.version(3)
-  .stores({})
-  .upgrade((tx) => tx.table('settings').toCollection().modify(migrateKeys))
+// Phase 12 moved AI provider keys into one map; they're gone since (v7).
+db.version(3).stores({})
 
 // The diff checker's comparisons, one per diff tab.
 db.version(4).stores({
@@ -242,3 +169,17 @@ db.version(5).stores({
 db.version(6).stores({
   chats: 'documentId',
 })
+
+// The AI suite is removed (2026-11; the code is parked on the parked/ai
+// branch): its tables go, and with them the review sessions and chats; AI
+// notes and the provider keys and models go from what's kept.
+db.version(7)
+  .stores({ reviewSessions: null, chats: null })
+  .upgrade(async (tx) => {
+    await tx.table('annotations').filter((a) => a.kind === 'ai-note').delete()
+    await tx.table('settings').toCollection().modify((s: Record<string, unknown>) => {
+      delete s.provider
+      delete s.keys
+      delete s.models
+    })
+  })

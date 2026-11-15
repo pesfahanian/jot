@@ -1,11 +1,13 @@
 import type { EditorView } from '@codemirror/view'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef, useState } from 'react'
 import { followContent, openContent, viewsOf } from '@/editor/sessions'
 import type { JotDocument } from '@/lib/db'
+import { getSettings } from '@/lib/settings'
+import { cn } from '@/lib/utils'
 import { renderBlocks, type RenderedBlock } from '@/lib/render'
 import { useWorkspace } from '@/state/workspace'
 import { useAnnotations } from '@/state/annotations'
-import { printable } from '@/lib/annotations'
 
 // The rendered view (2g): one document, rendered — the body of a rendered
 // tab ("render:" + id), which moves like any tab. It follows the text as
@@ -15,6 +17,52 @@ import { printable } from '@/lib/annotations'
 // the two apart.
 
 const RENDER_DELAY = 120
+
+// Code blocks get a copy button, top right on hover, as GitHub has it —
+// added here, so the PDF never shows one. The block is wrapped so the
+// button stays put while wide code scrolls sideways.
+const COPY_ICON = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'
+const DONE_ICON = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>'
+
+function addCopyButtons(root: HTMLElement) {
+  for (const pre of root.querySelectorAll<HTMLPreElement>('pre')) {
+    if (pre.parentElement?.classList.contains('jot-code')) continue
+    const wrap = document.createElement('div')
+    wrap.className = 'jot-code'
+    pre.replaceWith(wrap)
+    wrap.append(pre)
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'jot-copy'
+    button.title = 'copy'
+    button.setAttribute('aria-label', 'copy code')
+    button.innerHTML = COPY_ICON
+    let reset: ReturnType<typeof setTimeout> | undefined
+    const done = () => {
+      button.innerHTML = DONE_ICON
+      button.title = 'copied'
+      clearTimeout(reset)
+      reset = setTimeout(() => {
+        button.innerHTML = COPY_ICON
+        button.title = 'copy'
+      }, 1200)
+    }
+    button.addEventListener('click', () => {
+      const text = pre.textContent ?? ''
+      // Where the clipboard API is refused, the older copy command.
+      navigator.clipboard.writeText(text).then(done, () => {
+        const area = document.createElement('textarea')
+        area.value = text
+        area.style.cssText = 'position:fixed;opacity:0'
+        document.body.append(area)
+        area.select()
+        if (document.execCommand('copy')) done()
+        area.remove()
+      })
+    })
+    wrap.append(button)
+  }
+}
 
 export function RenderView({ doc }: { doc: JotDocument }) {
   const [blocks, setBlocks] = useState<RenderedBlock[] | null>(null)
@@ -30,7 +78,7 @@ export function RenderView({ doc }: { doc: JotDocument }) {
     const theme = () => (document.documentElement.classList.contains('dark') ? 'dark' : 'light')
     const render = () => {
       const n = ++latest
-      const annotations = printable(useAnnotations.getState().byDoc[doc.id] ?? [])
+      const annotations = useAnnotations.getState().byDoc[doc.id] ?? []
       void renderBlocks(text, { theme: theme(), dir: doc.dir ?? 'auto', annotations }).then((b) => n === latest && setBlocks(b))
     }
     render()
@@ -57,16 +105,20 @@ export function RenderView({ doc }: { doc: JotDocument }) {
       stopMarks()
       themeWatch.disconnect()
     }
-    // doc.content: a change saved from elsewhere (e.g. an applied review);
+    // doc.content: a change saved from elsewhere (e.g. another pane);
     // doc.dir: the document's direction setting changed.
   }, [doc.id, doc.content, doc.dir])
 
   useScrollSync(doc.id, scroller, blocks)
+  useEffect(() => {
+    if (scroller.current) addCopyButtons(scroller.current)
+  }, [blocks])
+  const settings = useLiveQuery(() => getSettings(), [])
 
   return (
     // Full pane width, as VSCode's preview (owner) — no measure cap.
     <div ref={scroller} className="relative min-h-0 flex-auto overflow-y-auto px-7 py-6">
-      <div className="jot-rendered">
+      <div className={cn('jot-rendered', (settings?.centerHeadings ?? true) && 'jot-center-h1', (settings?.centerTables ?? true) && 'jot-center-tables')}>
         {blocks?.map((b) => (
           <div key={`${b.line}:${b.html.length}`} data-line={b.line} dangerouslySetInnerHTML={{ __html: b.html }} />
         ))}

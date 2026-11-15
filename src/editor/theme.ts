@@ -1,5 +1,5 @@
 import { HighlightStyle, syntaxHighlighting, syntaxTree } from '@codemirror/language'
-import { RangeSetBuilder } from '@codemirror/state'
+import { EditorSelection, RangeSetBuilder } from '@codemirror/state'
 import { Decoration, EditorView, layer, RectangleMarker, ViewPlugin, type DecorationSet, type ViewUpdate } from '@codemirror/view'
 import { tags as t } from '@lezer/highlight'
 import { CODE_GROUPS } from '@/lib/code'
@@ -38,6 +38,8 @@ const codeBlockLine = Decoration.line({ class: 'cm-jot-codeblock' })
 const linkText = Decoration.mark({ class: 'cm-jot-link-text' })
 const inlineCode = Decoration.mark({ class: 'cm-jot-inline-code' })
 const doneTask = Decoration.mark({ class: 'cm-jot-task-done' })
+// \newpage (lib/render.ts) is an instruction for the PDF, not text: dimmed.
+const pageBreak = Decoration.mark({ class: 'cm-jot-pagebreak' })
 
 function buildDecorations(view: EditorView): DecorationSet {
   const builder = new RangeSetBuilder<Decoration>()
@@ -54,6 +56,10 @@ function buildDecorations(view: EditorView): DecorationSet {
             const line = state.doc.line(n)
             builder.add(line.from, line.from, codeBlockLine)
           }
+          return false
+        }
+        if (node.name === 'Paragraph' && state.sliceDoc(node.from, node.to).trim() === '\\newpage') {
+          builder.add(node.from, node.to, pageBreak)
           return false
         }
         if (node.name === 'HeaderMark') {
@@ -162,7 +168,10 @@ const baseTheme = EditorView.theme({
   '.cm-jot-codeblock-rect': { backgroundColor: 'var(--inset)' },
   '.cm-jot-heading-mark, .cm-jot-heading-mark *': { color: 'var(--syn-heading)', fontWeight: '400' },
   '.cm-jot-link-text': { textDecoration: 'underline', textUnderlineOffset: '3px' },
-  '.cm-jot-inline-code': { backgroundColor: 'var(--code-inline)' },
+  // Inline code's ground is drawn by codeBlockGround too, for the same
+  // reason.
+  '.cm-jot-inline-code-rect': { backgroundColor: 'var(--code-inline)', borderRadius: '3px' },
+  '.cm-jot-pagebreak': { color: 'var(--ink-tertiary)' },
   '.cm-jot-task-done': { color: 'var(--muted-foreground)', textDecoration: 'line-through' },
 
   // Search panel (Cmd+F). Undrawn in the design docs — kept to existing
@@ -199,10 +208,11 @@ const baseTheme = EditorView.theme({
   '.cm-search [name=close]': { marginLeft: 'auto', color: 'var(--ink-dim)', fontSize: '13px', cursor: 'pointer' },
 })
 
-// Code-block ground (the inset), as a layer under the text. It must sit
-// under the selection layer too — as a line background it covered the
-// selection, so a drag-select inside code showed nothing. Must be listed
-// after drawSelection(): under-text layers stack first-listed on top.
+// Code grounds — the code block's inset and inline code's — as a layer
+// under the text. It must sit under the selection layer too: as a
+// background on the text it covered the selection, so selecting inside
+// code showed nothing. Must be listed after drawSelection(): under-text
+// layers stack first-listed on top.
 export const codeBlockGround = layer({
   above: false,
   class: 'cm-jot-codeblock-ground',
@@ -220,6 +230,10 @@ export const codeBlockGround = layer({
         from,
         to,
         enter(node) {
+          if (node.name === 'InlineCode') {
+            markers.push(...RectangleMarker.forRange(view, 'cm-jot-inline-code-rect', EditorSelection.range(node.from, node.to)))
+            return false
+          }
           if (node.name !== 'FencedCode' && node.name !== 'CodeBlock') return
           const top = view.lineBlockAt(node.from).top + view.documentTop - baseTop
           const bottom = view.lineBlockAt(node.to).bottom + view.documentTop - baseTop

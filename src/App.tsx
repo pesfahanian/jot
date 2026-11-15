@@ -1,10 +1,8 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { Shell } from '@/components/shell/Shell'
 import { db } from '@/lib/db'
-import { setFavicon } from '@/lib/favicon'
 import { welcomeIfFirstRun } from '@/lib/welcome'
 import { useDocuments } from '@/state/hooks'
-import { useReview } from '@/state/review'
 import { docIdOf, isDiffTab } from '@/state/layout'
 import { useApplyTheme, useTheme } from '@/state/theme'
 import { useApplyMotion } from '@/lib/motion'
@@ -84,9 +82,6 @@ function Workspace() {
   useEffect(() => {
     if (!docs || !loaded) return
     const ids = new Set(docs.map((d) => d.id))
-    const ws = useWorkspace.getState()
-    // AI mode ends with its document.
-    if (ws.aiMode && !ids.has(ws.aiMode.documentId)) ws.leaveAiMode()
     for (const p of useWorkspace.getState().panes) for (const t of p.tabs) if (!isDiffTab(t) && !ids.has(docIdOf(t))) useWorkspace.getState().closeTab(p.id, t)
   }, [docs, loaded])
 
@@ -94,20 +89,11 @@ function Workspace() {
   return <Shell docs={docs} />
 }
 
-// The favicon mirrors the review (lib/favicon.ts): an unseen result first,
-// then a review in progress, else the plain mark.
-function useFaviconStatus() {
-  const running = useReview((s) => Object.values(s.runs).some((r) => r.state === 'running'))
-  const unseen = useReview((s) => s.unseen)
-  useEffect(() => setFavicon(unseen ?? (running ? 'running' : 'idle')), [running, unseen])
-}
-
 function App() {
   const isWide = useSyncExternalStore(subscribeWidth, () => wide.matches)
   const theme = useTheme()
   useApplyTheme(theme.resolved)
   useApplyMotion()
-  useFaviconStatus()
   const storageOk = useStorageOk()
   if (!isWide) return <TooNarrow />
   if (storageOk === false) return <NoStorage />
