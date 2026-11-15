@@ -1,16 +1,18 @@
 import type NSpell from 'nspell'
 
-// Auto-fix spelling (Phase 16; research in docs/research/phase-16-2026-10.md):
-// a merged en_US + en_GB Hunspell dictionary (public/dict/, built by
-// scripts/build-dictionary.mjs), loaded only when auto-fix is on. A page
-// can't read the browser's own spellchecker, so Jot carries one.
+// Spelling suggestions (Phase 16, made suggestions on 2026-11-15; research
+// in docs/research/phase-16-2026-10.md): a merged en_US + en_GB Hunspell
+// dictionary (public/dict/, built by scripts/build-dictionary.mjs), loaded
+// only when the setting is on. A page can't read the browser's own
+// spellchecker, so Jot carries one. Nothing changes until the person clicks
+// a suggestion (editor/spelling.ts).
 //
 // The rule fixes only what's unambiguous: a lowercase word of 3+ letters,
 // unknown to the dictionary, where swapping one pair of neighbouring
 // letters makes exactly one real word ("teh" → "the"), or else the
 // dictionary offers exactly one suggestion ("definately" → "definitely").
-// It never touches a real word, so "form" for "from" is left alone — the
-// price of never changing a correct word.
+// It never marks a real word, so "form" for "from" is left alone — the
+// price of never suggesting a change to a correct word.
 
 // Typos whose single fix is wrong ("alot" is two words, not "alto").
 const NEVER = new Set(['alot'])
@@ -34,4 +36,16 @@ export function fixFor(spell: Pick<NSpell, 'correct' | 'suggest'>, word: string)
   if (swaps.size > 1) return null
   const suggestions = spell.suggest(word)
   return suggestions.length === 1 && /^[a-z]+$/.test(suggestions[0]) ? suggestions[0] : null
+}
+
+// A capitalised word is checked only where a sentence starts (a line's
+// start, after a list or heading marker, or after . ! ?); anywhere else
+// it's most likely a name. The fix keeps the capital.
+const SENTENCE_START = /(^|[.!?]["')\]]?\s+|^\s*(#{1,6}|[-*+>]|\d+[.)])\s+)$/
+
+export function suggestionFor(spell: Pick<NSpell, 'correct' | 'suggest'>, word: string, before: string): string | null {
+  if (/^[a-z]+$/.test(word)) return fixFor(spell, word)
+  if (!/^[A-Z][a-z]+$/.test(word) || !SENTENCE_START.test(before)) return null
+  const fix = fixFor(spell, word.toLowerCase())
+  return fix && fix[0].toUpperCase() + fix.slice(1)
 }

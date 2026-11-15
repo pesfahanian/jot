@@ -45,8 +45,10 @@ export interface Settings {
   // (owner, 2026-10-31); on unless turned off.
   centerHeadings?: boolean
   centerTables?: boolean
-  // Auto-fix spelling behind the cursor (Phase 16); off unless turned on.
+  // Spelling suggestions (Phase 16; was auto-fix, hence the name); off
+  // unless turned on. spellIgnore: words never marked, lowercase.
   autofix?: boolean
+  spellIgnore?: string[]
   // The person's own keyboard shortcuts (round 4): command id → keys, an
   // empty list for none. Missing commands keep their defaults
   // (state/commands.ts).

@@ -20,7 +20,7 @@ import { useWorkspace } from '@/state/workspace'
 import { columnsOf } from '@/state/layout'
 import { markdownWithCode } from './codeLanguages'
 import { minimapCompartment, minimapFor } from './minimap'
-import { autofixCompartment, autofixFor } from './autofix'
+import { spellingCompartment, spellingFor } from './spelling'
 import { cutEmptyLastLine, wrapInBackticks, editorKeymap } from './keymap'
 import { getSession } from './sessions'
 import { codeBlockGround, jotEditorTheme } from './theme'
@@ -70,10 +70,10 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
   dirRef.current = dir
   const minimapRef = useRef(minimapOn)
   minimapRef.current = minimapOn
-  // Auto-fix spelling (Phase 16): off unless turned on in settings.
-  const autofixOn = useLiveQuery(() => getSettings().then((s) => s.autofix ?? false), []) ?? false
-  const autofixRef = useRef(autofixOn)
-  autofixRef.current = autofixOn
+  // Spelling suggestions (Phase 16): off unless turned on in settings.
+  const spellingOn = useLiveQuery(() => getSettings().then((s) => s.autofix ?? false), []) ?? false
+  const spellingRef = useRef(spellingOn)
+  spellingRef.current = spellingOn
 
   useEffect(() => {
     const session = getSession(documentId, initialContent)
@@ -117,7 +117,7 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
           wrapInBackticks,
           jotEditorTheme,
           minimapCompartment.of(minimapFor(minimapRef.current)),
-          autofixCompartment.of(autofixFor(autofixRef.current)),
+          spellingCompartment.of(spellingFor(spellingRef.current, documentId)),
           directionExtension(dirRef.current),
           themeMode.of(themeModeFor(isDark())),
           EditorView.updateListener.of((u) => {
@@ -173,8 +173,8 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
   }, [minimapOn])
 
   useEffect(() => {
-    viewRef.current?.dispatch({ effects: autofixCompartment.reconfigure(autofixFor(autofixOn)) })
-  }, [autofixOn])
+    viewRef.current?.dispatch({ effects: spellingCompartment.reconfigure(spellingFor(spellingOn, documentId)) })
+  }, [spellingOn, documentId])
 
   useEffect(() => {
     viewRef.current?.dispatch({ effects: dirCompartment.reconfigure(dirSettingFor(dir)) })

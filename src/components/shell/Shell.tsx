@@ -11,6 +11,7 @@ import { CommandPalette } from './CommandPalette'
 import { NotePopover } from '@/components/annotations/NotePopover'
 import { SelectionMenu } from '@/components/annotations/SelectionMenu'
 import { TranslatePopover } from '@/components/annotations/TranslatePopover'
+import { TypoMenu } from '@/components/annotations/TypoMenu'
 import { PaneEmpty } from './EditorPane'
 import { PaneGrid } from './PaneGrid'
 import { Sidebar } from './Sidebar'
@@ -153,6 +154,7 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
       <SelectionMenu />
       <NotePopover />
       <TranslatePopover />
+      <TypoMenu />
     </div>
   )
 }

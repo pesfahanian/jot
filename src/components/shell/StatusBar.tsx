@@ -3,7 +3,10 @@ import { Check, PanelRight, PanelRightDashed } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { hasRtl, lineDirections, type DirSetting } from '@/lib/direction'
 import { updateDocument } from '@/lib/documents'
-import { openContent } from '@/editor/sessions'
+import { openContent, viewsOf } from '@/editor/sessions'
+import { activeEditor } from '@/editor/annotations'
+import { fixAllTypos } from '@/editor/spelling'
+import { useTypos } from '@/state/spelling'
 import type { JotDocument } from '@/lib/db'
 import { countText, groupDigits } from '@/lib/counts'
 import { applyUpdate, useUpdateReady } from '@/lib/offline'
@@ -69,6 +72,27 @@ function DirCell({ doc, text, line }: { doc: JotDocument; text: string; line: nu
   )
 }
 
+// Typos marked in this document (spelling suggestions, editor/spelling.ts),
+// with a way to fix them all as one undo step.
+function TyposCell({ documentId }: { documentId: string }) {
+  const on = useLiveQuery(() => getSettings().then((s) => s.autofix ?? false), []) ?? false
+  const count = useTypos((s) => s.byDoc[documentId] ?? 0)
+  if (!on || !count) return null
+  const fixAll = () => {
+    const active = activeEditor()
+    const view = active?.documentId === documentId ? active.view : viewsOf(documentId)[0]
+    if (view) fixAllTypos(view)
+  }
+  return (
+    <div className="flex items-center border-l border-border-subtle px-2">
+      <span className="text-muted-foreground">typos</span>&nbsp;{count}
+      <button type="button" onClick={fixAll} className="ml-1.5 text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+        · fix all
+      </button>
+    </div>
+  )
+}
+
 // A new version of Jot is downloaded and waiting (lib/offline.ts): a quiet
 // offer at the bar's left. Every edit is saved, so reloading loses nothing.
 function UpdateReady() {
@@ -130,6 +154,7 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
           <Cell label="lines" value={groupDigits(c.lines)} />
           <Cell label="paras" value={groupDigits(c.paras)} className="pr-2.5" />
           <NotesCell documentId={doc.id} />
+          <TyposCell documentId={doc.id} />
         </>
       )}
       {/* The minimap toggle, at the far right (round 4). */}

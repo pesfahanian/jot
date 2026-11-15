@@ -82,7 +82,7 @@ Select some text and right-click it for Jot's own menu:
 
 Highlights and notes show in the rendered view too. In a PDF they print if you ask (the PDF card's **annotations** row), with notes as footnotes. Markdown export can keep them as ==highlights== and footnotes.
 
-Turn on **auto-fix spelling** in settings, and clear typos (teh, recieve, definately) get fixed a couple of words behind you as you write. It works in English only, never touches a real word, and Cmd/Ctrl + Z undoes a fix.
+Turn on **spelling suggestions** in settings, and clear typos (teh, recieve, definately) get a wavy underline. Click one to fix it, or **fix all** from the status bar; right-click one to ignore that word. Nothing changes until you click. It works in English only and never marks a real word.
 
 ## comparing
 

@@ -43,6 +43,7 @@ function Page({ children }: { children: ReactNode }) {
 function EditorPage() {
   const renderIn = useLiveQuery(() => getSettings().then((s) => s.renderIn ?? 'tab'), []) ?? 'tab'
   const autofix = useLiveQuery(() => getSettings().then((s) => s.autofix ?? false), []) ?? false
+  const ignored = useLiveQuery(() => getSettings().then((s) => s.spellIgnore ?? []), []) ?? []
   const centerHeadings = useLiveQuery(() => getSettings().then((s) => s.centerHeadings ?? true), []) ?? true
   const centerTables = useLiveQuery(() => getSettings().then((s) => s.centerTables ?? true), []) ?? true
   return (
@@ -58,11 +59,24 @@ function EditorPage() {
         <Switch label="centre tables" on={centerTables} onChange={(on) => void updateSettings({ centerTables: on })} />
       </Row>
       <Row
-        title="auto-fix spelling"
-        detail="Quietly corrects clear typos a couple of words behind you — English only, never inside code or links, each fix its own undo. Downloads a 200 KB dictionary the first time."
+        title="spelling suggestions"
+        detail="Marks clear English typos with a wavy underline, never inside code or links. Click one to fix it, fix them all from the status bar, or right-click to ignore a word. Downloads a 200 KB dictionary the first time."
       >
-        <Switch label="auto-fix spelling" on={autofix} onChange={(on) => void updateSettings({ autofix: on })} />
+        <Switch label="spelling suggestions" on={autofix} onChange={(on) => void updateSettings({ autofix: on })} />
       </Row>
+      {autofix && ignored.length > 0 && (
+        <div className="-mt-2 flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+          ignored
+          {ignored.map((w) => (
+            <span key={w} className="flex items-center gap-1 rounded-sm border border-border px-1.5 py-px text-secondary-foreground">
+              {w}
+              <button type="button" aria-label={`stop ignoring ${w}`} title="stop ignoring" onClick={() => void updateSettings({ spellIgnore: ignored.filter((x) => x !== w) })} className="hover:text-foreground">
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </Page>
   )
 }
