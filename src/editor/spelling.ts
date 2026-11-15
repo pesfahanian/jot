@@ -48,7 +48,9 @@ const typoField = StateField.define<Typo[]>({
 })
 
 function skipAt(state: EditorState, pos: number) {
-  for (let n: { name: string; parent: unknown } | null = syntaxTree(state).resolveInner(pos, 1); n; n = n.parent as typeof n) if (SKIP.has(n.name)) return true
+  // Parsed as far as this word, no further (incremental across calls).
+  const tree = ensureSyntaxTree(state, pos + 1, 50) ?? syntaxTree(state)
+  for (let n: { name: string; parent: unknown } | null = tree.resolveInner(pos, 1); n; n = n.parent as typeof n) if (SKIP.has(n.name)) return true
   const line = state.doc.lineAt(pos)
   if (/\$[^$]*$/.test(line.text.slice(0, pos - line.from))) return true
   return directionAt(state, pos) === 'rtl'
@@ -78,54 +80,120 @@ const typoAt = (view: EditorView, target: EventTarget | null) => {
   return typosOf(view).find((t) => t.from <= pos && pos < t.to) ?? null
 }
 
+// Checking is kept off the typing path: an editor's first check (on
+// opening a document, closing its rendered view, switching tabs) runs in
+// slices that yield to the page; after that only the lines an edit touched
+// are checked again. A word still being typed is held back and checked once
+// the cursor leaves it.
+const SLICE_MS = 8
+
 function plugin(documentId: string) {
   return ViewPlugin.fromClass(
     class {
       timer: ReturnType<typeof setTimeout> | undefined
       view: EditorView
       offIgnore: () => void
+      // Stretches to check again (null: none; "all": the whole document).
+      dirty: { from: number; to: number } | 'all' | null = 'all'
+      // The word the cursor was in at the last check.
+      held: { from: number; to: number } | null = null
+      run = 0
       constructor(view: EditorView) {
         this.view = view
-        const recheck = () => void this.check()
+        const recheck = () => {
+          this.dirty = 'all'
+          this.schedule(0)
+        }
         ignoreListeners.add(recheck)
         this.offIgnore = () => ignoreListeners.delete(recheck)
-        void this.check()
+        this.schedule(0)
+      }
+      schedule(delay: number) {
+        clearTimeout(this.timer)
+        this.timer = setTimeout(() => void this.check(), delay)
       }
       update(u: ViewUpdate) {
         if (u.docChanged) {
+          const changed: { from: number; to: number }[] = []
+          u.changes.iterChangedRanges((_fa, _ta, from, to) => changed.push({ from, to }))
+          if (this.dirty !== 'all') {
+            let d = this.dirty && { from: u.changes.mapPos(this.dirty.from, -1), to: u.changes.mapPos(this.dirty.to, 1) }
+            for (const c of changed) d = d ? { from: Math.min(d.from, c.from), to: Math.max(d.to, c.to) } : c
+            this.dirty = d
+          }
+          if (this.held) this.held = { from: u.changes.mapPos(this.held.from, -1), to: u.changes.mapPos(this.held.to, 1) }
           useTypos.getState().set(documentId, typosOf(u.view).length)
-          clearTimeout(this.timer)
-          this.timer = setTimeout(() => void this.check(), PAUSE)
+          this.schedule(PAUSE)
+        } else if (u.selectionSet && this.held) {
+          const head = u.state.selection.main.head
+          if (head < this.held.from || head > this.held.to) {
+            const h = this.held
+            this.dirty = this.dirty === 'all' ? 'all' : this.dirty ? { from: Math.min(this.dirty.from, h.from), to: Math.max(this.dirty.to, h.to) } : h
+            this.held = null
+            this.schedule(PAUSE)
+          }
         }
       }
       async check() {
         const view = this.view
+        const run = ++this.run
         const spell = await loadSpeller().catch(() => null)
-        if (!spell || !view.dom.isConnected) return
-        if (view.composing) return void (this.timer = setTimeout(() => void this.check(), PAUSE))
-        const { state } = view
-        ensureSyntaxTree(state, state.doc.length, 100)
+        if (!spell || !view.dom.isConnected || run !== this.run || !this.dirty) return
+        if (view.composing) return this.schedule(PAUSE)
+        const state = view.state
+        const doc = state.doc
+        const dirty = this.dirty
+        const first = dirty === 'all' ? 1 : doc.lineAt(Math.min(dirty.from, doc.length)).number
+        const last = dirty === 'all' ? doc.lines : doc.lineAt(Math.min(dirty.to, doc.length)).number
+        this.dirty = null
         const head = state.selection.main.head
+        let held: { from: number; to: number } | null = null
         const found: Typo[] = []
-        for (let n = 1; n <= state.doc.lines; n++) {
-          const line = state.doc.line(n)
+        let sliceStart = performance.now()
+        for (let n = first; n <= last; n++) {
+          // Yield now and then; an edit meanwhile means starting over.
+          if (performance.now() - sliceStart > SLICE_MS) {
+            await new Promise((r) => setTimeout(r))
+            if (run !== this.run || view.state.doc !== doc || !view.dom.isConnected) {
+              if (run === this.run) {
+                this.dirty = dirty
+                this.schedule(PAUSE)
+              }
+              return
+            }
+            sliceStart = performance.now()
+          }
+          const line = doc.line(n)
           for (const m of line.text.matchAll(WORD)) {
             const from = line.from + m.index
             const to = from + m[0].length
             // Still being typed: the cursor is in it or right after it.
-            if (head >= from && head <= to) continue
+            if (head >= from && head <= to) {
+              held = { from, to }
+              continue
+            }
+            // A LaTeX-style command (\newpage), not a word.
+            if (line.text[m.index - 1] === '\\') continue
             if (ignored.has(m[0].toLowerCase())) continue
             const fix = suggestionFor(spell, m[0], line.text.slice(0, m.index))
             if (fix && !skipAt(state, from)) found.push({ from, to, word: m[0], fix })
           }
         }
-        // Text typed during the check moved things: the next check redoes it.
-        if (view.state.doc !== state.doc) return
-        view.dispatch({ effects: setTypos.of(found) })
-        useTypos.getState().set(documentId, found.length)
+        if (view.state.doc !== doc) {
+          this.dirty = dirty
+          return this.schedule(PAUSE)
+        }
+        this.held = held
+        const from = doc.line(first).from
+        const to = doc.line(last).to
+        const keep = dirty === 'all' ? [] : typosOf(view).filter((t) => t.to < from || t.from > to)
+        const list = [...keep, ...found].sort((a, b) => a.from - b.from)
+        view.dispatch({ effects: setTypos.of(list) })
+        useTypos.getState().set(documentId, list.length)
       }
       destroy() {
         clearTimeout(this.timer)
+        this.run++
         this.offIgnore()
       }
     },

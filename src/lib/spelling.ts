@@ -25,7 +25,20 @@ export function loadSpeller(): Promise<NSpell> {
   return speller
 }
 
+// Each word is looked up once per dictionary: suggest() is slow, and a
+// document repeats its words.
+const memo = new WeakMap<object, Map<string, string | null>>()
+
 export function fixFor(spell: Pick<NSpell, 'correct' | 'suggest'>, word: string): string | null {
+  let known = memo.get(spell)
+  if (!known) memo.set(spell, (known = new Map()))
+  if (known.has(word)) return known.get(word)!
+  const fix = lookUp(spell, word)
+  known.set(word, fix)
+  return fix
+}
+
+function lookUp(spell: Pick<NSpell, 'correct' | 'suggest'>, word: string): string | null {
   if (word.length < 3 || !/^[a-z]+$/.test(word) || NEVER.has(word) || spell.correct(word)) return null
   const swaps = new Set<string>()
   for (let i = 0; i + 1 < word.length; i++) {
