@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { db, type Comparison, type JotDocument, type PaneLayout, type TagColor, type Workspace } from '@/lib/db'
 import type { SortMode } from '@/lib/docList'
 import { getSettings } from '@/lib/settings'
-import { columnsOf, comparisonIdOf, docIdOf, isDiffTab, insertPane, MAX_COLUMNS, MAX_PANES, moveTab, removePane, renderTab, resize, splitWithTab, tidy, type DraggedTab, type Edge } from './layout'
+import { columnsOf, comparisonIdOf, docIdOf, isDiffTab, insertPane, MAX_COLUMNS, MAX_PANES, moveTab, parkFor, removePane, renderTab, resize, splitWithTab, tidy, unpark, type DraggedTab, type Edge, type Parked } from './layout'
 
 // Shell state: panes and their tabs, which pane has focus, and the sidebar's
 // own controls. Document records live in IndexedDB and are read live; this
@@ -41,6 +41,10 @@ interface WorkspaceState {
   focusedPaneId: string
   sidebarWidth: number
   sidebarOpen: boolean
+  // Comfy mode (owner, 2026-11-15): one pane's document alone, centred,
+  // larger, with nothing else on screen; the other panes are parked and
+  // come back as they were.
+  comfy: { paneId: string; parked: Parked } | null
   sort: SortMode
   colorFilter: ReadonlySet<TagColor>
   searchOpen: boolean
@@ -76,6 +80,9 @@ interface WorkspaceState {
   setSidebarWidth(px: number): void
   // Hides the sidebar entirely, or brings it back (Cmd+B, as VS Code).
   toggleSidebar(): void
+  // Into comfy mode on the focused pane, and back out.
+  enterComfy(): void
+  leaveComfy(): void
   toggleSort(): void
   toggleColor(color: TagColor): void
   clearColorFilter(): void
@@ -98,6 +105,7 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   focusedPaneId: '',
   sidebarWidth: SIDEBAR_DEFAULT,
   sidebarOpen: true,
+  comfy: null,
   sort: 'date',
   colorFilter: new Set(),
   searchOpen: false,
@@ -303,6 +311,19 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
 
   setSidebarWidth: (px) => set({ sidebarWidth: clampWidth(px) }),
   toggleSidebar: () => set({ sidebarOpen: !get().sidebarOpen }),
+  enterComfy() {
+    const { panes, focusedPaneId, comfy } = get()
+    if (comfy) return
+    const pane = panes.find((p) => p.id === focusedPaneId)
+    const tab = pane?.active
+    if (!pane || !tab || isDiffTab(tab)) return
+    set({ comfy: { paneId: pane.id, parked: { panes, focusedPaneId } }, panes: parkFor(panes, pane.id, tab), focusedPaneId: pane.id })
+  },
+  leaveComfy() {
+    const { comfy, panes } = get()
+    if (!comfy) return
+    set({ comfy: null, panes: tidy(unpark(comfy.parked, panes, comfy.paneId)), focusedPaneId: comfy.paneId })
+  },
   toggleSort: () => set({ sort: get().sort === 'date' ? 'name' : 'date' }),
   toggleColor(color) {
     const next = new Set(get().colorFilter)
@@ -316,6 +337,8 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   // Its name field should be visible: a filter or an open search would hide
   // the row.
   startDraft() {
+    // A new document's name field needs the sidebar or the tabs.
+    get().leaveComfy()
     const ws = get()
     ws.clearColorFilter()
     ws.setSearch(false)
@@ -334,7 +357,11 @@ useWorkspace.subscribe((s, prev) => {
   if (s.panes === prev.panes && s.focusedPaneId === prev.focusedPaneId && s.sidebarWidth === prev.sidebarWidth && s.sidebarOpen === prev.sidebarOpen && s.sort === prev.sort) return
   clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
-    const { panes, focusedPaneId, sidebarWidth, sidebarOpen, sort } = useWorkspace.getState()
+    const { panes: live, focusedPaneId: liveFocus, sidebarWidth, sidebarOpen, sort, comfy } = useWorkspace.getState()
+    // In comfy mode the saved layout is the one leaving would restore, so a
+    // reload never loses the parked panes.
+    const panes = comfy ? tidy(unpark(comfy.parked, live, comfy.paneId)) : live
+    const focusedPaneId = comfy ? comfy.paneId : liveFocus
     void db.workspace.put({ id: 'workspace', panes, focusedPaneId, sidebarWidth, sidebarOpen, sort })
   }, 200)
 })

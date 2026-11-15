@@ -497,6 +497,17 @@
 [data-resizing] .jot-pane { transition: none; }
 /* A new tab fades in, no slide (imports can add tabs in bursts). */
 [data-tab-id] { animation: jot-fade-in var(--motion-fast) var(--ease-enter); }
+/* Comfy mode (owner, 2026-11-15; state/workspace.ts): the one document
+   is the whole window — no tray, no frame, no tab strip, no gutter or
+   minimap — its text in a centred column about 70 characters wide, two
+   sizes larger, with room above. It fades in on the mode duration. */
+[data-comfy] { padding: 0; border-color: transparent; background: var(--document); }
+[data-comfy] .jot-pane { border-color: transparent; border-radius: 0; animation: jot-fade-in var(--motion-mode) var(--ease-enter); }
+[data-comfy] [data-pane-header] { display: none; }
+[data-comfy] .cm-editor { --editor-size: 16.5px; }
+[data-comfy] .cm-editor .cm-gutters, [data-comfy] .cm-editor .cm-minimap-gutter { display: none; }
+[data-comfy] .cm-editor .cm-content { flex: 0 1 72ch; max-width: 72ch; margin-inline: auto; padding: max(10vh, 48px) 0 40vh; }
+[data-comfy] .jot-rendered { max-width: 720px; margin-inline: auto; padding-top: max(10vh, 48px); zoom: 1.12; }
 /* The diff result fades in. */
 .jot-results { animation: jot-fade-in var(--motion-base) var(--ease-enter); }
 [data-motion="off"] *, [data-motion="off"] *::before, [data-motion="off"] *::after { animation-delay: 0s !important; }

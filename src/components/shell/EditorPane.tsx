@@ -10,7 +10,7 @@ import { DraftPage, DraftTab } from './Draft'
 import { Editor } from '@/editor/Editor'
 import { openContent } from '@/editor/sessions'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Download, Eye } from 'lucide-react'
+import { Armchair, Download, Eye } from 'lucide-react'
 import { db, type DiffSide, type JotDocument, type PaneLayout } from '@/lib/db'
 import { exportMarkdown, exportPlainText } from '@/lib/export'
 import { cn } from '@/lib/utils'
@@ -99,6 +99,7 @@ function PaneControls({ paneId, doc, narrow }: { paneId: string; doc: JotDocumen
   const toggleRender = useWorkspace((s) => s.toggleRender)
   const edge = useWorkspace((s) => splitEdge(s.panes, s.focusedPaneId))
   const rendered = useWorkspace((s) => !!doc && s.panes.some((p) => p.tabs.includes(renderTab(doc.id))))
+  const enterComfy = useWorkspace((s) => s.enterComfy)
   const canSplit = !!doc && !!edge
   // Render toggles this document's rendered tab (2g) — in a new pane where
   // split would open one, or in the neighbouring pane when the grid is full.
@@ -171,6 +172,7 @@ function PaneControls({ paneId, doc, narrow }: { paneId: string; doc: JotDocumen
                 <DropdownMenuItem disabled={!canRender} title={renderTitle} onSelect={toggleRender}>
                   {rendered ? 'close render' : 'render'}
                 </DropdownMenuItem>
+                <DropdownMenuItem onSelect={enterComfy}>comfy mode</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">export</div>
                 <ExportItems doc={doc} onPdf={openPdf} />
@@ -195,6 +197,10 @@ function PaneControls({ paneId, doc, narrow }: { paneId: string; doc: JotDocumen
         onClick={toggleRender}
       >
         <Eye size={13} strokeWidth={1.75} aria-hidden />
+      </button>
+      {/* Comfy mode: this document alone, centred and larger. */}
+      <button type="button" className={control} disabled={!doc} title="comfy mode" aria-label="comfy mode" onClick={enterComfy}>
+        <Armchair size={13} strokeWidth={1.75} aria-hidden />
       </button>
       <Popover open={pdfOpen} onOpenChange={setPdfOpen}>
         <DropdownMenu>
@@ -605,7 +611,7 @@ export function EditorPane({ pane, docsById, style }: { pane: PaneLayout; docsBy
       className={cn('jot-pane absolute flex min-h-0 min-w-0 flex-col overflow-hidden rounded-(--radius-panel) border border-border-strong bg-document', fresh && 'jot-pane-new')}
     >
       <DropZones paneId={pane.id} />
-      <div className="flex h-[38px] flex-none items-stretch border-b border-border bg-card">
+      <div data-pane-header="" className="flex h-[38px] flex-none items-stretch border-b border-border bg-card">
         {/* With the sidebar hidden, its toggle and the wordmark start the
             first pane's tab strip, so the app is still named (round 4, 2). */}
         {first && !sidebarOpen && (

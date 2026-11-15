@@ -185,7 +185,7 @@ export function canSplit(panes: PaneLayout[], tab: DraggedTab, target: string, e
   return splitWithTab(panes, tab, target, edge, '?') !== null
 }
 
-// A mode about one document (AI mode did this; comfy mode will): its pane
+// Comfy mode (state/workspace.ts): one document's pane
 // stays, the others are parked and come back exactly as they were.
 // Entering keeps only the working pane; leaving puts the parked layout
 // back, with the working pane as it is now — and anything opened beside it

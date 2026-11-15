@@ -60,6 +60,11 @@ def greet(name):
 | Cmd/Ctrl + F | find and replace |
 | Cmd/Ctrl + K | the command palette: every command, and any document by name |
 | Cmd/Ctrl + B | hide or show the sidebar |
+| Cmd/Ctrl + Shift + Enter | comfy mode |
+
+## comfy mode
+
+The armchair at the top right of a document (or Cmd/Ctrl + Shift + Enter) leaves just the writing: the document alone, centred in a narrower column and a little larger, with the sidebar, tabs and status bar gone. Esc, the same key, or **leave** at the top right (it shows when you move the mouse) brings everything back as it was.
 
 ## organising
 

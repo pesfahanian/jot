@@ -95,6 +95,18 @@ export const COMMANDS: Command[] = [
   { id: 'addNote', title: 'add note', keys: ['Mod-Alt-m'], run: () => addNote(), enabled: () => hasSelection() },
   { id: 'translate', title: 'translate', keys: ['Mod-Alt-t'], run: () => translateSelection(), enabled: () => hasSelection() },
   { id: 'notes', title: 'notes in this document', keys: [], run: () => useOverlays.getState().set({ notesList: true }), enabled: (c) => c.hasDocument },
+  {
+    id: 'comfyMode',
+    title: 'toggle comfy mode',
+    keys: ['Mod-Shift-Enter'],
+    run: () => {
+      const ws = useWorkspace.getState()
+      if (ws.comfy) ws.leaveComfy()
+      else ws.enterComfy()
+    },
+    enabled: (c) => c.hasDocument || !!useWorkspace.getState().comfy,
+    state: () => (useWorkspace.getState().comfy ? 'on' : 'off'),
+  },
   { id: 'openWelcome', title: 'open the welcome document', keys: [], run: () => void welcomeDocumentId().then((id) => useWorkspace.getState().openDocument(id)) },
 ]
 
