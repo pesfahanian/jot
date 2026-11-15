@@ -192,17 +192,21 @@ export function Shell({ docs }: { docs: JotDocument[] }) {
             <SidebarHandle />
           </>
         )}
-        <div className="relative flex min-w-0 flex-auto">
-          {docs.length === 0 && !draft ? <FirstRun /> : <PaneGrid panes={panes} docsById={docsById} />}
-          <Toast />
-          {comfy && <ComfyLeave />}
+        {/* The status bar is about the document, so it sits under the panes
+            only; the sidebar runs the full height (owner, 2026-11-15). */}
+        <div className="flex min-w-0 flex-auto flex-col gap-(--seam)">
+          <div className="relative flex min-h-0 flex-auto">
+            {docs.length === 0 && !draft ? <FirstRun /> : <PaneGrid panes={panes} docsById={docsById} />}
+            <Toast />
+            {comfy && <ComfyLeave />}
+          </div>
+          {!comfy && (
+            <div className="relative flex-none">
+              <StatusBar docsById={docsById} />
+            </div>
+          )}
         </div>
       </div>
-      {!comfy && (
-        <div className="relative flex-none">
-          <StatusBar docsById={docsById} />
-        </div>
-      )}
       <SettingsModal />
       <CommandPalette />
       <SelectionMenu />

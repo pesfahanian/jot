@@ -139,7 +139,7 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
   const cur = cursor && doc && cursor.documentId === doc.id ? cursor : { line: 1, col: 1 }
 
   return (
-    <footer className="flex h-7 flex-none items-stretch overflow-hidden rounded-(--radius-status) border border-border-strong bg-card font-mono text-[11.5px]">
+    <footer className="@container flex h-7 flex-none items-stretch overflow-hidden rounded-(--radius-status) border border-border-strong bg-card font-mono text-[11.5px] whitespace-nowrap">
       {/* The bar is about the focused document; the global controls are an
           update waiting, at the left, and the minimap toggle (owner). */}
       <UpdateReady />
@@ -148,11 +148,13 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
         <>
           <DirCell doc={doc} text={text} line={cur.line} />
           <Cell label="cursor" value={`${cur.line}:${cur.col}`} reserve="7ch" className="font-medium" />
-          <Cell label="bytes" value={groupDigits(c.bytes)} />
+          {/* Under the panes only, the bar can be narrow: bytes and paras, the
+              least used, give way first. */}
+          <Cell label="bytes" value={groupDigits(c.bytes)} className="hidden @[920px]:flex" />
           <Cell label="chars" value={groupDigits(c.chars)} />
           <Cell label="words" value={groupDigits(c.words)} />
           <Cell label="lines" value={groupDigits(c.lines)} />
-          <Cell label="paras" value={groupDigits(c.paras)} className="pr-2.5" />
+          <Cell label="paras" value={groupDigits(c.paras)} className="hidden pr-2.5 @[920px]:flex" />
           <NotesCell documentId={doc.id} />
           <TyposCell documentId={doc.id} />
         </>
