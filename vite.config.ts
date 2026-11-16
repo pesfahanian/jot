@@ -56,11 +56,33 @@ function offline(): Plugin {
   }
 }
 
+// Cloudflare Web Analytics (owner, 2026-11-16): how many visits, from
+// where — no cookies, nothing from documents. Installed by hand rather than
+// injected by Cloudflare, because the service worker serves its kept copy of
+// the page: an injected script would only reach browsers whose copy happened
+// to be kept after it was turned on. Production builds only. The token is
+// public by design (it's in every visitor's page). The security policy
+// allows the script and its reports (public/_headers).
+const WEB_ANALYTICS_TOKEN = '1eb058d2ad8c486b82a5983924c82828'
+function webAnalytics(): Plugin {
+  return {
+    name: 'jot-web-analytics',
+    apply: 'build',
+    transformIndexHtml: () => [
+      {
+        tag: 'script',
+        attrs: { type: 'module', src: 'https://static.cloudflareinsights.com/beacon.min.js', 'data-cf-beacon': JSON.stringify({ token: WEB_ANALYTICS_TOKEN }) },
+        injectTo: 'body',
+      },
+    ],
+  }
+}
+
 const pkg = JSON.parse(readFileSync(path.resolve(import.meta.dirname, 'package.json'), 'utf8')) as { version: string }
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), offline()],
+  plugins: [react(), tailwindcss(), webAnalytics(), offline()],
   // Settings → about: the version and the day it was built.
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),

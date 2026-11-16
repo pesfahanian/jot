@@ -6,7 +6,7 @@
 # API (translating a selection, with the person's key), no framing, no
 # plugins. Images may come from anywhere (documents link them).
 # The one exception: Cloudflare Web Analytics (owner, 2026-11-16), which
-# Cloudflare adds to the page — its script from static.cloudflareinsights.com,
+# the page loads (vite.config.ts) — its script from static.cloudflareinsights.com,
 # its counts to cloudflareinsights.com. No cookies, no storage, nothing from
 # documents; it counts visits, countries, browsers and devices.
 # style 'unsafe-inline': CodeMirror and React set inline styles.

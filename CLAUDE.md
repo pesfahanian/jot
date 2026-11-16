@@ -17,7 +17,7 @@ One more document exists for deep detail, referenced from the tickets as needed:
 - No AI in Jot. The AI suite (AI mode, its chat, the style review, document translation) was removed on 2026-11-15 because nobody used it; its code is parked on the `parked/ai` branch. Don't bring any of it back unless the owner asks.
 - No "unsaved" state anywhere in the UI. Every edit persists continuously; there is no dirty/clean distinction to represent. (ADR-008)
 - Tags are six fixed colors, metadata-only, one per document. No folders, no free text, no parsing document content for tags. (ADR-007)
-- No backend, anywhere. The only network call Jot makes is translating a selection, straight from the browser to Google Cloud Translation with the user's own key. Cloudflare Web Analytics (added to the page by Cloudflare, cookie-free) is the one outside script the CSP allows; there is no other tracking and no consent banner. (ADR-004 + amendments)
+- No backend, anywhere. The only network call Jot makes is translating a selection, straight from the browser to Google Cloud Translation with the user's own key. Cloudflare Web Analytics (its snippet added to the built page by `vite.config.ts`, cookie-free) is the one outside script the CSP allows; there is no other tracking and no consent banner. (ADR-004 + amendments)
 - IndexedDB only. Don't reach for the File System Access API — it's Chromium-only and was explicitly rejected for that reason. (ADR-003)
 - Light and dark share identical shapes, spacing, and radii. Only color differs between them. (ADR-006)
 - CodeMirror 6, not Monaco. `@replit/codemirror-vscode-keymap` supplies VSCode keybinding parity. (ADR-002)
