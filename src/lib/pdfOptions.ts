@@ -187,13 +187,14 @@ export function pdfCss(o: PdfOptions, rtl = false, center = { headings: true, ta
   :is(h1, h2, h3, h4, h5, h6)[dir="rtl"] { letter-spacing: 0; line-height: 1.5; }
   em .jot-fa { font-style: normal; font-weight: 600; }
   strong .jot-fa { font-style: normal; font-weight: 800; }
-  /* Annotations (round 4, frame 9d): highlights print in the light washes
-     whatever the preset (monochrome: 15% grey), underline plain, a note's
-     text dotted; notes as footnotes above the page number, numbered per
-     page, 7.5pt. */
-  .jot-hl-1 { background: color-mix(in oklab, #5D8F5E 22%, #FBFCFD); }
-  .jot-hl-2 { background: color-mix(in oklab, #AE615C 18%, #FBFCFD); }
-  .jot-hl-3 { background: color-mix(in oklab, #4E72AC 18%, #FBFCFD); }
+  /* Annotations (round 4, frame 9d): highlights print as the highlighter
+     pens on screen (index.css; monochrome: 15% grey), underline plain, a
+     note's text dotted; notes as footnotes above the page number, numbered
+     per page, 7.5pt. */
+  .jot-hl-1 { background: #FFF200; }
+  .jot-hl-2 { background: #5CFF5C; }
+  .jot-hl-3 { background: #FFA41F; }
+  .jot-hl, .jot-hl * { color: #141414; }
   .jot-ul { text-decoration: underline solid #383E43; text-decoration-thickness: 0.4mm; text-underline-offset: 2px; }
   .jot-note { text-decoration: underline dotted #383E43; text-decoration-thickness: 0.4mm; text-underline-offset: 3px; }
   .jot-footnote { float: footnote; font-size: 7.5pt; line-height: 1.45; color: #383E43; text-align: start; }

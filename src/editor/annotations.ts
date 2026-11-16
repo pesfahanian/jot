@@ -1,6 +1,6 @@
 import { invertedEffects, isolateHistory } from '@codemirror/commands'
-import { RangeSet, RangeSetBuilder, StateEffect, Transaction, type Extension } from '@codemirror/state'
-import { Decoration, EditorView, gutter, GutterMarker, ViewPlugin, type DecorationSet, type ViewUpdate } from '@codemirror/view'
+import { EditorSelection, RangeSet, RangeSetBuilder, StateEffect, Transaction, type Extension } from '@codemirror/state'
+import { Decoration, EditorView, gutter, GutterMarker, layer, RectangleMarker, ViewPlugin, type DecorationSet, type ViewUpdate } from '@codemirror/view'
 import { notesInOrder } from '@/lib/annotations'
 import type { Annotation } from '@/lib/db'
 import { useAnnotations } from '@/state/annotations'
@@ -43,6 +43,56 @@ const marksFromHistory = (documentId: string) =>
 export function recordMarks(documentId: string, before: Annotation[], after: Annotation[]) {
   const view = active?.documentId === documentId && active.view.dom.isConnected ? active.view : viewsOf(documentId)[0]
   view?.dispatch({ effects: marksChanged.of({ before, after }), annotations: [Transaction.addToHistory.of(true), isolateHistory.of('full'), Transaction.userEvent.of('annotate')] })
+}
+
+// Highlights' colour, as a layer under the text and under the selection
+// (listed after drawSelection in Editor.tsx), so selecting highlighted text
+// shows the selection — as a background on the text, the highlight hid it.
+// The marks themselves (markFor) keep the class for the ink.
+export function highlightGround(documentId: string) {
+  return layer({
+    above: false,
+    class: 'cm-jot-highlights',
+    update: (u) => u.docChanged || u.viewportChanged || u.geometryChanged || u.transactions.some((tr) => tr.effects.some((e) => e.is(refresh))),
+    markers(view) {
+      const len = view.state.doc.length
+      const { from: top, to: bottom } = view.viewport
+      return (useAnnotations.getState().byDoc[documentId] ?? [])
+        .filter((a) => a.kind === 'highlight' && a.to > a.from && a.to <= len && a.to > top && a.from < bottom)
+        .flatMap((a) => RectangleMarker.forRange(view, `jot-hl-rect jot-hl-${a.color ?? 1}`, EditorSelection.range(a.from, a.to)))
+    },
+  })
+}
+
+// Selected highlighted text takes the normal ink again: the highlighter's
+// dark ink is unreadable on the dark theme's selection.
+const selectedInk = Decoration.mark({ class: 'jot-hl-selected' })
+export function highlightSelectionInk(documentId: string) {
+  const build = (view: EditorView): DecorationSet => {
+    const highlights = (useAnnotations.getState().byDoc[documentId] ?? []).filter((a) => a.kind === 'highlight')
+    const ranges = []
+    for (const r of view.state.selection.ranges) {
+      if (r.empty) continue
+      for (const a of highlights) {
+        const from = Math.max(a.from, r.from)
+        const to = Math.min(a.to, r.to)
+        if (to > from) ranges.push(selectedInk.range(from, to))
+      }
+    }
+    return Decoration.set(ranges, true)
+  }
+  return ViewPlugin.fromClass(
+    class {
+      decorations: DecorationSet
+      constructor(view: EditorView) {
+        this.decorations = build(view)
+      }
+      update(u: ViewUpdate) {
+        if (u.selectionSet || u.docChanged || u.transactions.some((tr) => tr.effects.some((e) => e.is(refresh)))) this.decorations = build(u.view)
+      }
+    },
+    { decorations: (p) => p.decorations },
+  )
 }
 
 const markFor = (a: Annotation) =>
