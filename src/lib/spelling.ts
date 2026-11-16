@@ -63,7 +63,9 @@ const SENTENCE_START = /(^|[.!?]["')\]]?\s+|^\s*(#{1,6}|[-*+>]|\d+[.)])\s+)$/
 
 export function suggestionFor(spell: Pick<NSpell, 'correct' | 'suggest'>, word: string, before: string): string | null {
   if (/^[a-z]+$/.test(word)) return fixFor(spell, word)
-  if (!/^[A-Z][a-z]+$/.test(word) || !SENTENCE_START.test(before)) return null
+  if (!/^[A-Z][a-z]+$/.test(word) || !SENTENCE_START.test(before) || spell.correct(word)) return null
   const fix = fixFor(spell, word.toLowerCase())
-  return fix && fix[0].toUpperCase() + fix.slice(1)
+  const capital = fix && fix[0].toUpperCase() + fix.slice(1)
+  // "Tuesday" checked as "tuesday" comes back as itself: not a typo.
+  return capital && capital !== word ? capital : null
 }

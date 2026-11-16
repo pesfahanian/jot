@@ -25,5 +25,8 @@ describe('spelling suggestions', () => {
     expect(suggestionFor(spell, 'Teh', 'I met ')).toBeNull()
     expect(suggestionFor(spell, 'TEH', '')).toBeNull()
     expect(suggestionFor(spell, 'teh', 'I met ')).toBe('the')
+    // Already right, at a sentence's start or anywhere: never marked.
+    expect(suggestionFor(spell, 'Tuesday', '')).toBeNull()
+    expect(suggestionFor(spell, 'Thursday', 'It was. ')).toBeNull()
   })
 })
