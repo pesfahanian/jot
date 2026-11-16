@@ -60,7 +60,7 @@ function EditorPage() {
       </Row>
       <Row
         title="spelling suggestions"
-        detail="Highlights clear English typos in red, never inside code or links. Click one to fix it, fix them all from the status bar, or right-click to ignore a word. Downloads a 200 KB dictionary the first time."
+        detail="Highlights clear English typos in red, never inside code or links. Click one for the best guess, right-click for the next guesses or to ignore a word; “fix” in the status bar takes the sure ones. Downloads a 200 KB dictionary the first time."
       >
         <Switch label="spelling suggestions" on={autofix} onChange={(on) => void updateSettings({ autofix: on })} />
       </Row>

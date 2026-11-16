@@ -156,6 +156,9 @@ importers:
       vitest:
         specifier: ^5.0.2
         version: 5.0.2(@types/node@24.13.6)(vite@8.3.1(@types/node@24.13.6)(jiti@2.7.0))
+      wordlist-english:
+        specifier: 1.2.1
+        version: 1.2.1
 
 packages:
 
@@ -3593,6 +3596,9 @@ packages:
     resolution: {integrity: sha512-NKUzAelcoCXhXL4dJzKIwXeR8iEVqsA0Lq6Vnd0UXvgaKbzVo4ZTHROF2Jidrv+SgxOQ03fMinnNhzZATxOD3A==}
     engines: {node: '>=20.11'}
     hasBin: true
+
+  wordlist-english@1.2.1:
+    resolution: {integrity: sha512-vaiQQiu95UeON0WZFtiTrWfZmIiUd2rhrhMCBeEzwq3oTVzHCX8naGCqv/smSspE9kH2sN+E8lZyV0JZjqSzGw==}
 
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
@@ -7183,6 +7189,8 @@ snapshots:
       isexe: 3.1.5
 
   why-is-node-running@3.2.2: {}
+
+  wordlist-english@1.2.1: {}
 
   wrappy@1.0.2: {}
 

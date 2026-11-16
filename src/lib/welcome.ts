@@ -81,14 +81,14 @@ The armchair at the top right of a document (or Cmd/Ctrl + Shift + Enter) leaves
 
 Select some text and right-click it for Jot's own menu:
 
-- **highlight** it in one of three colours, or **underline** it. These are marks on the page, like a highlighter on a printout, not part of your markdown.
+- **highlight** it in highlighter yellow, green or orange, or **underline** it. These are marks on the page, like a highlighter on a printout, not part of your markdown.
 - **add note** pins a note of your own to the text. A dotted underline and a small square in the margin show where; click either to read or edit it. **notes** in the status bar lists them all.
 - Cmd/Ctrl + Z undoes a highlight, an underline, or adding or deleting a note, in order with your typing; Cmd/Ctrl + Shift + Z (or Y) brings it back.
 - **translate** shows the selection in English or Farsi, through Google Translate with your own key (settings → translation). No AI is involved, and replacing your text is a separate click.
 
 Highlights and notes show in the rendered view too. In a PDF they print if you ask (the PDF card's **annotations** row), with notes as footnotes. Markdown export can keep them as ==highlights== and footnotes.
 
-Turn on **spelling suggestions** in settings, and clear typos (teh, recieve, definately) are highlighted in red. Click one to fix it, or **fix all** from the status bar; right-click one to ignore that word. Nothing changes until you click. It works in English only and never marks a real word.
+Turn on **spelling suggestions** in settings, and clear typos (teh, recieve, definately) are highlighted in red. Click one to take the best guess, or right-click it for the next guesses or to ignore that word; **fix** in the status bar takes every guess Jot is sure of. Nothing changes until you click. It works in English only and never marks a real word.
 
 ## comparing
 
@@ -100,7 +100,7 @@ Farsi works as naturally as English. Each paragraph, list or table reads right-t
 
 ## where your writing lives
 
-Everything stays in this browser. There's no account and no server.
+Everything stays in this browser. There's no account and no server. jot.software counts visits with Cloudflare Web Analytics, which uses no cookies and sees nothing of your documents.
 
 That makes this browser the only copy. Each browser, profile and installed app keeps its own separate workspace, and clearing site data erases it. So now and then, export the whole workspace as a .zip: it's your backup, and dropping it on jot brings everything back, alongside whatever is already here. Safari deletes a site's data on its own after a week without use, so jot is better in Chrome, Firefox or Edge.
 `

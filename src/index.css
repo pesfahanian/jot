@@ -511,24 +511,28 @@
 /* The diff result fades in. */
 .jot-results { animation: jot-fade-in var(--motion-base) var(--ease-enter); }
 [data-motion="off"] *, [data-motion="off"] *::before, [data-motion="off"] *::after { animation-delay: 0s !important; }
-/* Highlights, underline and notes (round 4, frames 6–7). Three washes from
-   tag green, clay and indigo mixed onto the document — never yellow, which
-   means selection and search. Underline is straight and colourless, so it
+/* Highlights, underline and notes (round 4, frames 6–7). Highlights are
+   the classic highlighter pens — neon yellow, green and orange — the same
+   in both themes, outside the design system on purpose (owner,
+   2026-11-16), with dark ink on them as on paper. In the editor they're
+   drawn under the selection (editor/annotations.ts, highlightGround), so a
+   selection shows over them. Underline is straight and colourless, so it
    can't be read as a spelling mark; a note is dotted. Right-to-left lines
    sit their lines lower, clear of the dots below Farsi letters. */
 :root {
-    --hl-1: color-mix(in oklab, var(--tag-3) 22%, var(--document));
-    --hl-2: color-mix(in oklab, var(--tag-1) 18%, var(--document));
-    --hl-3: color-mix(in oklab, var(--tag-5) 18%, var(--document));
-}
-.dark {
-    --hl-1: color-mix(in oklab, var(--tag-3) 30%, var(--document));
-    --hl-2: color-mix(in oklab, var(--tag-1) 30%, var(--document));
-    --hl-3: color-mix(in oklab, var(--tag-5) 30%, var(--document));
+    --hl-1: #FFF200;
+    --hl-2: #5CFF5C;
+    --hl-3: #FFA41F;
+    --hl-ink: #141414;
 }
 .jot-hl-1 { background: var(--hl-1); }
 .jot-hl-2 { background: var(--hl-2); }
 .jot-hl-3 { background: var(--hl-3); }
+.jot-hl, .jot-hl * { color: var(--hl-ink) !important; }
+/* The editor's ground is the layer; the text itself stays clear. */
+.cm-content .jot-hl { background: none; }
+.jot-hl-rect { border-radius: 2px; }
+.cm-content .jot-hl-selected, .cm-content .jot-hl-selected *, .cm-content .jot-hl-selected .jot-hl, .cm-content .jot-hl .jot-hl-selected { color: var(--foreground) !important; }
 .jot-ul { text-decoration: underline solid var(--secondary-foreground); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
 .jot-note { text-decoration: underline dotted var(--secondary-foreground); text-decoration-thickness: 1.5px; text-underline-offset: 4px; cursor: pointer; }
 [dir="rtl"] .jot-ul { text-underline-offset: 5px; }

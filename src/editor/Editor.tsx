@@ -26,7 +26,7 @@ import { getSession } from './sessions'
 import { codeBlockGround, jotEditorTheme } from './theme'
 import { dirCompartment, directionExtension, dirSettingFor } from './direction'
 import { db } from '@/lib/db'
-import { annotationsExtension } from './annotations'
+import { annotationsExtension, highlightGround, highlightSelectionInk } from './annotations'
 
 interface EditorProps {
   documentId: string
@@ -85,12 +85,14 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
           lineNumbers(),
           // Note squares sit on the gutter's rule, after the line numbers.
           annotationsExtension(documentId),
+          highlightSelectionInk(documentId),
           highlightActiveLineGutter(),
           history(),
           drawSelection(),
           // After drawSelection: CodeMirror stacks under-text layers in
-          // reverse order (first listed on top), so this ground sits beneath
-          // the selection.
+          // reverse order (first listed on top), so these grounds sit beneath
+          // the selection — highlights over code's.
+          highlightGround(documentId),
           codeBlockGround,
           dropCursor(),
           rectangularSelection(),

@@ -41,6 +41,13 @@ AI mode itself wasn't tested yet; these came first.
 - ⌘X on an empty last line removes it.
 - H1 headings and tables centred in the rendered view and the PDF.
 
+## Polish round 3 (owner, 2026-11-16; branch polish-3)
+
+- Fixes: "add note" from the right-click menu (the menu's closing took focus from the new note's box, which dropped the empty note); a correct capitalised word starting a line ("Tuesday") was marked with itself as the fix.
+- **Spelling makes its best guess** (owner chose option B): any unknown word with a near fix is marked. Fixes are ranked by the kind of slip, then commonness (`public/dict/en.freq`, SCOWL levels via `wordlist-english`), then the dictionary's order. A click takes the best guess, the right-click menu lists the next ones, and the status bar's "fix" takes only sure ones. Expect more marks on jargon ("minimap", "renderer"): ignore handles them. Known limit: the dictionary never suggests some fixes ("tounge" → "lounge", never "tongue").
+- **Neon highlights:** yellow, green and orange, outside the design system on purpose, the same in both themes and the PDF, with dark ink. Drawn under the selection in the editor.
+- **Telemetry: Cloudflare only** (owner's first choice; no own tracking code, no consent banner). Zone traffic analytics already works but is mostly bots on the free plan. Web Analytics was set up but collected nothing: the CSP blocked its script, and it was set to exclude EU visitors, which includes VPN users exiting in Germany. Fix: the CSP allows `static.cloudflareinsights.com` (script) and `cloudflareinsights.com` (counts); the owner switches Web Analytics to "Enable" once this is live. Disclosed in README and the guide. The service worker's version now includes `_headers`, so a policy change reaches people who already have Jot saved.
+
 ## Polish round 2 (owner, daily driving, 2026-11-15; branch polish-2)
 
 - **The AI suite is gone** (owner: nobody used it): AI mode, its chat, AI notes, document translation, and the style review with its providers and rule sets. Parked whole on the `parked/ai` branch (main as merged in PR #5). Kept: translating a selection (Google, no AI) and the diff checker. The upgrade drops review sessions, chats, AI notes and stored provider keys; the CSP allows only Google's Translation API.

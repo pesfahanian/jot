@@ -9,11 +9,12 @@ import { useTypos, type Typo } from '@/state/spelling'
 import { directionAt } from './direction'
 
 // Spelling suggestions (Phase 16; suggestions, not auto-fix, since
-// 2026-11-15 — the owner found fixes made behind them changed names): clear
-// English typos get a wavy underline once typing pauses. Nothing changes
-// until the person acts: a click on one applies its fix, the status bar's
-// "fix all" applies every one as one undo step, and a right-click offers
-// fix or ignore (the word stays unmarked from then on, everywhere). Never
+// 2026-11-15 — the owner found fixes made behind them changed names): words
+// the dictionary doesn't know are marked once typing pauses, with ranked
+// fixes (lib/spelling.ts). Nothing changes until the person acts: a click on
+// one applies the best guess, the status bar's "fix" applies every sure one
+// as one undo step, and a right-click offers the next guesses, or ignore
+// (the word stays unmarked from then on, everywhere). Never
 // inside code, links or maths, never on a right-to-left line, never the
 // word being typed; a capitalised word only where a sentence starts.
 
@@ -34,7 +35,7 @@ liveQuery(() => db.settings.get('settings')).subscribe({
 })
 
 const setTypos = StateEffect.define<Typo[]>()
-const typoMark = (t: Typo) => Decoration.mark({ class: 'jot-typo', attributes: { title: `${t.word} → ${t.fix} · click to fix` } })
+const typoMark = (t: Typo) => Decoration.mark({ class: 'jot-typo', attributes: { title: `${t.word} → ${t.fix} · click to fix${t.others.length ? ', right-click for more' : ''}` } })
 
 // The marked typos, mapped through edits; one an edit touches goes at once.
 const typoField = StateField.define<Typo[]>({
@@ -56,16 +57,23 @@ function skipAt(state: EditorState, pos: number) {
   return directionAt(state, pos) === 'rtl'
 }
 
-export const typosOf = (view: EditorView) => view.state.field(typoField, false) ?? []
-
-export function applyTypo(view: EditorView, t: Typo) {
-  if (view.state.sliceDoc(t.from, t.to) !== t.word) return
-  view.dispatch({ changes: { from: t.from, to: t.to, insert: t.fix }, userEvent: 'input.spellfix' })
+const codeLike = (text: string, from: number, to: number) => {
+  const before = text[from - 1] ?? ''
+  const after = text[to] ?? ''
+  return /[\\/_@#\d]/.test(before) || /[/_@\d]/.test(after) || (after === '.' && /[A-Za-z]/.test(text[to + 1] ?? '')) || (before === '.' && /[A-Za-z]/.test(text[from - 2] ?? ''))
 }
 
-// Every marked typo fixed, as one edit — one Cmd+Z undoes them all.
+export const typosOf = (view: EditorView) => view.state.field(typoField, false) ?? []
+
+export function applyTypo(view: EditorView, t: Typo, fix = t.fix) {
+  if (view.state.sliceDoc(t.from, t.to) !== t.word) return
+  view.dispatch({ changes: { from: t.from, to: t.to, insert: fix }, userEvent: 'input.spellfix' })
+}
+
+// Every typo with a sure fix fixed, as one edit — one Cmd+Z undoes them
+// all. A close call is left marked, for a click or the right-click menu.
 export function fixAllTypos(view: EditorView) {
-  const list = typosOf(view).filter((t) => view.state.sliceDoc(t.from, t.to) === t.word)
+  const list = typosOf(view).filter((t) => t.sure && view.state.sliceDoc(t.from, t.to) === t.word)
   if (list.length) view.dispatch({ changes: list.map((t) => ({ from: t.from, to: t.to, insert: t.fix })), userEvent: 'input.spellfix' })
 }
 
@@ -122,7 +130,7 @@ function plugin(documentId: string) {
             this.dirty = d
           }
           if (this.held) this.held = { from: u.changes.mapPos(this.held.from, -1), to: u.changes.mapPos(this.held.to, 1) }
-          useTypos.getState().set(documentId, typosOf(u.view).length)
+          useTypos.getState().set(documentId, typosOf(u.view))
           this.schedule(PAUSE)
         } else if (u.selectionSet && this.held) {
           const head = u.state.selection.main.head
@@ -172,11 +180,13 @@ function plugin(documentId: string) {
               held = { from, to }
               continue
             }
-            // A LaTeX-style command (\newpage), not a word.
-            if (line.text[m.index - 1] === '\\') continue
+            // A LaTeX-style command (\newpage), not a word; nor one glued to a
+            // slash, underscore, digit or a file name's dot (Cmd/Ctrl,
+            // snake_case, file.ts) — code-like, left alone as code is.
+            if (codeLike(line.text, m.index, m.index + m[0].length)) continue
             if (ignored.has(m[0].toLowerCase())) continue
-            const fix = suggestionFor(spell, m[0], line.text.slice(0, m.index))
-            if (fix && !skipAt(state, from)) found.push({ from, to, word: m[0], fix })
+            const s = suggestionFor(spell, m[0], line.text.slice(0, m.index))
+            if (s && !skipAt(state, from)) found.push({ from, to, word: m[0], fix: s.fixes[0], others: s.fixes.slice(1), sure: s.sure })
           }
         }
         if (view.state.doc !== doc) {
@@ -189,7 +199,7 @@ function plugin(documentId: string) {
         const keep = dirty === 'all' ? [] : typosOf(view).filter((t) => t.to < from || t.from > to)
         const list = [...keep, ...found].sort((a, b) => a.from - b.from)
         view.dispatch({ effects: setTypos.of(list) })
-        useTypos.getState().set(documentId, list.length)
+        useTypos.getState().set(documentId, list)
       }
       destroy() {
         clearTimeout(this.timer)

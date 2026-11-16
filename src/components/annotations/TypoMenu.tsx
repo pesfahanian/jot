@@ -1,11 +1,12 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { getSettings, updateSettings } from '@/lib/settings'
+import { cn } from '@/lib/utils'
 import { applyTypo, fixAllTypos, typoMenuView, typosOf } from '@/editor/spelling'
 import { useOverlays } from '@/state/overlays'
 
-// The right-click menu on a marked typo (editor/spelling.ts): fix it, fix
-// every typo in the document, or ignore the word from now on — in every
-// document (settings keeps the list).
+// The right-click menu on a marked typo (editor/spelling.ts): its fixes,
+// best guess first; fix every sure one in the document; or ignore the word
+// from now on — in every document (settings keeps the list).
 
 async function ignore(word: string) {
   const list = (await getSettings()).spellIgnore ?? []
@@ -19,7 +20,7 @@ export function TypoMenu() {
   const view = typoMenuView()
   if (!open || !view) return null
   const { typo } = open
-  const count = typosOf(view).length
+  const sure = typosOf(view).filter((t) => t.sure).length
   return (
     <DropdownMenu open onOpenChange={(o) => !o && set({ typo: null })} modal={false}>
       <DropdownMenuTrigger asChild>
@@ -34,15 +35,18 @@ export function TypoMenu() {
           view.focus()
         }}
       >
-        <DropdownMenuItem onSelect={() => applyTypo(view, typo)}>
-          <span className="flex-auto">
-            fix <span className="text-muted-foreground">→</span> <span className="font-medium">{typo.fix}</span>
-          </span>
-        </DropdownMenuItem>
-        {count > 1 && (
+        {/* The guesses in order, the best (a click's) first, as the
+            browser lists them. */}
+        {[typo.fix, ...typo.others].map((fix, i) => (
+          <DropdownMenuItem key={fix} onSelect={() => applyTypo(view, typo, fix)}>
+            <span className={cn('flex-auto', i === 0 && 'font-medium')}>{fix}</span>
+            {i === 0 && <span className="font-mono text-[11px] text-muted-foreground">click</span>}
+          </DropdownMenuItem>
+        ))}
+        {sure > (typo.sure ? 1 : 0) && (
           <DropdownMenuItem onSelect={() => fixAllTypos(view)}>
-            <span className="flex-auto">fix all</span>
-            <span className="font-mono text-[11px] text-muted-foreground">{count}</span>
+            <span className="flex-auto">fix all sure ones</span>
+            <span className="font-mono text-[11px] text-muted-foreground">{sure}</span>
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />

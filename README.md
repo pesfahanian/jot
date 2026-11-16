@@ -24,7 +24,7 @@ Open it and write. There's no account and no server. Your documents stay on your
 
 ## Privacy
 
-Everything is stored in your browser; there is no account and no server. The one thing that leaves it is a selection you choose to translate, sent to Google Translate with your own key.
+Everything is stored in your browser; there is no account and no server. Your writing leaves it only when you choose to translate a selection, sent to Google Translate with your own key. jot.software counts visits with Cloudflare Web Analytics, which uses no cookies and sees nothing of your documents.
 
 That also means the browser holds the only copy. Each browser (and profile, and installed app) has its own separate workspace, and clearing site data erases it. Export the whole workspace as a `.zip` now and then: it's your backup, and dropping it on jot brings everything back. Safari deletes a site's data on its own after a week without use, so jot is better in Chrome, Firefox or Edge.
 
