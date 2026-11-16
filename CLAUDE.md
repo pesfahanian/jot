@@ -17,7 +17,7 @@ One more document exists for deep detail, referenced from the tickets as needed:
 - No AI in Jot. The AI suite (AI mode, its chat, the style review, document translation) was removed on 2026-11-15 because nobody used it; its code is parked on the `parked/ai` branch. Don't bring any of it back unless the owner asks.
 - No "unsaved" state anywhere in the UI. Every edit persists continuously; there is no dirty/clean distinction to represent. (ADR-008)
 - Tags are six fixed colors, metadata-only, one per document. No folders, no free text, no parsing document content for tags. (ADR-007)
-- No backend, anywhere. The only network call Jot makes is translating a selection, straight from the browser to Google Cloud Translation with the user's own key. (ADR-004 + amendments)
+- No backend, anywhere. The only network call Jot makes is translating a selection, straight from the browser to Google Cloud Translation with the user's own key. Cloudflare Web Analytics (added to the page by Cloudflare, cookie-free) is the one outside script the CSP allows; there is no other tracking and no consent banner. (ADR-004 + amendments)
 - IndexedDB only. Don't reach for the File System Access API — it's Chromium-only and was explicitly rejected for that reason. (ADR-003)
 - Light and dark share identical shapes, spacing, and radii. Only color differs between them. (ADR-006)
 - CodeMirror 6, not Monaco. `@replit/codemirror-vscode-keymap` supplies VSCode keybinding parity. (ADR-002)
@@ -53,5 +53,5 @@ Scaffolded in T0.1. Package manager is pnpm (pinned via `packageManager` in `pac
 - `@/` is aliased to `src/` (see `vite.config.ts`, `tsconfig*.json`).
 - `.claude/launch.json` — dev-server config for the preview browser.
 - `scripts/sw.template.js` + `src/lib/offline.ts` — the service worker: the `jot-offline` plugin in `vite.config.ts` writes it into the build as `/sw.js` with every file the app is made of, so after one good load Jot opens, renders and prints with no network (for connections that can't reach Cloudflare). A new version installs in the background and waits; the status bar offers "updated · reload". Production builds only — test with `pnpm build` + the `jot-preview` server.
-- `public/_headers` — production response headers (strict Content-Security-Policy: own code only, network only to Google's Translation API, for translating a selection); Cloudflare Pages applies it, and `vite.config.ts` feeds it to `pnpm preview`. Any new network host must be added to `connect-src`, or its calls will be blocked.
+- `public/_headers` — production response headers (strict Content-Security-Policy: own code only plus Cloudflare Web Analytics' script, network only to Google's Translation API, for translating a selection, and Web Analytics' counts); Cloudflare Pages applies it, and `vite.config.ts` feeds it to `pnpm preview`. Any new network host must be added to `connect-src`, or its calls will be blocked.
 - `README.md`, `LICENSE` (MIT), `.node-version` (22, read by Cloudflare Pages).

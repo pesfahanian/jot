@@ -100,7 +100,7 @@ Farsi works as naturally as English. Each paragraph, list or table reads right-t
 
 ## where your writing lives
 
-Everything stays in this browser. There's no account and no server.
+Everything stays in this browser. There's no account and no server. jot.software counts visits with Cloudflare Web Analytics, which uses no cookies and sees nothing of your documents.
 
 That makes this browser the only copy. Each browser, profile and installed app keeps its own separate workspace, and clearing site data erases it. So now and then, export the whole workspace as a .zip: it's your backup, and dropping it on jot brings everything back, alongside whatever is already here. Safari deletes a site's data on its own after a week without use, so jot is better in Chrome, Firefox or Edge.
 `
