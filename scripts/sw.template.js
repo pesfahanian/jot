@@ -13,8 +13,23 @@ const VERSION = __VERSION__
 const FILES = __FILES__
 const CACHE = `jot-${VERSION}`
 
+// A redirected answer can't open a page in Chromium browsers (ERR_FAILED),
+// so anything the host redirected is kept as a plain copy of where it led.
+const plain = async (response) =>
+  response.redirected ? new Response(await response.blob(), { status: response.status, statusText: response.statusText, headers: response.headers }) : response
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(FILES.map((f) => new Request(f, { cache: 'reload' })))))
+  event.waitUntil(
+    caches.open(CACHE).then((cache) =>
+      Promise.all(
+        FILES.map(async (f) => {
+          const response = await fetch(new Request(f, { cache: 'reload' }))
+          if (!response.ok) throw new Error(`${f}: ${response.status}`)
+          await cache.put(f, await plain(response))
+        }),
+      ),
+    ),
+  )
 })
 
 self.addEventListener('activate', (event) => {
@@ -38,8 +53,8 @@ self.addEventListener('fetch', (event) => {
   // Opening Jot: the kept page, whatever the address — the app has no other
   // pages.
   if (request.mode === 'navigate') {
-    event.respondWith(caches.match('/index.html', { cacheName: CACHE }).then((kept) => kept ?? fetch(request)))
+    event.respondWith(caches.match('/', { cacheName: CACHE }).then((kept) => (kept ? plain(kept) : fetch(request))))
     return
   }
-  event.respondWith(caches.match(url.pathname, { cacheName: CACHE }).then((kept) => kept ?? fetch(request)))
+  event.respondWith(caches.match(url.pathname, { cacheName: CACHE }).then((kept) => (kept ? plain(kept) : fetch(request))))
 })
