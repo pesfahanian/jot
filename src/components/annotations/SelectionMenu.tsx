@@ -58,7 +58,11 @@ export function SelectionMenu() {
         className="w-[228px] text-[12.5px] [direction:ltr]"
         onCloseAutoFocus={(e) => {
           e.preventDefault()
-          ed?.view.focus()
+          // Back to the editor — unless the choice opened something to type
+          // in (add note's box, translate's popover): taking focus from it
+          // closed it at once, and an empty new note went with it.
+          const o = useOverlays.getState()
+          if (!o.note && !o.translate) ed?.view.focus()
         }}
       >
         <DropdownMenuItem onSelect={() => void clip('cut')}>
