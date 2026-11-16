@@ -76,19 +76,28 @@ function DirCell({ doc, text, line }: { doc: JotDocument; text: string; line: nu
 // with a way to fix them all as one undo step.
 function TyposCell({ documentId }: { documentId: string }) {
   const on = useLiveQuery(() => getSettings().then((s) => s.autofix ?? false), []) ?? false
-  const count = useTypos((s) => s.byDoc[documentId] ?? 0)
-  if (!on || !count) return null
-  const fixAll = () => {
+  const all = useTypos((s) => s.byDoc[documentId]?.all ?? 0)
+  const sure = useTypos((s) => s.byDoc[documentId]?.sure ?? 0)
+  if (!on || !all) return null
+  const fixSure = () => {
     const active = activeEditor()
     const view = active?.documentId === documentId ? active.view : viewsOf(documentId)[0]
     if (view) fixAllTypos(view)
   }
+  // Only sure fixes go in a batch; close calls wait for a click.
   return (
     <div className="flex items-center border-l border-border-subtle px-2">
-      <span className="text-muted-foreground">typos</span>&nbsp;{count}
-      <button type="button" onClick={fixAll} className="ml-1.5 text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
-        · fix all
-      </button>
+      <span className="text-muted-foreground">typos</span>&nbsp;{all}
+      {sure > 0 && (
+        <button
+          type="button"
+          onClick={fixSure}
+          title={sure === all ? 'fix every typo' : `fix the ${sure} with a sure fix — click the others to choose`}
+          className="ml-1.5 text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        >
+          · {sure === all ? 'fix all' : `fix ${sure}`}
+        </button>
+      )}
     </div>
   )
 }
