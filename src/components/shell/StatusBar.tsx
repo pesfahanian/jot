@@ -58,7 +58,7 @@ function DirCell({ doc, text, line }: { doc: JotDocument; text: string; line: nu
           {setting === 'auto' && <span className="text-muted-foreground">&nbsp;·&nbsp;{resolved}</span>}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" side="top" className="w-[220px]">
+      <DropdownMenuContent align="start" side="top" sideOffset={5} className="w-[220px]">
         <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">direction · this document</div>
         {DIR_CHOICES.map((c) => (
           <DropdownMenuItem key={c.value} onSelect={() => void updateDocument(doc.id, { dir: c.value })} className={cn(c.value === setting && 'text-foreground')}>

@@ -48,7 +48,8 @@ export function NotesCell({ documentId }: { documentId: string }) {
           notes <span className="pl-1.5 text-foreground">{notes.length}</span>
         </button>
       </PopoverTrigger>
-      <PopoverContent side="top" align="start" className="flex max-h-[420px] w-[330px] flex-col overflow-hidden p-0 text-[12.5px]">
+      {/* Halfway across the seam above the bar (owner): its edge 4px up, the button sitting 4px inside it. */}
+      <PopoverContent side="top" align="start" sideOffset={9} className="flex max-h-[420px] w-[330px] flex-col overflow-hidden p-0 text-[12.5px]">
         <div className="flex items-center border-b border-border-subtle px-3 py-2">
           <span className="flex-auto font-semibold">notes</span>
           <span className="font-mono text-[11px] text-muted-foreground">{notes.length} · in document order</span>
