@@ -152,13 +152,14 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
     <footer className="@container flex h-[35px] flex-none items-stretch overflow-hidden rounded-(--radius-status) border border-border-strong bg-card font-mono text-[11.5px] whitespace-nowrap">
       {/* The bar is about the focused document; the global controls are an
           update waiting, at the left, and the minimap toggle (owner). The
-          cells only some documents have — direction, typos — sit at the
+          cells only some documents have — direction, typos, notes — sit at the
           left too, so the counts at the right keep their place from one
           document to the next (owner, 2026-11-17). */}
       <div className="flex items-stretch divide-x divide-border-subtle [&:not(:empty)]:border-r [&:not(:empty)]:border-border-subtle">
         <UpdateReady />
         {doc && <DirCell doc={doc} text={text} line={cur.line} />}
         {doc && <TyposCell documentId={doc.id} />}
+        {doc && <NotesCell documentId={doc.id} />}
       </div>
       <div className="flex-auto" />
       {doc && (
@@ -171,7 +172,6 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
           <Cell label="words" value={groupDigits(c.words)} />
           <Cell label="lines" value={groupDigits(c.lines)} />
           <Cell label="paras" value={groupDigits(c.paras)} className="hidden pr-2.5 @[920px]:flex" />
-          <NotesCell documentId={doc.id} />
         </>
       )}
       {/* The minimap toggle, at the far right (round 4). */}

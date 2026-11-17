@@ -35,19 +35,20 @@ export function NotesCell({ documentId }: { documentId: string }) {
   }
 
   return (
+    // At the status bar's left (owner, 2026-11-17).
     <Popover open={open} onOpenChange={(o) => set({ notesList: o })}>
       <PopoverTrigger asChild>
         <button
           type="button"
           className={cn(
-            'my-1 flex items-center rounded-[5px] border px-[7px] text-muted-foreground hover:text-foreground',
+            'mx-1 my-1 flex items-center rounded-[5px] border px-[7px] text-muted-foreground hover:text-foreground',
             open ? 'border-border-strong bg-hover-lift' : 'border-transparent',
           )}
         >
           notes <span className="pl-1.5 text-foreground">{notes.length}</span>
         </button>
       </PopoverTrigger>
-      <PopoverContent side="top" align="end" className="flex max-h-[420px] w-[330px] flex-col overflow-hidden p-0 text-[12.5px]">
+      <PopoverContent side="top" align="start" className="flex max-h-[420px] w-[330px] flex-col overflow-hidden p-0 text-[12.5px]">
         <div className="flex items-center border-b border-border-subtle px-3 py-2">
           <span className="flex-auto font-semibold">notes</span>
           <span className="font-mono text-[11px] text-muted-foreground">{notes.length} · in document order</span>
