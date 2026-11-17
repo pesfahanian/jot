@@ -23,7 +23,7 @@ Phase 14 runs as two parallel tracks — building the quick items while the desi
 | **15: Shell** ✓ (built 2026-10-19, branch `phase-15`) | Settings modal (AI provider moves in; theme, motion, editor, storage and backup, about); motion as designed, off in Settings and under reduced motion; the controls moved to their designed places; **command palette** (every action registered as a command; later phases add theirs); **shortcut editor** in Settings (remaps checked live against the vscode keymap and browser shortcuts — `scripts/keymap-collisions.mjs`'s logic) | 14b |
 | **16: Annotations and writing help** ✓ (built 2026-10-20, branch `phase-16`) (normal mode, no AI; research done 2026-10-20 — `docs/research/phase-16-2026-10.md`; owner: Google Translate for selections, and a bundled dictionary for auto-fix — the browser's spellchecker can't be read by a page, and Chrome's on-device proofreader is Chrome-only and multi-GB) | Annotations stored beside the document (new table, re-anchored as text changes), shown in the editor and rendered view; the right-click menu (highlight, underline, translate, note); translate a selection via Google Translate (own key, kept in Settings; new `connect-src` host); annotation exports (zip always, PDF row, markdown choice); auto-fix spelling, off by default, English first | 14b; small research: dictionary (licence, size), Google Translate from the browser (key restrictions, CORS, pricing) |
 | **17: AI mode** ✓ (built 2026-10-20, branch `phase-17`; prompts tested against a stubbed provider only — live tuning with a real key still open) | The mode and its transition; chat with local per-document history (deleted with the document, kept through undo; in the zip — lean yes); AI notes queued and sent Claude Design style, personal notes by switch; a proposals prompt (edits anchored like review flags) and one results screen for every run, the style review folded in, with the review / diff switch (as decided / all accepted); full translation to a new side-by-side document | 14b, 16 (notes); prompt work: proposals and translation (Farsi ↔ English), token budgets for document + history |
-| **Later** | Telemetry (own chat); premium tier (own big decision — needs a backend); Jot's own autocomplete | — |
+| **Later** | ~~Telemetry~~ done 2026-11-16 (Cloudflare Web Analytics, polish round 3); premium tier (own big decision — needs a backend; its AI premise went with the AI suite on 2026-11-15); Jot's own autocomplete | — |
 
 ## Polish from use after Phases 14a–17 (owner, 2026-10-31; built on branch `polish-1`, over `phase-17`)
 
@@ -73,7 +73,7 @@ All run by the owner (2026-10-08): the live model decline, a live Farsi review, 
 
 ## Later (owner: its own fresh chat)
 
-- **Telemetry** (was "visitor counter"; widened by the owner 2026-10-11). Any tracking that shows how the app is doing — from Cloudflare's own analytics up to usage events. Touches the privacy promise (README, ADR-004) and the CSP; how much to measure is the chat's main question.
+- **Telemetry — done 2026-11-16:** Cloudflare Web Analytics, no cookies, no own tracking code (polish round 3). (Was "visitor counter"; widened by the owner 2026-10-11.) Any tracking that shows how the app is doing — from Cloudflare's own analytics up to usage events. Touches the privacy promise (README, ADR-004) and the CSP; how much to measure is the chat's main question.
 
 ## Round 4 design accepted (owner, 2026-10-19)
 
