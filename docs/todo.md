@@ -67,7 +67,7 @@ Fix: treat Persian (`۰–۹`) and Arabic-Indic (`٠–٩`) digits followed by `
 - **The document text is never changed.** Markdown export keeps it as written, so other markdown apps still won't see a list. That's expected.
 - **Tests:** unit-test the marker mapping. Then re-export `farsi-benchmark.md`.
 
-## Memory and responsiveness (investigation 2026-11-21; not built yet)
+## Memory and responsiveness (investigation 2026-11-21; items 1–5 built 2026-11-21 as stage 2, branch `performance`, waiting for the owner's vibe-test; new baseline in `docs/performance.md`)
 
 Report: `docs/research/memory-2026-11.md` on branch `perf-investigation` (commit 66b1e02, off `main` at 57f60dd, not pushed). Read it with `git show perf-investigation:docs/research/memory-2026-11.md`. To get it onto main: cherry-pick 66b1e02 onto a docs branch and open a PR when the owner wants it. Never push `perf-investigation` itself.
 
