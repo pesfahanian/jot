@@ -51,6 +51,9 @@ function reportCursor(view: EditorView, documentId: string) {
   useWorkspace.getState().setCursor({ documentId, line: line.number, col: head - line.from + 1 })
 }
 
+// The minimap setting as last read (default on).
+let lastMinimapSetting = true
+
 // One CodeMirror view bound to one document in one pane. Remount (key by
 // id) to switch documents. Text lives in the document's shared session, so
 // the same document open in two panes stays in step and is saved once
@@ -61,7 +64,10 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
   const focusedRef = useRef(focused)
   focusedRef.current = focused
   // Minimap: the setting (default on), and never with three columns open.
-  const minimapSetting = useLiveQuery(() => getSettings().then((s) => s.minimap ?? true), []) ?? true
+  // Until this editor's read of the setting answers, the last known answer
+  // (memory report, finding 1): an editor no longer builds a minimap only to
+  // take it down again when the setting is off.
+  const minimapSetting = useLiveQuery(() => getSettings().then((s) => (lastMinimapSetting = s.minimap ?? true)), []) ?? lastMinimapSetting
   const columnCount = useWorkspace((s) => columnsOf(s.panes).length)
   const minimapOn = minimapSetting && columnCount < 3
   // The document's direction setting (Farsi support), live.

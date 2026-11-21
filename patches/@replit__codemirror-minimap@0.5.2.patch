@@ -1,0 +1,54 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 3f0c98aba65c44b0ff033dd299649985cfc7951c..5bd82da4ae5a4a88091f90c36dfea7d9591f49fc 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -104,13 +104,19 @@ const OverlayView = view.ViewPlugin.fromClass(class {
+         }
+     }
+     create(view) {
++        // Jot: bound once, so remove() takes off the same functions it added
++        // (they were bound anew in each call, never removed, and kept every
++        // editor ever opened alive).
++        this.onMouseDown = this.onMouseDown.bind(this);
++        this.onMouseUp = this.onMouseUp.bind(this);
++        this.onMouseMove = this.onMouseMove.bind(this);
+         this.container = crelt__default["default"]("div", { class: "cm-minimap-overlay-container" });
+         this.dom = crelt__default["default"]("div", { class: "cm-minimap-overlay" });
+         this.container.appendChild(this.dom);
+         // Attach event listeners for overlay
+-        this.container.addEventListener("mousedown", this.onMouseDown.bind(this));
+-        window.addEventListener("mouseup", this.onMouseUp.bind(this));
+-        window.addEventListener("mousemove", this.onMouseMove.bind(this));
++        this.container.addEventListener("mousedown", this.onMouseDown);
++        window.addEventListener("mouseup", this.onMouseUp);
++        window.addEventListener("mousemove", this.onMouseMove);
+         // Attach the overlay elements to the minimap
+         const inner = view.dom.querySelector(".cm-minimap-inner");
+         if (inner) {
+diff --git a/dist/index.js b/dist/index.js
+index c7c9a0406e1cfa2277ab6324fe47f70dd577e7c1..ce89c3f4222e139a508524a0dc1f720a40957654 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -96,13 +96,19 @@ const OverlayView = /*@__PURE__*/ViewPlugin.fromClass(class {
+         }
+     }
+     create(view) {
++        // Jot: bound once, so remove() takes off the same functions it added
++        // (they were bound anew in each call, never removed, and kept every
++        // editor ever opened alive).
++        this.onMouseDown = this.onMouseDown.bind(this);
++        this.onMouseUp = this.onMouseUp.bind(this);
++        this.onMouseMove = this.onMouseMove.bind(this);
+         this.container = crelt("div", { class: "cm-minimap-overlay-container" });
+         this.dom = crelt("div", { class: "cm-minimap-overlay" });
+         this.container.appendChild(this.dom);
+         // Attach event listeners for overlay
+-        this.container.addEventListener("mousedown", this.onMouseDown.bind(this));
+-        window.addEventListener("mouseup", this.onMouseUp.bind(this));
+-        window.addEventListener("mousemove", this.onMouseMove.bind(this));
++        this.container.addEventListener("mousedown", this.onMouseDown);
++        window.addEventListener("mouseup", this.onMouseUp);
++        window.addEventListener("mousemove", this.onMouseMove);
+         // Attach the overlay elements to the minimap
+         const inner = view.dom.querySelector(".cm-minimap-inner");
+         if (inner) {
