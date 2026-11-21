@@ -133,9 +133,22 @@ export async function exportPdf(title: string, content: string, options: PdfOpti
   const restoreTitle = () => {
     document.title = appTitle
   }
+  // The frame (and Paged.js in it) goes once printing is over: on
+  // afterprint, or — where that doesn't fire — at the first click or key in
+  // the app after print() returns, which can only happen once the dialog is
+  // closed (memory report, finding 2: a frame left behind holds ~27 MB).
+  let removed = false
+  const removeFrame = () => {
+    if (removed) return
+    removed = true
+    window.removeEventListener('pointerdown', later, true)
+    window.removeEventListener('keydown', later, true)
+    setTimeout(() => frame.remove(), 500)
+  }
+  const later = () => removeFrame()
   win.addEventListener('afterprint', () => {
     restoreTitle()
-    setTimeout(() => frame.remove(), 500)
+    removeFrame()
   })
   // Fonts first (Paged.js measures text), then paginate, then print.
   await (doc.fonts?.ready ?? Promise.resolve())
@@ -149,6 +162,10 @@ export async function exportPdf(title: string, content: string, options: PdfOpti
       // print() returns once the dialog closes (afterprint may not fire
       // everywhere).
       restoreTitle()
+      if (!removed) {
+        window.addEventListener('pointerdown', later, true)
+        window.addEventListener('keydown', later, true)
+      }
     },
   }
   const script = doc.createElement('script')

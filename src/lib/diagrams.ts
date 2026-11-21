@@ -1,3 +1,5 @@
+import { Lru } from './lru'
+
 // Mermaid diagrams (Phase 9, frame 2h): a ```mermaid fence renders as the
 // diagram, in a bordered frame whose footer names the diagram type. Mermaid
 // loads only when a document has such a fence; diagrams are drawn before
@@ -44,7 +46,11 @@ const PALETTE: Record<DiagramTheme, Record<string, string | boolean>> = {
 let mermaid: Promise<Mermaid> | undefined
 let current: DiagramTheme | null = null
 let seq = 0
-const cache = new Map<string, string>()
+// Drawn diagrams by theme and source, the most recently used kept
+// (memory report, finding 2): every edited version of a diagram used to stay
+// for the whole session. A document's diagrams fit well within it, so an open
+// document never draws twice.
+const cache = new Lru<string>(100)
 
 const FENCE = /^[ \t>]*(`{3,}|~{3,})[ \t]*mermaid\b[^\n]*\n([\s\S]*?)\n[ \t>]*\1[ \t]*$/gm
 const key = (theme: DiagramTheme, source: string) => `${theme}\n${source.trim()}`
