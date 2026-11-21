@@ -23,7 +23,71 @@ Phase 14 runs as two parallel tracks — building the quick items while the desi
 | **15: Shell** ✓ (built 2026-10-19, branch `phase-15`) | Settings modal (AI provider moves in; theme, motion, editor, storage and backup, about); motion as designed, off in Settings and under reduced motion; the controls moved to their designed places; **command palette** (every action registered as a command; later phases add theirs); **shortcut editor** in Settings (remaps checked live against the vscode keymap and browser shortcuts — `scripts/keymap-collisions.mjs`'s logic) | 14b |
 | **16: Annotations and writing help** ✓ (built 2026-10-20, branch `phase-16`) (normal mode, no AI; research done 2026-10-20 — `docs/research/phase-16-2026-10.md`; owner: Google Translate for selections, and a bundled dictionary for auto-fix — the browser's spellchecker can't be read by a page, and Chrome's on-device proofreader is Chrome-only and multi-GB) | Annotations stored beside the document (new table, re-anchored as text changes), shown in the editor and rendered view; the right-click menu (highlight, underline, translate, note); translate a selection via Google Translate (own key, kept in Settings; new `connect-src` host); annotation exports (zip always, PDF row, markdown choice); auto-fix spelling, off by default, English first | 14b; small research: dictionary (licence, size), Google Translate from the browser (key restrictions, CORS, pricing) |
 | **17: AI mode** ✓ (built 2026-10-20, branch `phase-17`; prompts tested against a stubbed provider only — live tuning with a real key still open) | The mode and its transition; chat with local per-document history (deleted with the document, kept through undo; in the zip — lean yes); AI notes queued and sent Claude Design style, personal notes by switch; a proposals prompt (edits anchored like review flags) and one results screen for every run, the style review folded in, with the review / diff switch (as decided / all accepted); full translation to a new side-by-side document | 14b, 16 (notes); prompt work: proposals and translation (Farsi ↔ English), token budgets for document + history |
-| **Later** | Telemetry (own chat); premium tier (own big decision — needs a backend); Jot's own autocomplete | — |
+| **Later** | ~~Telemetry~~ done 2026-11-16 (Cloudflare Web Analytics, polish round 3); premium tier (own big decision — needs a backend; its AI premise went with the AI suite on 2026-11-15); Jot's own autocomplete | — |
+
+## Small fix: numbered lists written with Persian digits (friend's feedback, 2026-11-21; built 2026-11-21, branch `farsi-list-digits`)
+
+`۱. … ۲. …` at the start of lines isn't a list. Markdown only treats ASCII digits (`1.`) as list numbers, so the rendered view, and the PDF, join the lines into one run-on paragraph. The friend read it as "something's wrong with new lines".
+
+Fix: treat Persian (`۰–۹`) and Arabic-Indic (`٠–٩`) digits followed by `.` or `)` at the start of a line as list numbers.
+- **Renderer** (`src/lib/render.ts`): map the marker's digits to ASCII before parsing. They're the same length, so line positions and scroll sync are unaffected. The start number is kept, and right-to-left lists already count in Persian digits.
+- **Editor:** the marker is coloured like `1.`, and Enter continues the list in the same digits (`۳.` → `۴.`), using the same list continuation as `1.`. Built as `pnpm patch` files for `@lezer/markdown` and `@codemirror/lang-markdown` (`patches/`).
+- **The document text is never changed.** Markdown export keeps it as written, so other markdown apps still won't see a list. That's expected.
+- **Tests:** unit-test the marker mapping. Then re-export `farsi-benchmark.md`.
+
+## Memory and responsiveness (investigation 2026-11-21; not built yet)
+
+Report: `docs/research/memory-2026-11.md` on branch `perf-investigation` (commit 66b1e02, off `main` at 57f60dd, not pushed). Read it with `git show perf-investigation:docs/research/memory-2026-11.md`. To get it onto main: cherry-pick 66b1e02 onto a docs branch and open a PR when the owner wants it. Never push `perf-investigation` itself.
+
+Headline: like for like, Jot is lighter than stackedit (69 vs 110 MB with 50 documents; 51 vs 76 MB empty). The owner's 143 MB was `pnpm dev`. The 104 MB was a reading taken right after load (it settles ~30 MB lower over 30 s), plus the leak below. Typing is already smooth: no long tasks in 5 minutes at 200 documents. Items in the report's ranked order:
+
+1. **Editor leak: build first, alone, on its own branch and PR.** It is the only item that makes a long session grow without limit.
+   - Saving: ~1.7 MB tab + ~4 MB GPU per document opened. After 160 opens: 341 → 103 MB. Risk: none.
+   - Cause: `@replit/codemirror-minimap` 0.5.2 adds window `mouseup` / `mousemove` listeners with `.bind()` and removes the unbound functions, so every editor ever opened is retained. It leaks with the minimap off too, because `src/editor/Editor.tsx:64` starts it on (`?? true`) until settings load.
+   - Fix: `pnpm patch @replit/codemirror-minimap`: bind the three handlers once in `create()`, and add and remove those same functions. Also, `Editor.tsx` shouldn't create the minimap before the setting is known. Consider reporting the bug upstream.
+   - Verify by hand on the production build (`pnpm build` + `jot-preview`): open ~40 documents and close their tabs, force a GC, then check that DOM nodes and JS heap in DevTools come back to near the start. As shipped they grow ~240 nodes per document opened.
+2. **Mermaid / KaTeX stay loaded after any render or PDF.**
+   - Saving: +14 to +60 MB.
+   - Fix, in two small parts, built together (risk: none):
+     - Bound the SVG cache in `src/lib/diagrams.ts`; it never evicts today.
+     - Give the print frame in `src/lib/export.ts` a fallback removal. Today it goes only on `afterprint`, and costs +27 MB if that never fires.
+   - Bigger part: draw Mermaid in a disposable iframe (open decision #29).
+3. **Spell-check frequency map** (`src/lib/spelling.ts` `levels`, a `Map` of 63k words).
+   - Saving: 3.5 MB → ~0.5 MB. Risk: none, same suggestions in the same order.
+   - Fix: store it compactly (sorted strings + binary search, or a `Uint8Array`). Unit-test the lookup.
+4. **Sidebar re-renders on every autosave.**
+   - Saving: ~35–47 KB heap per row, and ~0.6 s of main thread per minute of typing at 200 documents. Risk: none.
+   - Cause: a Radix context menu and 5 store subscriptions per row; rows aren't memoised; the whole list is re-read and re-rendered after every autosave; `setCursor` on every keystroke runs every row's selectors.
+   - Fix, in `src/components/shell/Sidebar.tsx`, `DocumentMenu.tsx`, `src/state/hooks.ts`, `src/state/workspace.ts` and `Editor.tsx`:
+     - one shared context menu for the list;
+     - `memo(FileRow)`;
+     - the cursor in its own small store.
+   - Only after that, consider a metadata-only document table. It needs a Dexie version bump, and search must keep reading live text.
+5. **Bundle: lang-html in the main chunk.**
+   - Saving: −139 KB minified / −56 KB gzip of initial JS. Memory and load time are within noise. Risk: none found.
+   - Cause: `@codemirror/lang-markdown` imports `@codemirror/lang-html` statically.
+   - Fix: a resolver stub in `vite.config.ts` (the report's appendix). Fences still highlight.
+
+Later / optional:
+- Redraw the minimap on idle. It's ~17% of main-thread time while typing; headroom, not jank.
+- Dedupe Mermaid's KaTeX 0.16 (`pnpm.overrides`).
+- Prune `src/state/annotations.ts` `byDoc`: it keeps an entry for every document ever opened (the small residual per-open growth).
+
+Not to do:
+- drop the bundled fonts;
+- drop the minimap or turn it off by default;
+- virtualise the sidebar;
+- disable the service worker;
+- take text out of the list without moving search to on-demand reads.
+
+How to build it:
+- Item 1 first, on its own PR.
+- Then item 2's two small parts together. Build the Mermaid iframe only if the owner accepts the slower first diagram (#29).
+- Items 3, 4 and 5 are independent small PRs.
+- Unit-test pure logic only (the compact frequency lookup, the diagram cache's eviction). Verify memory and leaks by hand on the production build, never against `pnpm dev`, which reads ~2×.
+- After items 1 and 4, re-measure the 50- and 200-document rows of the report's "Jot versus stackedit" table, and record a new baseline in `docs/performance.md`.
+
+Language packs (the next track): the report recommends Hunspell compiled to WebAssembly (`hunspell-wasm`) in one dedicated speller Web Worker, with Jot's ranking layer on top. It costs ~20–40 MB per pack. nspell needs 44–295 MB per pack and can't load Hebrew at all. Licences and the English engine are open decisions #28 and #30.
 
 ## Polish from use after Phases 14a–17 (owner, 2026-10-31; built on branch `polish-1`, over `phase-17`)
 
@@ -73,7 +137,7 @@ All run by the owner (2026-10-08): the live model decline, a live Farsi review, 
 
 ## Later (owner: its own fresh chat)
 
-- **Telemetry** (was "visitor counter"; widened by the owner 2026-10-11). Any tracking that shows how the app is doing — from Cloudflare's own analytics up to usage events. Touches the privacy promise (README, ADR-004) and the CSP; how much to measure is the chat's main question.
+- **Telemetry — done 2026-11-16:** Cloudflare Web Analytics, no cookies, no own tracking code (polish round 3). (Was "visitor counter"; widened by the owner 2026-10-11.) Any tracking that shows how the app is doing — from Cloudflare's own analytics up to usage events. Touches the privacy promise (README, ADR-004) and the CSP; how much to measure is the chat's main question.
 
 ## Round 4 design accepted (owner, 2026-10-19)
 

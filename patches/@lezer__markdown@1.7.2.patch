@@ -1,0 +1,46 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index a7f1502ce9663cff433857f3e353acff9b381a98..27dcea89fd3140ca722a8bae9c449a8e995e30bb 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -332,7 +332,8 @@ function isBulletList(line, cx, breaking) {
+ function isOrderedList(line, cx, breaking) {
+     let pos = line.pos, next = line.next;
+     for (;;) {
+-        if (next >= 48 && next <= 57 /* '0-9' */)
++        // Persian (۰–۹) and Arabic-Indic (٠–٩) digits number a list too (Jot).
++        if ((next >= 48 && next <= 57 /* '0-9' */) || (next >= 0x6F0 && next <= 0x6F9) || (next >= 0x660 && next <= 0x669))
+             pos++;
+         else
+             break;
+@@ -344,7 +345,7 @@ function isOrderedList(line, cx, breaking) {
+         (next != 46 && next != 41 /* '.)' */) ||
+         (pos < line.text.length - 1 && !space(line.text.charCodeAt(pos + 1))) ||
+         breaking && !inList(cx, Type.OrderedList) &&
+-            (line.skipSpace(pos + 1) == line.text.length || pos > line.pos + 1 || line.next != 49 /* '1' */))
++            (line.skipSpace(pos + 1) == line.text.length || pos > line.pos + 1 || (line.next != 49 /* '1' */ && line.next != 0x6F1 && line.next != 0x661)))
+         return -1;
+     return pos + 1 - line.pos;
+ }
+diff --git a/dist/index.js b/dist/index.js
+index e5725e7b76c21832da1a3d2ed188ae042c06224c..112d092e202bcb56bbf704e7d9036b1e56c47a53 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -330,7 +330,8 @@ function isBulletList(line, cx, breaking) {
+ function isOrderedList(line, cx, breaking) {
+     let pos = line.pos, next = line.next;
+     for (;;) {
+-        if (next >= 48 && next <= 57 /* '0-9' */)
++        // Persian (۰–۹) and Arabic-Indic (٠–٩) digits number a list too (Jot).
++        if ((next >= 48 && next <= 57 /* '0-9' */) || (next >= 0x6F0 && next <= 0x6F9) || (next >= 0x660 && next <= 0x669))
+             pos++;
+         else
+             break;
+@@ -342,7 +343,7 @@ function isOrderedList(line, cx, breaking) {
+         (next != 46 && next != 41 /* '.)' */) ||
+         (pos < line.text.length - 1 && !space(line.text.charCodeAt(pos + 1))) ||
+         breaking && !inList(cx, Type.OrderedList) &&
+-            (line.skipSpace(pos + 1) == line.text.length || pos > line.pos + 1 || line.next != 49 /* '1' */))
++            (line.skipSpace(pos + 1) == line.text.length || pos > line.pos + 1 || (line.next != 49 /* '1' */ && line.next != 0x6F1 && line.next != 0x661)))
+         return -1;
+     return pos + 1 - line.pos;
+ }

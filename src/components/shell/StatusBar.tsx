@@ -34,8 +34,8 @@ function Cell({ label, value, reserve, className }: { label: string; value: stri
   )
 }
 
-// Text direction (Farsi support, design frame 6): a quiet cell before the
-// cursor, shown only on a document with right-to-left text or a forced
+// Text direction (Farsi support, design frame 6): a quiet cell at the
+// bar's left (owner, 2026-11-17), shown only on a document with right-to-left text or a forced
 // direction, so an English document's bar is unchanged. In auto it says
 // what the block under the cursor resolved to. A menu, not a cycle: a
 // change reflows the whole document, so the choice is explicit. Stored with
@@ -58,7 +58,7 @@ function DirCell({ doc, text, line }: { doc: JotDocument; text: string; line: nu
           {setting === 'auto' && <span className="text-muted-foreground">&nbsp;·&nbsp;{resolved}</span>}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" side="top" className="w-[220px]">
+      <DropdownMenuContent align="start" side="top" sideOffset={5} className="w-[220px]">
         <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">direction · this document</div>
         {DIR_CHOICES.map((c) => (
           <DropdownMenuItem key={c.value} onSelect={() => void updateDocument(doc.id, { dir: c.value })} className={cn(c.value === setting && 'text-foreground')}>
@@ -73,7 +73,8 @@ function DirCell({ doc, text, line }: { doc: JotDocument; text: string; line: nu
 }
 
 // Typos marked in this document (spelling suggestions, editor/spelling.ts),
-// with a way to fix them all as one undo step.
+// with a way to fix them all as one undo step. At the bar's left, with the
+// direction.
 function TyposCell({ documentId }: { documentId: string }) {
   const on = useLiveQuery(() => getSettings().then((s) => s.autofix ?? false), []) ?? false
   const all = useTypos((s) => s.byDoc[documentId]?.all ?? 0)
@@ -86,7 +87,7 @@ function TyposCell({ documentId }: { documentId: string }) {
   }
   // Only sure fixes go in a batch; close calls wait for a click.
   return (
-    <div className="flex items-center border-l border-border-subtle px-2">
+    <div className="flex items-center px-2">
       <span className="text-muted-foreground">typos</span>&nbsp;{all}
       {sure > 0 && (
         <button
@@ -150,12 +151,19 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
   return (
     <footer className="@container flex h-[35px] flex-none items-stretch overflow-hidden rounded-(--radius-status) border border-border-strong bg-card font-mono text-[11.5px] whitespace-nowrap">
       {/* The bar is about the focused document; the global controls are an
-          update waiting, at the left, and the minimap toggle (owner). */}
-      <UpdateReady />
+          update waiting, at the left, and the minimap toggle (owner). The
+          cells only some documents have — direction, typos, notes — sit at the
+          left too, so the counts at the right keep their place from one
+          document to the next (owner, 2026-11-17). */}
+      <div className="flex items-stretch divide-x divide-border-subtle [&:not(:empty)]:border-r [&:not(:empty)]:border-border-subtle">
+        <UpdateReady />
+        {doc && <DirCell doc={doc} text={text} line={cur.line} />}
+        {doc && <TyposCell documentId={doc.id} />}
+        {doc && <NotesCell documentId={doc.id} />}
+      </div>
       <div className="flex-auto" />
       {doc && (
         <>
-          <DirCell doc={doc} text={text} line={cur.line} />
           <Cell label="cursor" value={`${cur.line}:${cur.col}`} reserve="7ch" className="font-medium" />
           {/* Under the panes only, the bar can be narrow: bytes and paras, the
               least used, give way first. */}
@@ -164,8 +172,6 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
           <Cell label="words" value={groupDigits(c.words)} />
           <Cell label="lines" value={groupDigits(c.lines)} />
           <Cell label="paras" value={groupDigits(c.paras)} className="hidden pr-2.5 @[920px]:flex" />
-          <NotesCell documentId={doc.id} />
-          <TyposCell documentId={doc.id} />
         </>
       )}
       {/* The minimap toggle, at the far right (round 4). */}

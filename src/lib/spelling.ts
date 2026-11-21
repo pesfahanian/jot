@@ -141,7 +141,7 @@ function rank(spell: Pick<NSpell, 'correct' | 'suggest'>, word: string): Suggest
 // A capitalised word is checked only where a sentence starts (a line's
 // start, after a list or heading marker, or after . ! ?); anywhere else
 // it's most likely a name. The fixes keep the capital.
-const SENTENCE_START = /(^|[.!?]["')\]]?\s+|^\s*(#{1,6}|[-*+>]|\d+[.)])\s+)$/
+const SENTENCE_START = /(^|[.!?]["')\]]?\s+|^\s*(#{1,6}|[-*+>]|[\d\u06F0-\u06F9\u0660-\u0669]+[.)])\s+)$/
 
 export function suggestionFor(spell: Pick<NSpell, 'correct' | 'suggest'>, word: string, before: string): Suggestion | null {
   if (/^[a-z]+$/.test(word)) return suggestionsFor(spell, word)

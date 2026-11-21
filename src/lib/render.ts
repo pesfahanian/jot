@@ -4,6 +4,7 @@ import { CODE_GROUPS, findCodeLanguage } from './code'
 import { markSource, unmarkHtml } from './annotatedSource'
 import type { Annotation } from './db'
 import { directionOf, lineDirections, type DirSetting } from './direction'
+import { asciiListNumbers } from './listDigits'
 import { diagramHtml, loadDiagrams, type DiagramTheme } from './diagrams'
 import { loadMath, mathExtension } from './math'
 
@@ -170,6 +171,8 @@ export interface RenderedBlock {
 const withDir = (html: string, rtl: boolean) => (rtl ? html.replace(/^<([a-z][a-z0-9]*)/, '<$1 dir="rtl"') : html)
 
 export async function renderBlocks(md: string, opts: RenderOptions = {}): Promise<RenderedBlock[]> {
+  // Lists numbered ۱. ۲. are lists (lib/listDigits.ts); offsets don't move.
+  md = asciiListNumbers(md)
   const m = await prepare(md, opts)
   // Set in the same synchronous stretch as the parse, so a concurrent render
   // in the other theme can't interleave.

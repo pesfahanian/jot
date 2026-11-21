@@ -47,6 +47,12 @@ describe('list items', () => {
     const withCode = ['1. نوشتن دوگانه را روشن کنید:', '   ```bash', '   ledger-sync config set dual_write=true --region eu-central-1', '   ```'].join('\n')
     expect(await renderHtml(withCode)).toContain('<div class="jot-li" dir="rtl">')
   })
+  it('numbered in Persian digits are lists, not one run-on paragraph', async () => {
+    const html = await renderHtml(['پیش‌شرط.', '', '۱. اول.', '۲. دوم.', '۳. سوم.'].join('\n'))
+    expect(html).toMatch(/<ol dir="rtl">/)
+    expect(html.match(/<li>/g)).toHaveLength(3)
+    expect(html).not.toContain('۲.')
+  })
 })
 
 describe('code colouring', () => {
