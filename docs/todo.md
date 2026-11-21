@@ -25,6 +25,38 @@ Phase 14 runs as two parallel tracks — building the quick items while the desi
 | **17: AI mode** ✓ (built 2026-10-20, branch `phase-17`; prompts tested against a stubbed provider only — live tuning with a real key still open) | The mode and its transition; chat with local per-document history (deleted with the document, kept through undo; in the zip — lean yes); AI notes queued and sent Claude Design style, personal notes by switch; a proposals prompt (edits anchored like review flags) and one results screen for every run, the style review folded in, with the review / diff switch (as decided / all accepted); full translation to a new side-by-side document | 14b, 16 (notes); prompt work: proposals and translation (Farsi ↔ English), token budgets for document + history |
 | **Later** | ~~Telemetry~~ done 2026-11-16 (Cloudflare Web Analytics, polish round 3); premium tier (own big decision — needs a backend; its AI premise went with the AI suite on 2026-11-15); Jot's own autocomplete | — |
 
+## Stage 1: languages (owner's staged plan, 2026-11-21; built on branch `languages`, not pushed, waiting for the owner's vibe-test)
+
+The owner's rule for this stage: Jot must behave and feel exactly as it does now. The tag `snapshot-2026-11-21` is the state to go back to.
+
+- **Spell engine: Hunspell-WASM in a worker** (#30). The English gate passed as an exact match: all 499 fixture cases give the same fixes, in the same order, with the same sure status.
+  - How: Jot generates the candidates the way nspell did (`lib/candidates.ts`), and Hunspell only looks words up.
+  - Hunspell's own extra suggestions would fix 4 known-wrong English cases, but would change the right-click lists on 144 cases. So they're off for English (#31).
+- **Language packs: Farsi, Arabic, French, Spanish, German, Dutch** (Hebrew dropped, #28).
+  - Served from `/packs/` and added or removed in settings → languages, which shows each pack's size and licence.
+  - Kept in Cache Storage, not in the offline copy or the backup.
+  - Each licence ships beside its pack, and settings → about lists them.
+- **Which language checks a word:**
+  - Latin words: a default set in settings, which a document can override from the status bar's `spell` cell. The cell appears only once a pack is installed.
+  - Farsi and Arabic words: Farsi unless the document picks Arabic.
+  - English words on right-to-left lines are still skipped, as before.
+- **Ranking for packs:**
+  - each language's keyboard for neighbouring keys;
+  - a wrong accent counts as a small slip;
+  - Hunspell's own suggestions are added after Jot's candidates;
+  - no all-caps guesses;
+  - no frequency lists yet (English only).
+- **Translate:**
+  - settings → translation sets from (detect), into (Farsi), and the language for text already in it (English). These defaults reproduce the old behaviour.
+  - The popover can change both ends, from Google's full list, with recent languages first.
+  - If Google reports the text is already in the target language, the popover switches to the other language.
+- **Security policy:** `script-src` gains `'wasm-unsafe-eval'`. It allows compiling WebAssembly only.
+- **Known limits, for the vibe-test:**
+  - The Farsi dictionary (Lilak) is formal Persian. Colloquial forms are marked: میخوام → میخوارم, offered as a sure fix.
+  - The Arabic ranking doesn't treat ه and ة as a near slip.
+  - German doesn't treat ss and ß as a near slip.
+  - With one Latin language per document, English words in a French document are marked.
+
 ## Small fix: numbered lists written with Persian digits (friend's feedback, 2026-11-21; built 2026-11-21, branch `farsi-list-digits`)
 
 `۱. … ۲. …` at the start of lines isn't a list. Markdown only treats ASCII digits (`1.`) as list numbers, so the rendered view, and the PDF, join the lines into one run-on paragraph. The friend read it as "something's wrong with new lines".
