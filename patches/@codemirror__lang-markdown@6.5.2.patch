@@ -1,0 +1,126 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 62ab9c14016a4b738e683e648bbd024c821dc300..ea37a4f75b0d60b0434583af1deeee093979b279 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -117,7 +117,11 @@ class Context {
+         }
+     }
+     marker(doc, add) {
+-        let number = this.node.name == "OrderedList" ? String((+itemNumber(this.item, doc)[2] + add)) : "";
++        let number = "";
++        if (this.node.name == "OrderedList") {
++            let digits = itemNumber(this.item, doc)[2];
++            number = listDigitsLike(digits, listDigitValue(digits) + add);
++        }
+         return this.spaceBefore + number + this.type + this.spaceAfter;
+     }
+ }
+@@ -136,7 +140,7 @@ function getContext(node, doc) {
+             context.push(new Context(node, startPos, startPos + match[0].length, "", match[1], ">", null));
+         }
+         else if (node.name == "ListItem" && node.parent.name == "OrderedList" &&
+-            (match = /^( *)\d+([.)])( *)/.exec(line.text.slice(startPos)))) {
++            (match = /^( *)[0-9\u06F0-\u06F9\u0660-\u0669]+([.)])( *)/.exec(line.text.slice(startPos)))) {
+             let after = match[3], len = match[0].length;
+             if (after.length >= 4) {
+                 after = after.slice(0, after.length - 4);
+@@ -159,18 +163,24 @@ function getContext(node, doc) {
+     }
+     return context;
+ }
++// Persian (۰–۹) and Arabic-Indic (٠–٩) list numbers (Jot): read as numbers,
++// and a new number is written in the digits its list uses.
++const listDigitValue = (s) => +s.replace(/[\u06F0-\u06F9]/g, (c) => c.charCodeAt(0) - 0x6F0).replace(/[\u0660-\u0669]/g, (c) => c.charCodeAt(0) - 0x660);
++const listDigitsLike = (like, n) => /^[\u06F0-\u06F9]/.test(like) ? String(n).replace(/[0-9]/g, (d) => String.fromCharCode(0x6F0 + +d)) : /^[\u0660-\u0669]/.test(like) ? String(n).replace(/[0-9]/g, (d) => String.fromCharCode(0x660 + +d)) : String(n);
+ function itemNumber(item, doc) {
+-    return /^(\s*)(\d+)(?=[.)])/.exec(doc.sliceString(item.from, item.from + 10));
++    return /^(\s*)([0-9\u06F0-\u06F9\u0660-\u0669]+)(?=[.)])/.exec(doc.sliceString(item.from, item.from + 10));
+ }
+ function renumberList(after, doc, changes, offset = 0) {
+     for (let prev = -1, node = after;;) {
+         if (node.name == "ListItem") {
+             let m = itemNumber(node, doc);
+-            let number = +m[2];
++            if (!m)
++                return;
++            let number = listDigitValue(m[2]);
+             if (prev >= 0) {
+                 if (number != prev + 1)
+                     return;
+-                changes.push({ from: node.from + m[1].length, to: node.from + m[0].length, insert: String(prev + 2 + offset) });
++                changes.push({ from: node.from + m[1].length, to: node.from + m[0].length, insert: listDigitsLike(m[2], prev + 2 + offset) });
+             }
+             prev = number;
+         }
+@@ -264,7 +274,7 @@ const insertNewlineContinueMarkupCommand = (config = {}) => ({ state: state$1, d
+         let continued = inner.item && inner.item.from < line.from;
+         let insert = "";
+         // If not dedented
+-        if (!continued || /^[\s\d.)\-+*>]*/.exec(line.text)[0].length >= inner.to) {
++        if (!continued || /^[\s\d\u06F0-\u06F9\u0660-\u0669.)\-+*>]*/.exec(line.text)[0].length >= inner.to) {
+             for (let i = 0, e = context.length - 1; i <= e; i++) {
+                 insert += i == e && !continued ? context[i].marker(doc, 1)
+                     : context[i].blank(i < e ? state.countColumn(line.text, 4, context[i + 1].from) - insert.length : null);
+diff --git a/dist/index.js b/dist/index.js
+index 2f05ddd05decf9ea94cd5eccaed9aef7c4b51ac2..8269251d5c53e90e54c822155a167774497a49a6 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -115,7 +115,11 @@ class Context {
+         }
+     }
+     marker(doc, add) {
+-        let number = this.node.name == "OrderedList" ? String((+itemNumber(this.item, doc)[2] + add)) : "";
++        let number = "";
++        if (this.node.name == "OrderedList") {
++            let digits = itemNumber(this.item, doc)[2];
++            number = listDigitsLike(digits, listDigitValue(digits) + add);
++        }
+         return this.spaceBefore + number + this.type + this.spaceAfter;
+     }
+ }
+@@ -134,7 +138,7 @@ function getContext(node, doc) {
+             context.push(new Context(node, startPos, startPos + match[0].length, "", match[1], ">", null));
+         }
+         else if (node.name == "ListItem" && node.parent.name == "OrderedList" &&
+-            (match = /^( *)\d+([.)])( *)/.exec(line.text.slice(startPos)))) {
++            (match = /^( *)[0-9\u06F0-\u06F9\u0660-\u0669]+([.)])( *)/.exec(line.text.slice(startPos)))) {
+             let after = match[3], len = match[0].length;
+             if (after.length >= 4) {
+                 after = after.slice(0, after.length - 4);
+@@ -157,18 +161,24 @@ function getContext(node, doc) {
+     }
+     return context;
+ }
++// Persian (۰–۹) and Arabic-Indic (٠–٩) list numbers (Jot): read as numbers,
++// and a new number is written in the digits its list uses.
++const listDigitValue = (s) => +s.replace(/[\u06F0-\u06F9]/g, (c) => c.charCodeAt(0) - 0x6F0).replace(/[\u0660-\u0669]/g, (c) => c.charCodeAt(0) - 0x660);
++const listDigitsLike = (like, n) => /^[\u06F0-\u06F9]/.test(like) ? String(n).replace(/[0-9]/g, (d) => String.fromCharCode(0x6F0 + +d)) : /^[\u0660-\u0669]/.test(like) ? String(n).replace(/[0-9]/g, (d) => String.fromCharCode(0x660 + +d)) : String(n);
+ function itemNumber(item, doc) {
+-    return /^(\s*)(\d+)(?=[.)])/.exec(doc.sliceString(item.from, item.from + 10));
++    return /^(\s*)([0-9\u06F0-\u06F9\u0660-\u0669]+)(?=[.)])/.exec(doc.sliceString(item.from, item.from + 10));
+ }
+ function renumberList(after, doc, changes, offset = 0) {
+     for (let prev = -1, node = after;;) {
+         if (node.name == "ListItem") {
+             let m = itemNumber(node, doc);
+-            let number = +m[2];
++            if (!m)
++                return;
++            let number = listDigitValue(m[2]);
+             if (prev >= 0) {
+                 if (number != prev + 1)
+                     return;
+-                changes.push({ from: node.from + m[1].length, to: node.from + m[0].length, insert: String(prev + 2 + offset) });
++                changes.push({ from: node.from + m[1].length, to: node.from + m[0].length, insert: listDigitsLike(m[2], prev + 2 + offset) });
+             }
+             prev = number;
+         }
+@@ -262,7 +272,7 @@ const insertNewlineContinueMarkupCommand = (config = {}) => ({ state, dispatch }
+         let continued = inner.item && inner.item.from < line.from;
+         let insert = "";
+         // If not dedented
+-        if (!continued || /^[\s\d.)\-+*>]*/.exec(line.text)[0].length >= inner.to) {
++        if (!continued || /^[\s\d\u06F0-\u06F9\u0660-\u0669.)\-+*>]*/.exec(line.text)[0].length >= inner.to) {
+             for (let i = 0, e = context.length - 1; i <= e; i++) {
+                 insert += i == e && !continued ? context[i].marker(doc, 1)
+                     : context[i].blank(i < e ? countColumn(line.text, 4, context[i + 1].from) - insert.length : null);
