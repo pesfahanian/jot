@@ -103,7 +103,15 @@ function LangCell({ doc }: { doc: JotDocument }) {
   const arabicDefault = installed.has('fa') ? 'fa' : 'ar'
   const pickArabic = (code: string) => void updateDocument(doc.id, { spellArabic: code === arabic ? OFF : code === arabicDefault ? undefined : code })
   const item = (on: boolean, l: { code: string; name: string }, pick: (code: string) => void) => (
-    <DropdownMenuItem key={l.code} onSelect={() => pick(l.code)} className={cn(on && 'text-foreground')}>
+    // The menu stays open, so several switches can be flipped in one go (owner).
+    <DropdownMenuItem
+      key={l.code}
+      onSelect={(e) => {
+        e.preventDefault()
+        pick(l.code)
+      }}
+      className={cn(on && 'text-foreground')}
+    >
       <Check size={13} strokeWidth={2} className={cn('text-primary', !on && 'invisible')} aria-hidden />
       <span className="flex-auto">{l.name}</span>
       <span className="font-mono text-[11px] text-muted-foreground">{l.code}</span>
