@@ -35,17 +35,48 @@ export interface Speller {
 const NEVER = new Set(['alot'])
 
 // How common each word is: its SCOWL level (10 the most common, to 50).
-let levels = new Map<string, number>()
+// Kept compactly (memory report, finding 3): each level's words sorted into
+// one string with their start offsets, looked up by binary search — a
+// fraction of the 3.5 MB a Map of 63,000 words took, with the same answers.
+interface Level {
+  level: number
+  text: string
+  starts: Uint32Array
+}
+let levels: Level[] = []
 export function setFrequencies(text: string) {
-  levels = new Map()
+  levels = []
   for (const line of text.split('\n')) {
     const [level, ...words] = line.split(' ')
-    for (const w of words) levels.set(w, Number(level))
+    if (!words.length) continue
+    words.sort()
+    const starts = new Uint32Array(words.length + 1)
+    let at = 0
+    words.forEach((w, i) => {
+      starts[i] = at
+      at += w.length + 1
+    })
+    starts[words.length] = at
+    levels.push({ level: Number(level), text: words.join('\n') + '\n', starts })
   }
+}
+export function levelOf(word: string): number | undefined {
+  for (const { level, text, starts } of levels) {
+    let lo = 0
+    let hi = starts.length - 2
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1
+      const w = text.slice(starts[mid], starts[mid + 1] - 1)
+      if (w === word) return level
+      if (w < word) lo = mid + 1
+      else hi = mid - 1
+    }
+  }
+  return undefined
 }
 // A small push down the list for rarer words; one not listed is rarer still.
 const RARITY: Record<number, number> = { 10: 0, 20: 0.1, 35: 0.2, 40: 0.25, 50: 0.3 }
-const rarity = (w: string) => RARITY[levels.get(w) ?? levels.get(w.toLowerCase()) ?? 0] ?? 0.45
+const rarity = (w: string) => RARITY[levelOf(w) ?? levelOf(w.toLowerCase()) ?? 0] ?? 0.45
 
 // The cost of each kind of slip (a weighted Damerau–Levenshtein distance
 // from what was typed to the candidate). Lower is likelier.

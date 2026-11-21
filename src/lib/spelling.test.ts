@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { hunspellSpeller } from './hunspell'
 import { describe, expect, it } from 'vitest'
-import { fixFor, setFrequencies, suggestionFor, suggestionsFor } from './spelling'
+import { fixFor, levelOf, setFrequencies, suggestionFor, suggestionsFor } from './spelling'
 
 // The suggestion ranking against the real dictionary and word levels
 // (public/dict/).
@@ -54,5 +54,16 @@ describe('spelling suggestions', () => {
     // Already right, at a sentence's start or anywhere: never marked.
     expect(first('Tuesday', '')).toBeNull()
     expect(first('Thursday', 'It was. ')).toBeNull()
+  })
+})
+
+describe('word levels', () => {
+  it('are looked up exactly as the list says', () => {
+    const freq = readFileSync('public/dict/en.freq', 'utf8')
+    const lines = freq.split('\n').filter(Boolean).map((l) => l.split(' '))
+    // Every 997th word of every level, plus some that aren't listed.
+    for (const [level, ...words] of lines) for (let i = 0; i < words.length; i += 997) expect(levelOf(words[i])).toBe(Number(level))
+    expect(levelOf('qzxv')).toBeUndefined()
+    expect(levelOf('')).toBeUndefined()
   })
 })
