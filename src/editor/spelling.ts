@@ -195,7 +195,8 @@ function plugin(documentId: string) {
         const head = state.selection.main.head
         const latinLang = languageFor('latin', installed, latinDefault, this.docLang)
         const arabicLang = languageFor('arabic', installed, latinDefault, this.docLang)
-        const scans: [RegExp, Script, string][] = [[latinLang === 'en' ? WORD : LATIN_WORD, 'latin', latinLang!]]
+        const scans: [RegExp, Script, string][] = []
+        if (latinLang) scans.push([latinLang === 'en' ? WORD : LATIN_WORD, 'latin', latinLang])
         if (arabicLang) scans.push([ARABIC_WORD, 'arabic', arabicLang])
         let held: { from: number; to: number } | null = null
         const words: { from: number; to: number; word: string; before: string; script: Script; lang: string }[] = []

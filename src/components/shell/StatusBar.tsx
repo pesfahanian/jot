@@ -9,7 +9,7 @@ import { fixAllTypos } from '@/editor/spelling'
 import { useTypos } from '@/state/spelling'
 import { usePacks } from '@/state/packs'
 import { useUi } from '@/state/ui'
-import { ENGLISH, LANGUAGE, languageFor, PACKS } from '@/lib/languages'
+import { ENGLISH, LANGUAGE, languageFor, OFF, PACKS } from '@/lib/languages'
 import type { JotDocument } from '@/lib/db'
 import { countText, groupDigits } from '@/lib/counts'
 import { applyUpdate, useUpdateReady } from '@/lib/offline'
@@ -80,25 +80,33 @@ function DirCell({ doc, text, line }: { doc: JotDocument; text: string; line: nu
 // shown only once a language pack is installed, so without packs the bar
 // is as it always was. A quiet icon (owner, 2026-11-21: calm in the bar,
 // everything in the menu); a short code beside it only when the document
-// is checked in something other than English and Farsi. The menu holds the
-// rest: each script's language for this document, and settings.
+// is checked in something other than English and Farsi. The menu is a
+// set of switches, one script per section (owner: a tick means "checked
+// here"): click a language to check that script in it, click the ticked
+// one to stop checking that script in this document.
 function LangCell({ doc }: { doc: JotDocument }) {
   const settings = useLiveQuery(() => getSettings(), [])
   const installed = usePacks((s) => s.installed)
   const openSettings = useUi((s) => s.openSettings)
   if (!settings?.autofix || !installed.size) return null
   const latinDefault = settings.spellLatin ?? 'en'
-  const latin = languageFor('latin', installed, latinDefault, { latin: doc.spellLatin })!
+  const latin = languageFor('latin', installed, latinDefault, { latin: doc.spellLatin })
   const arabic = languageFor('arabic', installed, latinDefault, { arabic: doc.spellArabic })
   const latinChoices = [ENGLISH, ...PACKS.filter((p) => p.script === 'latin' && installed.has(p.code))]
   const arabicChoices = PACKS.filter((p) => p.script === 'arabic' && installed.has(p.code))
   const name = (code: string) => LANGUAGE.get(code)?.name ?? code
-  const unusual = [latin !== 'en' && latin, arabic === 'ar' && arabic].filter(Boolean).join(' · ')
-  const item = (on: boolean, label: string, hint: string, pick: () => void, key: string) => (
-    <DropdownMenuItem key={key} onSelect={pick} className={cn(on && 'text-foreground')}>
+  const unusual = [latin && latin !== 'en' && latin, arabic === 'ar' && arabic].filter(Boolean).join(' · ')
+  const none = !latin && !arabic
+  // Picking the language a script would get anyway stores nothing, so the
+  // document keeps following settings.
+  const pickLatin = (code: string) => void updateDocument(doc.id, { spellLatin: code === latin ? OFF : code === latinDefault ? undefined : code })
+  const arabicDefault = installed.has('fa') ? 'fa' : 'ar'
+  const pickArabic = (code: string) => void updateDocument(doc.id, { spellArabic: code === arabic ? OFF : code === arabicDefault ? undefined : code })
+  const item = (on: boolean, l: { code: string; name: string }, pick: (code: string) => void) => (
+    <DropdownMenuItem key={l.code} onSelect={() => pick(l.code)} className={cn(on && 'text-foreground')}>
       <Check size={13} strokeWidth={2} className={cn('text-primary', !on && 'invisible')} aria-hidden />
-      <span className="flex-auto">{label}</span>
-      <span className="font-mono text-[11px] text-muted-foreground">{hint}</span>
+      <span className="flex-auto">{l.name}</span>
+      <span className="font-mono text-[11px] text-muted-foreground">{l.code}</span>
     </DropdownMenuItem>
   )
   const head = (text: string) => <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">{text}</div>
@@ -108,8 +116,8 @@ function LangCell({ doc }: { doc: JotDocument }) {
         <button
           type="button"
           aria-label="spell-check languages"
-          title={`spell-check: ${[name(latin), arabic && name(arabic)].filter(Boolean).join(' · ')}`}
-          className="flex items-center gap-1 px-2 text-secondary-foreground hover:bg-hover-lift hover:text-foreground data-[state=open]:bg-hover-lift"
+          title={`spell-check in this document: ${[latin ? name(latin) : 'english alphabet off', arabicChoices.length ? (arabic ? name(arabic) : 'farsi alphabet off') : null].filter(Boolean).join(' · ')}`}
+          className={cn('flex items-center gap-1 px-2 hover:bg-hover-lift hover:text-foreground data-[state=open]:bg-hover-lift', none ? 'text-ink-dim' : 'text-secondary-foreground')}
         >
           <SpellCheck size={13} strokeWidth={1.75} aria-hidden />
           {unusual && <span>{unusual}</span>}
@@ -117,13 +125,12 @@ function LangCell({ doc }: { doc: JotDocument }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" side="top" sideOffset={5} className="w-[220px]">
         {head('english alphabet')}
-        {item(!doc.spellLatin, `default (${name(latinDefault)})`, '', () => void updateDocument(doc.id, { spellLatin: undefined }), 'default')}
-        {latinChoices.map((l) => item(doc.spellLatin === l.code, l.name, l.code, () => void updateDocument(doc.id, { spellLatin: l.code }), l.code))}
+        {latinChoices.map((l) => item(latin === l.code, l, pickLatin))}
         {arabicChoices.length > 0 && (
           <>
             <DropdownMenuSeparator />
             {head('farsi alphabet')}
-            {arabicChoices.map((l) => item(arabic === l.code, l.name, l.code, () => void updateDocument(doc.id, { spellArabic: l.code === 'fa' ? undefined : l.code }), l.code))}
+            {arabicChoices.map((l) => item(arabic === l.code, l, pickArabic))}
           </>
         )}
         <DropdownMenuSeparator />

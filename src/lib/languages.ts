@@ -39,9 +39,14 @@ export function scriptOf(word: string): Script | null {
   return null
 }
 
-// Which installed language checks a script in a document. `doc` is the
-// document's own choice (latin: a Latin language; arabic: fa or ar).
+// A document can turn a script's checking off (the status bar's menu).
+export const OFF = 'off'
+
+// Which installed language checks a script in a document, or null for none.
+// `doc` is the document's own choice (latin: a Latin language; arabic: fa
+// or ar; either: OFF).
 export function languageFor(script: Script, installed: ReadonlySet<string>, latinDefault: string, doc?: { latin?: string; arabic?: string }): string | null {
+  if ((script === 'latin' ? doc?.latin : doc?.arabic) === OFF) return null
   if (script === 'latin') {
     const want = doc?.latin ?? latinDefault
     return want === 'en' || installed.has(want) ? want : 'en'

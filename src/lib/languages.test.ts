@@ -24,6 +24,10 @@ describe('which language checks a word', () => {
     expect(languageFor('arabic', both, 'en', { arabic: 'ar' })).toBe('ar')
     expect(languageFor('arabic', new Set(['ar']), 'en')).toBe('ar')
   })
+  it('checks nothing in a script the document turned off', () => {
+    expect(languageFor('latin', both, 'fr', { latin: 'off' })).toBeNull()
+    expect(languageFor('arabic', both, 'en', { arabic: 'off' })).toBeNull()
+  })
 })
 
 describe('translation defaults', () => {

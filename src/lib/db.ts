@@ -20,8 +20,9 @@ export interface JotDocument {
   // renames it. Set on new documents only; missing means a fixed title.
   autoTitle?: boolean
   // Spell-check languages chosen for this document (status bar): a Latin
-  // pack instead of the default, Arabic instead of Farsi. Missing: the
-  // defaults (lib/languages.ts).
+  // language instead of the default, Arabic instead of Farsi, or 'off' for
+  // no checking of that script here. Missing: the defaults
+  // (lib/languages.ts).
   spellLatin?: string
   spellArabic?: string
 }

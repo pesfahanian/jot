@@ -37,7 +37,7 @@ The owner's rule for this stage: Jot must behave and feel exactly as it does now
   - Kept in Cache Storage, not in the offline copy or the backup.
   - Each licence ships beside its pack, and settings → about lists them.
 - **Which language checks a word:**
-  - Latin words: a default set in settings, which a document can override from the status bar's spell-check icon. The icon appears only once a pack is installed; a language code shows beside it only when the document isn't on English / Farsi (owner, 2026-11-21: calm in the bar, everything in the menu).
+  - Latin words: a default set in settings, which a document can override from the status bar's spell-check icon. The icon appears only once a pack is installed; a language code shows beside it only when the document isn't on English / Farsi (owner, 2026-11-21: calm in the bar, everything in the menu). Its menu works as switches (owner): the tick means "checked here"; clicking the ticked language turns that alphabet off for this document (stored as `'off'`), and clicking a language turns it on in that language.
   - Farsi and Arabic words: Farsi unless the document picks Arabic.
   - English words on right-to-left lines are still skipped, as before.
 - **Ranking for packs:**
