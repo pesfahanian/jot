@@ -16,6 +16,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef } from 'react'
 import { getSettings } from '@/lib/settings'
 import { takeTypeAhead } from '@/state/actions'
+import { useCursor } from '@/state/cursor'
 import { useWorkspace } from '@/state/workspace'
 import { columnsOf } from '@/state/layout'
 import { markdownWithCode } from './codeLanguages'
@@ -48,7 +49,7 @@ const isRenaming = (documentId: string) => useWorkspace.getState().renamingId ==
 function reportCursor(view: EditorView, documentId: string) {
   const head = view.state.selection.main.head
   const line = view.state.doc.lineAt(head)
-  useWorkspace.getState().setCursor({ documentId, line: line.number, col: head - line.from + 1 })
+  useCursor.getState().set({ documentId, line: line.number, col: head - line.from + 1 })
 }
 
 // The minimap setting as last read (default on).

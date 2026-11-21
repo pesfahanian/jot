@@ -15,6 +15,7 @@ import { applyUpdate, useUpdateReady } from '@/lib/offline'
 import { getSettings, updateSettings } from '@/lib/settings'
 import { cn } from '@/lib/utils'
 import { columnsOf, docIdOf } from '@/state/layout'
+import { useCursor } from '@/state/cursor'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 import { NotesCell } from '@/components/annotations/NotesCell'
 
@@ -187,7 +188,7 @@ function MinimapToggle() {
 
 export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) {
   const pane = useWorkspace(focusedPane)
-  const cursor = useWorkspace((s) => s.cursor)
+  const cursor = useCursor((s) => s.cursor)
   // A rendered tab counts as its document.
   const doc = pane?.active ? docsById.get(docIdOf(pane.active)) : undefined
   const text = doc ? (openContent(doc.id) ?? doc.content) : ''
