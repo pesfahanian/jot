@@ -52,7 +52,7 @@ The owner's rule for this stage: Jot must behave and feel exactly as it does now
   - If Google reports the text is already in the target language, the popover switches to the other language.
 - **Security policy:** `script-src` gains `'wasm-unsafe-eval'`. It allows compiling WebAssembly only.
 - **Known limits, for the vibe-test:**
-  - The Farsi dictionary (Lilak) is formal Persian. Colloquial forms are marked: میخوام → میخوارم, offered as a sure fix.
+  - The Farsi dictionary (Lilak) is formal Persian. Colloquial forms are marked (میخوام → میخوارم). Farsi fixes are never sure, so "fix all" skips them (#32).
   - The Arabic ranking doesn't treat ه and ة as a near slip.
   - German doesn't treat ss and ß as a near slip.
   - With one Latin language per document, English words in a French document are marked.

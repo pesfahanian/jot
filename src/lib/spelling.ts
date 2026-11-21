@@ -159,7 +159,10 @@ function rank(spell: Speller, word: string, lang: SpellLanguage): Suggestion | n
     .sort((x, y) => x.score - y.score)
   if (!scored.length) return null
   const best = scored[0]
-  const sure = slipCost(word, best.s, lang) <= SURE_COST && (scored.length === 1 || scored[1].score - best.score >= SURE_GAP)
+  // Never sure in Farsi (owner, 2026-11-21, open decision #32): the dictionary
+  // is formal Persian, so spoken forms (میخوام) look like typos; a click can
+  // still fix one, but "fix all" leaves them alone.
+  const sure = lang.code !== 'fa' && slipCost(word, best.s, lang) <= SURE_COST && (scored.length === 1 || scored[1].score - best.score >= SURE_GAP)
   return { fixes: scored.slice(0, SHOWN).map((c) => c.s), sure }
 }
 

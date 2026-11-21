@@ -46,6 +46,9 @@ describe('packs', () => {
     expect(suggestionFor(spell, 'کتاب', '', fa)).toBeNull()
     // A letter left out of کتابخانه (library).
     expect(suggestionFor(spell, 'کتابخنه', '', fa)?.fixes[0]).toBe('کتابخانه')
+    // Never sure, so "fix all" leaves Farsi alone (open decision #32).
+    expect(suggestionFor(spell, 'میخوام', '', fa)?.sure).toBe(false)
+    expect(suggestionFor(spell, 'کتابخنه', '', fa)?.sure).toBe(false)
     spell.dispose()
   }, 60_000)
   it('suggest French fixes with accents', async () => {
