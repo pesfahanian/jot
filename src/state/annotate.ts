@@ -1,6 +1,7 @@
 import { covers, erase, paint } from '@/lib/annotations'
 import { activeEditor, anchorOf, recordMarks } from '@/editor/annotations'
 import { directionOf } from '@/lib/direction'
+import { isRtlLanguage } from '@/lib/translate'
 import { useAnnotations } from './annotations'
 import { useOverlays, type Anchor } from './overlays'
 
@@ -79,6 +80,25 @@ export function translateSelection() {
 
 // Which way a selection translates: Farsi into English, anything else into
 // Farsi (the two languages Jot knows).
-export const translationTarget = (text: string) => (directionOf(text) === 'rtl' ? 'en' : 'fa')
+// Where a selection is translated (settings → translation): into the
+// chosen language (Farsi unless changed), or — when the text is already in
+// it — into the other one (English unless changed). Detected text counts as
+// already in a right-to-left target when it reads right to left; anything
+// else is caught after Google answers (TranslatePopover). The defaults give
+// what it always did: Farsi into English, everything else into Farsi.
+export interface TranslationPrefs {
+  from: string | null
+  to: string
+  back: string
+}
+export const translationPrefs = (s: { translateFrom?: string; translateTo?: string; translateBack?: string }): TranslationPrefs => ({
+  from: s.translateFrom ?? null,
+  to: s.translateTo ?? 'fa',
+  back: s.translateBack ?? 'en',
+})
+export function translationPlan(text: string, p: TranslationPrefs): { source: string | null; target: string; shown: string } {
+  const inTarget = p.from ? p.from === p.to : isRtlLanguage(p.to) && directionOf(text) === 'rtl'
+  return { source: p.from, target: inTarget ? p.back : p.to, shown: p.from ?? (inTarget ? p.to : p.back) }
+}
 
 export { anchorOf }

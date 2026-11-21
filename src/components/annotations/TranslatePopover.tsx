@@ -1,19 +1,20 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronDown } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { getSettings } from '@/lib/settings'
-import { LANGUAGES, translate } from '@/lib/translate'
+import { languageName, translate } from '@/lib/translate'
 import { viewsOf } from '@/editor/sessions'
-import { translationTarget } from '@/state/annotate'
+import { translationPlan, translationPrefs } from '@/state/annotate'
 import { useOverlays } from '@/state/overlays'
 import { useUi } from '@/state/ui'
+import { LanguagePicker } from './LanguagePicker'
 
 // Translating a selection (round 4, frame 8): Google Cloud Translation, no
 // AI. The original and its translation; copy it, or replace the selection
-// with it — a separate, explicit action. Farsi goes into English, anything
-// else into Farsi, and the target can be changed.
+// with it — a separate, explicit action. Where it goes is set in settings →
+// translation (Farsi into English, anything else into Farsi, unless
+// changed: state/annotate.ts translationPlan); both ends can be changed
+// here, from Google's whole list.
 
 const button = 'flex h-[22px] flex-none items-center whitespace-nowrap rounded-md border border-border bg-background px-[7px] font-mono text-[11px] text-secondary-foreground hover:text-foreground'
 const strong = 'flex h-[22px] flex-none items-center whitespace-nowrap rounded-md border border-foreground bg-foreground px-[7px] font-mono text-[11px] text-document disabled:opacity-50'
@@ -28,27 +29,38 @@ type Open = NonNullable<ReturnType<typeof useOverlays.getState>['translate']>
 type Result = ({ state: 'done'; text: string; from: string } | { state: 'error'; message: string }) & { for: string }
 
 function TranslateBody({ open, onClose }: { open: Open; onClose: () => void }) {
-  const key = useLiveQuery(() => getSettings().then((s) => s.translateKey?.key ?? null), [])
-  const [target, setTarget] = useState(() => translationTarget(open.text))
+  const settings = useLiveQuery(() => getSettings(), [])
+  const key = settings === undefined ? undefined : (settings.translateKey?.key ?? null)
+  const prefs = translationPrefs(settings ?? {})
+  const recent = settings?.translateRecent ?? []
+  const plan = translationPlan(open.text, prefs)
+  // What the person picked here, over the plan.
+  const [picked, setPicked] = useState<{ source?: string | null; target?: string }>({})
+  const source = picked.source !== undefined ? picked.source : plan.source
+  const target = picked.target ?? plan.target
+  const asked = `${source ?? ''}>${target}`
   const [answer, setAnswer] = useState<Result | null>(null)
-  // An answer counts only for the target it was asked for.
-  const result = answer && answer.for === target ? answer : { state: 'working' as const }
+  // An answer counts only for what it was asked for.
+  const result = answer && answer.for === asked ? answer : { state: 'working' as const }
   const openSettings = useUi((s) => s.openSettings)
 
   useEffect(() => {
     if (!key) return
     const ctrl = new AbortController()
-    translate(open.text, target, key, ctrl.signal)
-      .then((r) =>
+    translate(open.text, target, key, ctrl.signal, source)
+      .then((r) => {
+        // Already in the language it was sent to: into the other one instead.
+        if (r.ok && r.from === target && picked.target === undefined && target !== prefs.back) return setPicked((p) => ({ ...p, target: prefs.back }))
         setAnswer(
           r.ok
-            ? { for: target, state: 'done', text: r.text, from: r.from }
-            : { for: target, state: 'error', message: r.reason === 'offline' ? 'No connection.' : r.reason === 'rejected' ? `Google didn't accept the key${r.message ? `: ${r.message}` : '.'}` : (r.message ?? 'Google answered with an error.') },
-        ),
-      )
+            ? { for: asked, state: 'done', text: r.text, from: r.from }
+            : { for: asked, state: 'error', message: r.reason === 'offline' ? 'No connection.' : r.reason === 'rejected' ? `Google didn't accept the key${r.message ? `: ${r.message}` : '.'}` : (r.message ?? 'Google answered with an error.') },
+        )
+      })
       .catch(() => {})
     return () => ctrl.abort()
-  }, [key, target, open.text])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, asked, open.text])
 
   const replace = () => {
     if (result.state !== 'done') return
@@ -60,7 +72,8 @@ function TranslateBody({ open, onClose }: { open: Open; onClose: () => void }) {
     }
     onClose()
   }
-  const from = result.state === 'done' && result.from ? result.from : translationTarget(open.text) === 'en' ? 'fa' : 'en'
+  // The source as Google detected it, once it answers.
+  const shownSource = source ?? (result.state === 'done' && result.from ? result.from : plan.shown)
 
   return (
     <Popover open onOpenChange={(o) => !o && onClose()}>
@@ -70,23 +83,9 @@ function TranslateBody({ open, onClose }: { open: Open; onClose: () => void }) {
       <PopoverContent align="start" sideOffset={6} className="flex w-[330px] flex-col p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="flex items-center gap-2 border-b border-border-subtle px-3 py-2 font-mono text-[11px] text-ink-tertiary">
           <span className="flex-auto font-sans text-[12.5px] font-semibold text-foreground">translate</span>
-          <span>{LANGUAGES[from] ?? from}</span>
+          <LanguagePicker label="translate from" value={source} shown={languageName(shownSource)} detect recent={recent} onChange={(c) => setPicked((p) => ({ ...p, source: c }))} />
           <span>→</span>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button type="button" className="flex h-5 items-center gap-1 rounded-[5px] border border-border bg-background px-1.5 text-secondary-foreground hover:text-foreground">
-                {LANGUAGES[target] ?? target}
-                <ChevronDown size={11} strokeWidth={1.75} className="text-muted-foreground" aria-hidden />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {Object.entries(LANGUAGES).map(([code, name]) => (
-                <DropdownMenuItem key={code} onSelect={() => setTarget(code)}>
-                  {name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <LanguagePicker label="translate into" value={target} recent={recent} onChange={(c) => c && setPicked((p) => ({ ...p, target: c }))} />
         </div>
         {key === null ? (
           <div className="flex flex-col gap-2.5 px-3 pt-2.5 pb-3">

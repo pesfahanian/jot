@@ -3,16 +3,23 @@ import { useState } from 'react'
 import { getSettings, updateSettings } from '@/lib/settings'
 import { testTranslateKey } from '@/lib/translate'
 import { cn } from '@/lib/utils'
+import { LanguagePicker } from '@/components/annotations/LanguagePicker'
+import { translationPrefs } from '@/state/annotate'
 import { Grid, Label, quietButton, SectionHead } from './controls'
 
 // Settings → translation (round 4, frame 3a): a Google Cloud Translation
 // key, used only to translate a selection; no AI involved. Stored once a
-// test passes.
+// test passes. Below it, where a selection goes by default (owner,
+// 2026-11-21): from (detected unless chosen) into a language, and into
+// another when the text is already in it.
 
 const strong = 'flex h-[26px] items-center rounded-md border border-ink-tertiary bg-hover-lift px-[9px] font-mono text-[11px] text-foreground hover:border-foreground'
 
 export function TranslationSection() {
-  const current = useLiveQuery(() => getSettings().then((s) => s.translateKey ?? null), [])
+  const settings = useLiveQuery(() => getSettings(), [])
+  const current = settings === undefined ? undefined : (settings.translateKey ?? null)
+  const prefs = translationPrefs(settings ?? {})
+  const recent = settings?.translateRecent ?? []
   const [draft, setDraft] = useState('')
   const [state, setState] = useState<{ testing: boolean; error: string | null }>({ testing: false, error: null })
   const stored = current?.key ?? null
@@ -80,6 +87,20 @@ export function TranslationSection() {
               </a>
             </span>
           )}
+        </span>
+        <Label>from</Label>
+        <span className="flex items-center gap-2 text-ink-tertiary">
+          <LanguagePicker label="translate from" value={prefs.from} detect recent={recent} onChange={(c) => void updateSettings({ translateFrom: c ?? undefined })} className="h-[22px]" />
+          {prefs.from ? '' : 'Google works out the language'}
+        </span>
+        <Label>into</Label>
+        <span className="flex items-center gap-2 text-ink-tertiary">
+          <LanguagePicker label="translate into" value={prefs.to} recent={recent} onChange={(c) => c && void updateSettings({ translateTo: c })} className="h-[22px]" />
+        </span>
+        <Label>already in it</Label>
+        <span className="flex items-center gap-2 text-ink-tertiary">
+          <LanguagePicker label="translate text already in that language into" value={prefs.back} recent={recent} onChange={(c) => c && void updateSettings({ translateBack: c })} className="h-[22px]" />
+          · the translate popover can change both for one translation
         </span>
       </Grid>
     </>
