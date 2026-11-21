@@ -3,6 +3,7 @@ import { Dialog as D } from 'radix-ui'
 import { useEffect, useState, type ReactNode } from 'react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { db } from '@/lib/db'
+import { ENGLISH, PACKS } from '@/lib/languages'
 import { useMotion } from '@/lib/motion'
 import { getSettings, updateSettings } from '@/lib/settings'
 import { cn } from '@/lib/utils'
@@ -10,6 +11,7 @@ import { exportWorkspace, pickImport } from '@/state/actions'
 import { useTheme } from '@/state/theme'
 import { useUi, type SettingsSection } from '@/state/ui'
 import { Grid, Label, quietButton, Rule, SectionHead, Segmented, Switch } from './controls'
+import { LanguagesSection } from './LanguagesSection'
 import { ShortcutsSection } from './ShortcutsSection'
 import { TranslationSection } from './TranslationSection'
 
@@ -22,6 +24,7 @@ const NAV: { group: string; items: { label: string; section: SettingsSection }[]
     group: 'app',
     items: [
       { label: 'editor', section: 'editor' },
+      { label: 'languages', section: 'languages' },
       { label: 'appearance', section: 'appearance' },
       { label: 'keyboard shortcuts', section: 'shortcuts' },
       { label: 'translation', section: 'translation' },
@@ -186,6 +189,19 @@ function AboutPage() {
         </span>
         <span className="text-ink-tertiary">licence</span>
         <span>MIT</span>
+        <span className="text-ink-tertiary">spell-check</span>
+        <span className="text-secondary-foreground">Hunspell (MPL-1.1) · english: {ENGLISH.licence}</span>
+        <span className="text-ink-tertiary">language packs</span>
+        <span className="flex flex-col gap-0.5 text-secondary-foreground">
+          {PACKS.map((p) => (
+            <span key={p.code}>
+              {p.name}: {p.licence} ·{' '}
+              <a href={`/packs/${p.code}/LICENSE.txt`} target="_blank" rel="noreferrer" className="underline underline-offset-[3px] hover:text-foreground">
+                licence
+              </a>
+            </span>
+          ))}
+        </span>
         <span className="text-ink-tertiary">source</span>
         <span className="text-secondary-foreground">
           <a href="https://github.com/pesfahanian/jot" target="_blank" rel="noreferrer" className="underline underline-offset-[3px] hover:text-foreground">
@@ -250,6 +266,11 @@ export function SettingsModal() {
                 </Page>
               )}
               {section === 'editor' && <EditorPage />}
+              {section === 'languages' && (
+                <Page>
+                  <LanguagesSection />
+                </Page>
+              )}
               {section === 'appearance' && <AppearancePage />}
               {section === 'shortcuts' && <ShortcutsSection />}
               {section === 'storage' && <StoragePage />}

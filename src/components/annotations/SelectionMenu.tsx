@@ -1,10 +1,12 @@
+import { useLiveQuery } from 'dexie-react-hooks'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { covers } from '@/lib/annotations'
+import { getSettings } from '@/lib/settings'
 import { formatKey } from '@/lib/shortcuts'
 import { cn } from '@/lib/utils'
 import { activeEditor } from '@/editor/annotations'
 import { useAnnotations } from '@/state/annotations'
-import { addNote, highlightSelection, translateSelection, translationTarget, underlineSelection } from '@/state/annotate'
+import { addNote, highlightSelection, translateSelection, translationPlan, translationPrefs, underlineSelection } from '@/state/annotate'
 import { keysOf } from '@/state/commands'
 import { useOverlays } from '@/state/overlays'
 
@@ -25,12 +27,14 @@ export function SelectionMenu() {
   const lastColor = useOverlays((s) => s.lastColor)
   const set = useOverlays((s) => s.set)
   const list = useAnnotations((s) => (menu ? s.byDoc[menu.documentId] : undefined)) ?? NONE
+  // Where "translate" goes (settings → translation).
+  const settings = useLiveQuery(() => getSettings(), [])
   if (!menu) return null
   const ed = activeEditor()
   const text = ed?.view.state.sliceDoc(menu.from, menu.to) ?? ''
   const highlighted = covers(list, 'highlight', menu.from, menu.to, lastColor)
   const underlined = covers(list, 'underline', menu.from, menu.to)
-  const target = translationTarget(text)
+  const plan = translationPlan(text, translationPrefs(settings ?? {}))
   const mod = formatKey('Mod-x').slice(0, -1)
 
   // Cut and copy write the clipboard; paste reads it and replaces the
@@ -105,7 +109,7 @@ export function SelectionMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => translateSelection()}>
           <span className="flex-auto">translate</span>
-          <span className="pr-2 font-mono text-[11px] text-ink-tertiary">{target === 'fa' ? 'en → fa' : 'fa → en'}</span>
+          <span className="pr-2 font-mono text-[11px] text-ink-tertiary">{plan.source ?? plan.shown} → {plan.target}</span>
           {key('translate')}
         </DropdownMenuItem>
       </DropdownMenuContent>

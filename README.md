@@ -19,12 +19,12 @@ Open it and write. There's no account and no server. Your documents stay on your
 - Writes Farsi and mixed Farsi/English properly: right-to-left by paragraph, in the editor, preview and PDF
 - Compares two documents, or pasted text, side by side
 - Highlights, underlines and notes of your own, kept beside the text; they show in the preview, and print or export if you ask
-- Translates a selection between English and Farsi, and can fix clear typos as you write
+- Translates a selection (English and Farsi by default, or any language Google Translate knows), and can fix clear typos as you write — in English, and in Farsi, Arabic, French, Spanish, German or Dutch with a language pack
 - A command palette (Cmd/Ctrl + K) for every command and any document, with keyboard shortcuts you can change
 
 ## Privacy
 
-Everything is stored in your browser; there is no account and no server. Your writing leaves it only when you choose to translate a selection, sent to Google Translate with your own key. jot.software counts visits with Cloudflare Web Analytics, which uses no cookies and sees nothing of your documents.
+Everything is stored in your browser; there is no account and no server. Your writing leaves it only when you choose to translate a selection, sent to Google Translate with your own key. Language packs are downloaded from jot.software itself, only when you add one. jot.software counts visits with Cloudflare Web Analytics, which uses no cookies and sees nothing of your documents.
 
 That also means the browser holds the only copy. Each browser (and profile, and installed app) has its own separate workspace, and clearing site data erases it. Export the whole workspace as a `.zip` now and then: it's your backup, and dropping it on jot brings everything back. Safari deletes a site's data on its own after a week without use, so jot is better in Chrome, Firefox or Edge.
 

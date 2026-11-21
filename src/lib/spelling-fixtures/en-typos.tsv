@@ -1,0 +1,500 @@
+typed	expected	kind	source	before
+teh	the	swap	authored; attested: wikipedia,aspell	
+adn	and	swap	authored; attested: wikipedia	
+hte	the	swap	authored; attested: birkbeck,norvig	
+taht	that	swap	authored; attested: wikipedia,aspell	
+waht	what	swap	authored; attested: wikipedia	
+jsut	just	swap	authored; attested: wikipedia	
+becuase	because	swap	authored; attested: wikipedia	
+thier	their	swap	authored; attested: wikipedia,birkbeck	
+recieve	receive	swap	authored; attested: wikipedia,birkbeck,aspell,norvig	
+wierd	weird	swap	authored; attested: wikipedia,birkbeck,aspell	
+freind	friend	swap	authored; attested: wikipedia,birkbeck	
+beleive	believe	swap	authored; attested: wikipedia,birkbeck,aspell	
+acheive	achieve	swap	authored; attested: wikipedia,birkbeck	
+peice	piece	swap	authored; attested: wikipedia,birkbeck	
+feild	field	swap	authored; attested: birkbeck,holbrook	
+cheif	chief	swap	authored; attested: wikipedia,birkbeck	
+breif	brief	swap	authored; attested: wikipedia,birkbeck	
+thign	thing	swap	authored; attested: wikipedia	
+whcih	which	swap	authored; attested: wikipedia	
+wiht	with	swap	authored; attested: wikipedia,birkbeck,holbrook	
+wtih	with	swap	authored; attested: wikipedia	
+yuo	you	swap	authored; attested: wikipedia,birkbeck	
+ahve	have	swap	authored; attested: wikipedia	
+hvae	have	swap	authored; attested: wikipedia	
+knwo	know	swap	authored; attested: wikipedia	
+konw	know	swap	authored; attested: wikipedia	
+tihs	this	swap	authored; attested: wikipedia	
+htis	this	swap	authored; attested: wikipedia	
+thsi	this	swap	authored; attested: wikipedia	
+abotu	about	swap	authored; attested: wikipedia	
+mroe	more	swap	authored; attested: wikipedia,aspell	
+smae	same	swap	authored; attested: wikipedia	
+sohw	show	swap	authored; attested: wikipedia	
+shoudl	should	swap	authored; attested: wikipedia	
+woudl	would	swap	authored; attested: wikipedia	
+coudl	could	swap	authored; attested: wikipedia	
+peopel	people	swap	authored; attested: wikipedia,birkbeck	
+frist	first	swap	authored; attested: birkbeck	
+littel	little	swap	authored; attested: wikipedia,birkbeck	
+palce	place	swap	authored; attested: wikipedia	
+simpel	simple	swap	authored; attested: birkbeck	
+exmaple	example	swap	authored; attested: wikipedia	
+lenght	length	swap	authored; attested: wikipedia,birkbeck	
+aslo	also	swap	authored; attested: wikipedia,birkbeck	
+alos	also	swap	authored; attested: wikipedia	
+liek	like	swap	authored; attested: wikipedia	
+doign	doing	swap	authored; attested: wikipedia	
+gonig	going	swap	authored; attested: wikipedia	
+rigth	right	swap	authored; attested: birkbeck,holbrook	
+tiem	time	swap	authored; attested: wikipedia,birkbeck	
+mkae	make	swap	authored; attested: wikipedia	
+amke	make	swap	authored; attested: wikipedia	
+buisness	business	swap	authored; attested: wikipedia,birkbeck	
+recieved	received	swap	authored; attested: wikipedia,birkbeck	
+neice	niece	swap	authored; attested: wikipedia,birkbeck,aspell	
+langauge	language	swap	authored; attested: birkbeck	
+strenght	strength	swap	authored; attested: wikipedia,birkbeck	
+hieght	height	swap	authored; attested: wikipedia,birkbeck	
+heigth	height	swap	authored; attested: birkbeck	
+whihc	which	swap	authored; attested: wikipedia,birkbeck	
+scirpt	script	swap	authored; attested: wikipedia	
+thikn	think	swap	authored; attested: wikipedia	
+nver	never	swap	authored; attested: birkbeck	
+wnat	want	swap	authored; attested: wikipedia	
+occured	occurred	doubled	authored; attested: wikipedia,birkbeck	
+untill	until	doubled	authored; attested: wikipedia,birkbeck,holbrook	
+usefull	useful	doubled	authored; attested: wikipedia,birkbeck,norvig	
+comited	committed	doubled	authored; attested: wikipedia,birkbeck	
+recomend	recommend	doubled	authored; attested: wikipedia,birkbeck,norvig	
+accomodate	accommodate	doubled	authored; attested: wikipedia,birkbeck,aspell	
+adress	address	doubled	authored; attested: wikipedia,birkbeck,norvig	
+begining	beginning	doubled	authored; attested: wikipedia,birkbeck,norvig	
+tommorow	tomorrow	doubled	authored; attested: wikipedia	
+neccessary	necessary	doubled	authored; attested: wikipedia,birkbeck,aspell	
+necesary	necessary	doubled	authored; attested: wikipedia,aspell,norvig	
+sucess	success	doubled	authored; attested: wikipedia,birkbeck	
+succesful	successful	doubled	authored; attested: wikipedia,birkbeck,norvig	
+successfull	successful	doubled	authored; attested: wikipedia,birkbeck	
+embarass	embarrass	doubled	authored; attested: wikipedia,birkbeck,aspell,norvig	
+harrass	harass	doubled	authored; attested: birkbeck,aspell	
+posession	possession	doubled	authored; attested: wikipedia,birkbeck	
+proffesional	professional	doubled	authored; attested: wikipedia,birkbeck	
+refered	referred	doubled	authored; attested: wikipedia,birkbeck	
+prefered	preferred	doubled	authored; attested: wikipedia,birkbeck	
+transfered	transferred	doubled	authored; attested: wikipedia,birkbeck	
+writting	writing	doubled	authored; attested: birkbeck,aspell	
+writen	written	doubled	authored; attested: wikipedia,birkbeck	
+realy	really	doubled	authored; attested: wikipedia,birkbeck,holbrook,norvig	
+finaly	finally	doubled	authored; attested: wikipedia,birkbeck	
+carefull	careful	doubled	authored; attested: wikipedia,birkbeck,holbrook	
+comming	coming	doubled	authored; attested: wikipedia,birkbeck	
+runing	running	doubled	authored; attested: wikipedia,birkbeck	
+geting	getting	doubled	authored; attested: birkbeck,holbrook	
+stoped	stopped	doubled	authored; attested: birkbeck,holbrook,norvig	
+occassion	occasion	doubled	authored; attested: wikipedia,birkbeck	
+ocasion	occasion	doubled	authored; attested: wikipedia	
+millenium	millennium	doubled	authored; attested: wikipedia,aspell	
+agressive	aggressive	doubled	authored; attested: wikipedia	
+aggresive	aggressive	doubled	authored; attested: wikipedia,aspell	
+dissapear	disappear	doubled	authored; attested: wikipedia,birkbeck	
+dissapoint	disappoint	doubled	authored; attested: birkbeck	
+dilema	dilemma	doubled	authored; attested: birkbeck	
+mispell	misspell	doubled	authored; attested: wikipedia	
+exagerate	exaggerate	doubled	authored; attested: wikipedia,birkbeck	
+paralell	parallel	doubled	authored; attested: wikipedia,birkbeck,norvig	
+comittee	committee	doubled	authored; attested: wikipedia,birkbeck,norvig	
+accross	across	doubled	authored; attested: wikipedia,birkbeck	
+allready	already	doubled	authored; attested: wikipedia,birkbeck	
+allmost	almost	doubled	authored; attested: birkbeck	
+hapen	happen	doubled	authored; attested: wikipedia,birkbeck	
+beter	better	doubled	authored; attested: birkbeck,holbrook	
+diferent	different	doubled	authored; attested: wikipedia	
+efect	effect	doubled	authored; attested: birkbeck	
+oportunity	opportunity	doubled	authored; attested: wikipedia	
+suport	support	doubled	authored; attested: birkbeck	
+supress	suppress	doubled	authored; attested: wikipedia,birkbeck	
+apear	appear	doubled	authored; attested: birkbeck	
+apreciate	appreciate	doubled	authored; attested: birkbeck	
+imediately	immediately	doubled	authored; attested: wikipedia,birkbeck	
+mesage	message	doubled	authored; attested: birkbeck	
+actualy	actually	doubled	authored; attested: wikipedia,birkbeck	
+reccomend	recommend	doubled	authored; attested: wikipedia,birkbeck,aspell	
+wellcome	welcome	doubled	authored; attested: birkbeck	
+tatoo	tattoo	doubled	authored; attested: wikipedia,birkbeck	
+goverment	government	dropped	authored; attested: wikipedia,birkbeck,norvig	
+enviroment	environment	dropped	authored; attested: wikipedia,birkbeck,aspell	
+probaly	probably	dropped	authored; attested: wikipedia,birkbeck	
+libary	library	dropped	authored; attested: wikipedia,birkbeck,aspell	
+febuary	February	dropped	authored; attested: wikipedia,birkbeck,norvig	
+wich	which	dropped	authored; attested: wikipedia,birkbeck,holbrook	
+diffrent	different	dropped	authored; attested: wikipedia,birkbeck,holbrook,norvig	
+intresting	interesting	dropped	authored; attested: birkbeck,norvig	
+temprature	temperature	dropped	authored; attested: birkbeck	
+familar	familiar	dropped	authored; attested: birkbeck	
+rember	remember	dropped	authored; attested: birkbeck,norvig	
+becaus	because	dropped	authored; attested: birkbeck	
+beause	because	dropped	authored; attested: birkbeck	
+knowlege	knowledge	dropped	authored; attested: wikipedia,birkbeck	
+immediatly	immediately	dropped	authored; attested: wikipedia,birkbeck	
+definitly	definitely	dropped	authored; attested: wikipedia,birkbeck	
+suprise	surprise	dropped	authored; attested: wikipedia,birkbeck	
+quater	quarter	dropped	authored; attested: birkbeck	
+writng	writing	dropped	authored	
+docment	document	dropped	authored	
+sentnce	sentence	dropped	authored	
+paragrah	paragraph	dropped	authored	
+finshed	finished	dropped	authored; attested: birkbeck	
+finsh	finish	dropped	authored; attested: birkbeck	
+intrest	interest	dropped	authored; attested: wikipedia,birkbeck,norvig	
+particulary	particularly	dropped	authored; attested: wikipedia,birkbeck,norvig	
+basicaly	basically	dropped	authored; attested: wikipedia,norvig	
+accidently	accidentally	dropped	authored; attested: wikipedia,birkbeck,aspell	
+incidently	incidentally	dropped	authored; attested: wikipedia,birkbeck	
+lenth	length	dropped	authored; attested: birkbeck	
+mornig	morning	dropped	authored; attested: birkbeck	
+evrything	everything	dropped	authored	
+evry	every	dropped	authored; attested: birkbeck,holbrook	
+somthing	something	dropped	authored; attested: birkbeck,holbrook	
+nothng	nothing	dropped	authored	
+anythng	anything	dropped	authored	
+probem	problem	dropped	authored	
+importnt	important	dropped	authored	
+managment	management	dropped	authored; attested: wikipedia,birkbeck,norvig	
+develoment	development	dropped	authored	
+enginer	engineer	dropped	authored; attested: birkbeck	
+compter	computer	dropped	authored	
+keybord	keyboard	dropped	authored	
+softwre	software	dropped	authored	
+configration	configuration	dropped	authored	
+reponse	response	dropped	authored; attested: wikipedia	
+requst	request	dropped	authored; attested: birkbeck	
+sevice	service	dropped	authored; attested: wikipedia	
+ninty	ninety	dropped	authored; attested: wikipedia,birkbeck,holbrook	
+noticable	noticeable	dropped	authored; attested: wikipedia,birkbeck	
+sincerly	sincerely	dropped	authored; attested: birkbeck	
+wendsday	Wednesday	dropped	authored	
+perfomance	performance	dropped	authored; attested: wikipedia	
+refrence	reference	dropped	authored; attested: wikipedia	
+diffrence	difference	dropped	authored; attested: birkbeck	
+ther	there	dropped	authored; attested: wikipedia,birkbeck,holbrook,norvig	
+mathmatics	mathematics	dropped	authored; attested: birkbeck	
+concious	conscious	dropped	authored; attested: wikipedia,birkbeck	
+ofen	often	dropped	authored; attested: birkbeck,norvig	
+thoght	thought	dropped	authored	
+arguement	argument	extra	authored; attested: wikipedia,birkbeck	
+developement	development	extra	authored; attested: wikipedia,birkbeck,aspell	
+truely	truly	extra	authored; attested: wikipedia,birkbeck	
+publically	publicly	extra	authored; attested: wikipedia,birkbeck	
+excercise	exercise	extra	authored; attested: wikipedia,birkbeck,aspell	
+fourty	forty	extra	authored; attested: wikipedia,birkbeck	
+useage	usage	extra	authored; attested: wikipedia,birkbeck	
+whereever	wherever	extra	authored; attested: wikipedia,birkbeck	
+pronounciation	pronunciation	extra	authored; attested: wikipedia,birkbeck,aspell,norvig	
+potatoe	potato	extra	authored; attested: birkbeck	
+writeing	writing	extra	authored; attested: birkbeck,holbrook	
+useing	using	extra	authored; attested: wikipedia,birkbeck	
+makeing	making	extra	authored; attested: birkbeck	
+comeing	coming	extra	authored; attested: birkbeck,holbrook	
+haveing	having	extra	authored; attested: birkbeck,holbrook	
+takeing	taking	extra	authored; attested: birkbeck,holbrook	
+thje	the	extra	authored	
+anmd	and	extra	authored	
+tyhe	the	extra	authored	
+wiuth	with	extra	authored	
+abnd	and	extra	authored	
+fromm	from	extra	authored	
+wheree	where	extra	authored	
+hellow	hello	extra	authored; attested: birkbeck	
+helpe	help	extra	authored	
+thaen	than	extra	authored	
+whwere	where	extra	authored	
+contiune	continue	extra	authored	
+becausse	because	extra	authored	
+rhe	the	neighbour	authored	
+tge	the	neighbour	authored	
+thw	the	neighbour	authored; attested: birkbeck,aspell,norvig	
+yhe	the	neighbour	authored	
+anf	and	neighbour	authored; attested: birkbeck,norvig	
+abd	and	neighbour	authored	
+wirh	with	neighbour	authored	
+tgat	that	neighbour	authored	
+thst	that	neighbour	authored	
+whst	what	neighbour	authored	
+wgat	what	neighbour	authored	
+becsuse	because	neighbour	authored	
+peoole	people	neighbour	authored	
+pwople	people	neighbour	authored	
+somwthing	something	neighbour	authored	
+goinf	going	neighbour	authored	
+doinf	doing	neighbour	authored	
+thinf	thing	neighbour	authored	
+workinh	working	neighbour	authored	
+wprk	work	neighbour	authored	
+eork	work	neighbour	authored	
+coukd	could	neighbour	authored	
+woukd	would	neighbour	authored	
+shoukd	should	neighbour	authored	
+kmow	know	neighbour	authored	
+knoe	know	neighbour	authored	
+hsve	have	neighbour	authored	
+habe	have	neighbour	authored	
+mafe	made	neighbour	authored	
+tume	time	neighbour	authored	
+likr	like	neighbour	authored	
+ofyen	often	neighbour	authored	
+pleade	please	neighbour	authored	
+pleasw	please	neighbour	authored	
+thsnk	thank	neighbour	authored	
+rhank	thank	neighbour	authored	
+rhink	think	neighbour	authored	
+thibk	think	neighbour	authored	
+nrver	never	neighbour	authored	
+wjen	when	neighbour	authored	
+whwn	when	neighbour	authored	
+wheb	when	neighbour	authored	
+tiday	today	neighbour	authored	
+todsy	today	neighbour	authored	
+wiyh	with	neighbour	authored	
+frim	from	neighbour	authored	
+ftom	from	neighbour	authored	
+qhat	what	neighbour	authored	
+jusr	just	neighbour	authored	
+bwcause	because	neighbour	authored	
+ststus	status	neighbour	authored	
+definately	definitely	phonetic	authored; attested: wikipedia,birkbeck,aspell,norvig	
+seperate	separate	phonetic	authored; attested: wikipedia,birkbeck,aspell,norvig	
+independant	independent	phonetic	authored; attested: wikipedia,birkbeck,aspell,norvig	
+existance	existence	phonetic	authored; attested: wikipedia,birkbeck,aspell	
+apparant	apparent	phonetic	authored; attested: wikipedia,birkbeck,norvig	
+calender	calendar	phonetic	authored; attested: wikipedia,birkbeck	
+cemetary	cemetery	phonetic	authored; attested: wikipedia,birkbeck,aspell,norvig	
+concensus	consensus	phonetic	authored; attested: wikipedia,birkbeck,aspell	
+grammer	grammar	phonetic	authored; attested: wikipedia,birkbeck,aspell	
+guage	gauge	phonetic	authored; attested: wikipedia,birkbeck	
+liason	liaison	phonetic	authored; attested: wikipedia,aspell,norvig	
+maintainance	maintenance	phonetic	authored; attested: wikipedia,birkbeck	
+mischievious	mischievous	phonetic	authored; attested: wikipedia,birkbeck,aspell	
+occurence	occurrence	phonetic	authored; attested: wikipedia,birkbeck,aspell,norvig	
+persue	pursue	phonetic	authored; attested: wikipedia,birkbeck,aspell	
+posess	possess	phonetic	authored; attested: wikipedia,birkbeck	
+privelege	privilege	phonetic	authored; attested: wikipedia,birkbeck	
+relevent	relevant	phonetic	authored; attested: wikipedia,birkbeck	
+rythm	rhythm	phonetic	authored; attested: wikipedia,birkbeck	
+tendancy	tendency	phonetic	authored; attested: wikipedia,birkbeck	
+threshhold	threshold	phonetic	authored; attested: wikipedia	
+tounge	tongue	phonetic	authored; attested: wikipedia,birkbeck	
+responsable	responsible	phonetic	authored; attested: birkbeck	
+irresistable	irresistible	phonetic	authored; attested: wikipedia,birkbeck,aspell	
+managable	manageable	phonetic	authored; attested: wikipedia,birkbeck	
+sentance	sentence	phonetic	authored; attested: birkbeck	
+begginer	beginner	phonetic	authored; attested: wikipedia	
+desparate	desperate	phonetic	authored; attested: wikipedia,birkbeck,aspell	
+compatable	compatible	phonetic	authored; attested: wikipedia	
+dependancy	dependency	phonetic	authored; attested: wikipedia	
+persistant	persistent	phonetic	authored; attested: wikipedia	
+consistant	consistent	phonetic	authored; attested: wikipedia,birkbeck	
+resistence	resistance	phonetic	authored; attested: wikipedia	
+heirarchy	hierarchy	phonetic	authored; attested: wikipedia,birkbeck	
+questionaire	questionnaire	phonetic	authored; attested: birkbeck,norvig	
+rediculous	ridiculous	phonetic	authored; attested: wikipedia,birkbeck	
+sieze	seize	phonetic	authored; attested: wikipedia,birkbeck,aspell	
+speach	speech	phonetic	authored; attested: wikipedia,birkbeck	
+strech	stretch	phonetic	authored; attested: birkbeck	
+catagory	category	phonetic	authored; attested: wikipedia	
+commited	committed	phonetic	authored; attested: wikipedia,birkbeck,aspell	
+completly	completely	phonetic	authored; attested: birkbeck,norvig	
+curiousity	curiosity	phonetic	authored; attested: birkbeck	
+explaination	explanation	phonetic	authored; attested: wikipedia,birkbeck	
+foriegn	foreign	phonetic	authored; attested: wikipedia,birkbeck	
+gaurd	guard	phonetic	authored; attested: wikipedia,birkbeck,aspell	
+garantee	guarantee	phonetic	authored; attested: wikipedia,birkbeck	
+happend	happened	phonetic	authored; attested: wikipedia,birkbeck,holbrook	
+ignorence	ignorance	phonetic	authored; attested: birkbeck	
+knowledgable	knowledgeable	phonetic	authored; attested: wikipedia	
+medecine	medicine	phonetic	authored; attested: birkbeck	
+minature	miniature	phonetic	authored; attested: wikipedia,birkbeck	
+physicaly	physically	phonetic	authored; attested: wikipedia	
+pharoah	pharaoh	phonetic	authored; attested: wikipedia	
+playright	playwright	phonetic	authored; attested: wikipedia	
+preceed	precede	phonetic	authored; attested: wikipedia	
+recipt	receipt	phonetic	authored; attested: birkbeck,norvig	
+religous	religious	phonetic	authored; attested: wikipedia,birkbeck	
+repitition	repetition	phonetic	authored; attested: birkbeck,aspell	
+restarant	restaurant	phonetic	authored; attested: wikipedia,birkbeck	
+shedule	schedule	phonetic	authored; attested: birkbeck	
+unforseen	unforeseen	phonetic	authored; attested: wikipedia,birkbeck	
+visable	visible	phonetic	authored; attested: wikipedia,birkbeck	
+alchohol	alcohol	phonetic	authored; attested: wikipedia,birkbeck,aspell	
+athiest	atheist	phonetic	authored; attested: wikipedia	
+dont	don't	apostrophe	authored; attested: holbrook	
+isnt	isn't	apostrophe	authored; attested: wikipedia	
+doesnt	doesn't	apostrophe	authored; attested: wikipedia	
+didnt	didn't	apostrophe	authored; attested: wikipedia	
+wasnt	wasn't	apostrophe	authored; attested: wikipedia,holbrook	
+werent	weren't	apostrophe	authored; attested: birkbeck	
+couldnt	couldn't	apostrophe	authored; attested: holbrook	
+wouldnt	wouldn't	apostrophe	authored	
+shouldnt	shouldn't	apostrophe	authored; attested: wikipedia	
+havent	haven't	apostrophe	authored	
+hasnt	hasn't	apostrophe	authored; attested: wikipedia	
+hadnt	hadn't	apostrophe	authored; attested: birkbeck,holbrook	
+arent	aren't	apostrophe	authored; attested: holbrook	
+youre	you're	apostrophe	authored	
+theyre	they're	apostrophe	authored; attested: wikipedia	
+ive	I've	apostrophe	authored; attested: holbrook	
+thats	that's	apostrophe	authored; attested: holbrook	
+whats	what's	apostrophe	authored; attested: holbrook	
+theres	there's	apostrophe	authored; attested: holbrook	
+weve	we've	apostrophe	authored	
+youve	you've	apostrophe	authored	
+theyve	they've	apostrophe	authored	
+youll	you'll	apostrophe	authored	
+theyll	they'll	apostrophe	authored	
+itll	it'll	apostrophe	authored	
+wouldve	would've	apostrophe	authored	
+shouldve	should've	apostrophe	authored	
+couldve	could've	apostrophe	authored	
+mustnt	mustn't	apostrophe	authored; attested: birkbeck	
+neednt	needn't	apostrophe	authored	
+aint	ain't	apostrophe	authored	
+hes	he's	apostrophe	authored	
+colour		british-american	authored	
+color		british-american	authored	
+organise		british-american	authored	
+organize		british-american	authored	
+realise		british-american	authored	
+realize		british-american	authored	
+centre		british-american	authored	
+center		british-american	authored	
+travelling		british-american	authored	
+traveling		british-american	authored	
+cancelled		british-american	authored	
+canceled		british-american	authored	
+grey		british-american	authored	
+gray		british-american	authored	
+favourite		british-american	authored	
+favorite		british-american	authored	
+behaviour		british-american	authored	
+behavior		british-american	authored	
+analyse		british-american	authored	
+analyze		british-american	authored	
+defence		british-american	authored	
+defense		british-american	authored	
+licence		british-american	authored	
+license		british-american	authored	
+catalogue		british-american	authored	
+catalog		british-american	authored	
+judgement		british-american	authored	
+judgment		british-american	authored	
+honour		british-american	authored	
+honor		british-american	authored	
+sceptical		british-american	authored	
+skeptical		british-american	authored	
+fulfil		british-american	authored	
+fulfill		british-american	authored	
+manoeuvre		british-american	authored	
+maneuver		british-american	authored	
+modelling		british-american	authored	
+modeling		british-american	authored	
+optimise		british-american	authored	
+optimize		british-american	authored	
+dependant		british-american	authored	
+skilful		british-american	authored	
+form		leave-alone	authored	
+from		leave-alone	authored	
+there		leave-alone	authored	
+their		leave-alone	authored	
+then		leave-alone	authored	
+than		leave-alone	authored	
+affect		leave-alone	authored	
+effect		leave-alone	authored	
+loose		leave-alone	authored	
+lose		leave-alone	authored	
+accept		leave-alone	authored	
+except		leave-alone	authored	
+its		leave-alone	authored	
+your		leave-alone	authored	
+too		leave-alone	authored	
+two		leave-alone	authored	
+quite		leave-alone	authored	
+quiet		leave-alone	authored	
+weather		leave-alone	authored	
+whether		leave-alone	authored	
+principal		leave-alone	authored	
+principle		leave-alone	authored	
+stationary		leave-alone	authored	
+stationery		leave-alone	authored	
+complement		leave-alone	authored	
+compliment		leave-alone	authored	
+cant		leave-alone	authored	
+wont		leave-alone	authored	
+lets		leave-alone	authored	
+well		leave-alone	authored	
+were		leave-alone	authored	
+ill		leave-alone	authored	
+lead		leave-alone	authored	
+led		leave-alone	authored	
+dessert		leave-alone	authored	
+desert		leave-alone	authored	
+breath		leave-alone	authored	
+advice		leave-alone	authored	
+alot		leave-alone	authored	
+ok		leave-alone	authored	
+eg		leave-alone	authored	
+ie		leave-alone	authored	
+ot		leave-alone	authored	
+si		leave-alone	authored	
+x2		leave-alone	authored	
+h1		leave-alone	authored	
+v8		leave-alone	authored	
+useState		leave-alone	authored	
+foo_bar		leave-alone	authored	
+README		leave-alone	authored	
+iPhone		leave-alone	authored	
+JavaScript		leave-alone	authored	
+TODO		leave-alone	authored	
+they're		leave-alone	authored	
+it's		leave-alone	authored	
+Teh	The	sentence-start	authored; attested: wikipedia,aspell	
+Teh	The	sentence-start	authored; attested: wikipedia,aspell	It works. 
+Teh	The	sentence-start	authored; attested: wikipedia,aspell	# 
+Teh	The	sentence-start	authored; attested: wikipedia,aspell	- 
+Thsi	This	sentence-start	authored; attested: wikipedia	1. 
+Becuase	Because	sentence-start	authored; attested: wikipedia	. 
+Waht	What	sentence-start	authored; attested: wikipedia	> 
+Thier	Their	sentence-start	authored; attested: wikipedia,birkbeck	## 
+Definately	Definitely	sentence-start	authored; attested: wikipedia,birkbeck,aspell,norvig	. 
+Seperate	Separate	sentence-start	authored; attested: wikipedia,birkbeck,aspell,norvig	
+Dont	Don't	sentence-start	authored; attested: holbrook	. 
+Isnt	Isn't	sentence-start	authored; attested: wikipedia	Done! 
+Goverment	Government	sentence-start	authored; attested: wikipedia,birkbeck,norvig	# 
+Untill	Until	sentence-start	authored; attested: wikipedia,birkbeck,holbrook	
+Occured	Occurred	sentence-start	authored; attested: wikipedia,birkbeck	. 
+Wierd	Weird	sentence-start	authored; attested: wikipedia,birkbeck,aspell	Really? 
+Freind	Friend	sentence-start	authored; attested: wikipedia,birkbeck	- 
+Probaly	Probably	sentence-start	authored; attested: wikipedia,birkbeck	. 
+Tommorow	Tomorrow	sentence-start	authored; attested: wikipedia	# 
+Hte	The	sentence-start	authored; attested: birkbeck,norvig	
+Rhe	The	sentence-start	authored	. 
+Intresting	Interesting	sentence-start	authored; attested: birkbeck,norvig	. 
+Immediatly	Immediately	sentence-start	authored; attested: wikipedia,birkbeck	* 
+Actualy	Actually	sentence-start	authored; attested: wikipedia,birkbeck	. 
+Finaly	Finally	sentence-start	authored; attested: wikipedia,birkbeck	## 
+Recieve	Receive	sentence-start	authored; attested: wikipedia,birkbeck,aspell,norvig	+ 
+Wouldnt	Wouldn't	sentence-start	authored	. 
+Alot		sentence-start	authored	. 
+Colour		sentence-start	authored	. 
+Color		sentence-start	authored	
+Organise		sentence-start	authored	# 
+Tuesday		sentence-start	authored	
+London		sentence-start	authored	. 
+The		sentence-start	authored	. 
+Their		sentence-start	authored	
+Teh		sentence-start	authored	I met 
+Recieve		sentence-start	authored	we 
+Kubernetes		sentence-start	authored	with 
+Dijkstra		sentence-start	authored	by 
+Becuase		sentence-start	authored	and 
+TEH		sentence-start	authored	

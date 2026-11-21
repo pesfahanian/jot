@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode, type SyntheticEvent } from 'react'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
 import type { JotDocument, TagColor } from '@/lib/db'
 import { TAG_SLOTS } from '@/lib/docList'
@@ -12,6 +12,35 @@ import { tagClass } from './tagClass'
 // tab. Colors sit at the top in the fixed slot order, "no color" as a seventh
 // slot; the assigned one is ringed. Assigning replaces (ADR-007).
 export function DocumentMenu({ doc, children }: { doc: JotDocument; children: ReactNode }) {
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
+      <DocumentMenuContent doc={doc} />
+    </ContextMenu>
+  )
+}
+
+// One menu for a whole list of rows (the sidebar; memory report, finding
+// 4): each row used to carry its own. It opens for the row under the
+// pointer — or the focused row, for the keyboard's menu key — found by its
+// data-doc-id; anywhere else in the list it stays out of the way.
+export function DocumentListMenu({ docsById, children }: { docsById: ReadonlyMap<string, JotDocument>; children: ReactNode }) {
+  const [id, setId] = useState<string | null>(null)
+  const pick = (e: SyntheticEvent) => setId((e.target as Element).closest?.('[data-doc-id]')?.getAttribute('data-doc-id') ?? null)
+  const doc = id ? docsById.get(id) : undefined
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild disabled={!doc}>
+        <div className="contents" onPointerDownCapture={pick} onFocusCapture={pick}>
+          {children}
+        </div>
+      </ContextMenuTrigger>
+      {doc && <DocumentMenuContent doc={doc} />}
+    </ContextMenu>
+  )
+}
+
+function DocumentMenuContent({ doc }: { doc: JotDocument }) {
   const setRenaming = useWorkspace((s) => s.setRenaming)
   const slot = (color: TagColor | null) => {
     const selected = doc.color === color
@@ -31,53 +60,50 @@ export function DocumentMenu({ doc, children }: { doc: JotDocument; children: Re
   }
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
-      <ContextMenuContent
-        className="w-[196px]"
-        // Closing hands focus back to the row (the menu holds it until then,
-        // so the name field can't take it earlier). After "rename" it goes to
-        // the name field instead, whole name selected, so typing replaces it.
-        onCloseAutoFocus={(e) => {
-          if (useWorkspace.getState().renamingId !== doc.id) return
-          e.preventDefault()
-          const field = document.querySelector<HTMLInputElement>('input[data-rename-field]')
-          field?.focus()
-          field?.select()
-        }}
-      >
-        <div className="flex items-center gap-[5px] px-1.5 pt-1 pb-1.5">
-          {TAG_SLOTS.map(slot)}
-          {slot(null)}
-        </div>
-        <div className="-mx-1 mb-1 h-px bg-border-subtle" />
-        <ContextMenuItem onSelect={() => setRenaming(doc.id)}>
-          <span className="flex w-3.5 justify-center">
-            <span className="block h-[1.5px] w-[11px] bg-current" />
-          </span>
-          rename
-        </ContextMenuItem>
-        <ContextMenuItem onSelect={() => void setPinned(doc.id, !doc.pinned)}>
-          <span className="flex w-3.5 justify-center">
-            <PinIcon />
-          </span>
-          {doc.pinned ? 'unpin' : 'pin'}
-        </ContextMenuItem>
-        <div className="-mx-1 my-1 h-px bg-border-subtle" />
-        {/* The diff checker: this document on "original", the picker open
-            on "changed". */}
-        <ContextMenuItem onSelect={() => void newComparison({ docId: doc.id })}>
-          <span className="flex w-3.5 justify-center">
-            <DiffIcon />
-          </span>
-          compare with…
-        </ContextMenuItem>
-        <div className="-mx-1 my-1 h-px bg-border-subtle" />
-        <ContextMenuItem onSelect={() => void deleteWithUndo(doc)}>
-          <span className="flex w-3.5 justify-center font-mono text-[13px] text-ink-tertiary">×</span>
-          delete
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+    <ContextMenuContent
+      className="w-[196px]"
+      // Closing hands focus back to the row (the menu holds it until then,
+      // so the name field can't take it earlier). After "rename" it goes to
+      // the name field instead, whole name selected, so typing replaces it.
+      onCloseAutoFocus={(e) => {
+        if (useWorkspace.getState().renamingId !== doc.id) return
+        e.preventDefault()
+        const field = document.querySelector<HTMLInputElement>('input[data-rename-field]')
+        field?.focus()
+        field?.select()
+      }}
+    >
+      <div className="flex items-center gap-[5px] px-1.5 pt-1 pb-1.5">
+        {TAG_SLOTS.map(slot)}
+        {slot(null)}
+      </div>
+      <div className="-mx-1 mb-1 h-px bg-border-subtle" />
+      <ContextMenuItem onSelect={() => setRenaming(doc.id)}>
+        <span className="flex w-3.5 justify-center">
+          <span className="block h-[1.5px] w-[11px] bg-current" />
+        </span>
+        rename
+      </ContextMenuItem>
+      <ContextMenuItem onSelect={() => void setPinned(doc.id, !doc.pinned)}>
+        <span className="flex w-3.5 justify-center">
+          <PinIcon />
+        </span>
+        {doc.pinned ? 'unpin' : 'pin'}
+      </ContextMenuItem>
+      <div className="-mx-1 my-1 h-px bg-border-subtle" />
+      {/* The diff checker: this document on "original", the picker open
+          on "changed". */}
+      <ContextMenuItem onSelect={() => void newComparison({ docId: doc.id })}>
+        <span className="flex w-3.5 justify-center">
+          <DiffIcon />
+        </span>
+        compare with…
+      </ContextMenuItem>
+      <div className="-mx-1 my-1 h-px bg-border-subtle" />
+      <ContextMenuItem onSelect={() => void deleteWithUndo(doc)}>
+        <span className="flex w-3.5 justify-center font-mono text-[13px] text-ink-tertiary">×</span>
+        delete
+      </ContextMenuItem>
+    </ContextMenuContent>
   )
 }

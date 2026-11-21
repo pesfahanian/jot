@@ -27,7 +27,8 @@ function siteHeaders(): Record<string, string> {
 // and works offline. Older font formats (.woff, .ttf) are left out —
 // browsers that run service workers all take .woff2. Not in dev.
 function offline(): Plugin {
-  const skip = (f: string) => /\.(map|woff|ttf)$/.test(f) || f === '_headers' || f.endsWith('LICENSE.txt') || f === 'sw.js'
+  // Language packs (packs/) are downloaded only when someone adds one.
+  const skip = (f: string) => /\.(map|woff|ttf)$/.test(f) || f === '_headers' || f.endsWith('LICENSE.txt') || f === 'sw.js' || f.startsWith('packs/')
   const walk = (dir: string, base = ''): string[] =>
     readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name), `${base}${e.name}/`) : [`${base}${e.name}`]))
   return {
@@ -78,16 +79,37 @@ function webAnalytics(): Plugin {
   }
 }
 
+// lang-markdown imports lang-html statically for its markdown() helper,
+// which Jot doesn't use (editor/codeLanguages.ts builds the language by
+// hand). That one edge kept the HTML, CSS and JavaScript grammars in the
+// main bundle (~140 KB) though ```html fences load them on demand anyway
+// (memory report, finding 5). lang-markdown gets a stand-in; fences still
+// load the real grammars.
+function noEagerHtml(): Plugin {
+  return {
+    name: 'jot-no-eager-html',
+    enforce: 'pre',
+    resolveId(source, importer) {
+      if (source === '@codemirror/lang-html' && importer && /lang-markdown/.test(importer)) return '\0lang-html-stub'
+    },
+    load(id) {
+      if (id === '\0lang-html-stub') return 'export const html = () => []; export const htmlCompletionSource = () => null'
+    },
+  }
+}
+
 const pkg = JSON.parse(readFileSync(path.resolve(import.meta.dirname, 'package.json'), 'utf8')) as { version: string }
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), webAnalytics(), offline()],
+  plugins: [noEagerHtml(), react(), tailwindcss(), webAnalytics(), offline()],
   // Settings → about: the version and the day it was built.
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
     __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),
   },
+  // The speller worker loads Hunspell's WebAssembly with import().
+  worker: { format: 'es' },
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),

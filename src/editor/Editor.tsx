@@ -16,6 +16,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef } from 'react'
 import { getSettings } from '@/lib/settings'
 import { takeTypeAhead } from '@/state/actions'
+import { useCursor } from '@/state/cursor'
 import { useWorkspace } from '@/state/workspace'
 import { columnsOf } from '@/state/layout'
 import { markdownWithCode } from './codeLanguages'
@@ -48,8 +49,11 @@ const isRenaming = (documentId: string) => useWorkspace.getState().renamingId ==
 function reportCursor(view: EditorView, documentId: string) {
   const head = view.state.selection.main.head
   const line = view.state.doc.lineAt(head)
-  useWorkspace.getState().setCursor({ documentId, line: line.number, col: head - line.from + 1 })
+  useCursor.getState().set({ documentId, line: line.number, col: head - line.from + 1 })
 }
+
+// The minimap setting as last read (default on).
+let lastMinimapSetting = true
 
 // One CodeMirror view bound to one document in one pane. Remount (key by
 // id) to switch documents. Text lives in the document's shared session, so
@@ -61,7 +65,10 @@ export function Editor({ documentId, initialContent, paneId, focused }: EditorPr
   const focusedRef = useRef(focused)
   focusedRef.current = focused
   // Minimap: the setting (default on), and never with three columns open.
-  const minimapSetting = useLiveQuery(() => getSettings().then((s) => s.minimap ?? true), []) ?? true
+  // Until this editor's read of the setting answers, the last known answer
+  // (memory report, finding 1): an editor no longer builds a minimap only to
+  // take it down again when the setting is off.
+  const minimapSetting = useLiveQuery(() => getSettings().then((s) => (lastMinimapSetting = s.minimap ?? true)), []) ?? lastMinimapSetting
   const columnCount = useWorkspace((s) => columnsOf(s.panes).length)
   const minimapOn = minimapSetting && columnCount < 3
   // The document's direction setting (Farsi support), live.

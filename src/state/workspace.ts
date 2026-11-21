@@ -17,12 +17,6 @@ export const SIDEBAR_DEFAULT = 248
 // while it's showing, else the draft's own tab. One place only.
 export const draftFieldInSidebar = (s: { sidebarOpen: boolean }) => s.sidebarOpen
 
-export interface CursorStatus {
-  documentId: string
-  line: number
-  col: number
-}
-
 export interface DeletedEntry {
   doc: JotDocument
   // Where it was open, so undo can put the tabs back.
@@ -55,7 +49,6 @@ interface WorkspaceState {
   // clicking into the page creates it untitled; anything else drops it,
   // and nothing is written. Never part of the saved layout.
   draft: { paneId: string; nonce: number } | null
-  cursor: CursorStatus | null
   // A pending "move the cursor here" for a document, e.g. from a search hit.
   reveal: { documentId: string; line: number; nonce: number } | null
   toast: Toast | null
@@ -90,7 +83,6 @@ interface WorkspaceState {
   setRenaming(id: string | null): void
   startDraft(): void
   cancelDraft(): void
-  setCursor(c: CursorStatus | null): void
   showToast(t: Toast | null): void
 }
 
@@ -112,7 +104,6 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   searchQuery: '',
   renamingId: null,
   draft: null,
-  cursor: null,
   reveal: null,
   toast: null,
   dragTab: null,
@@ -345,7 +336,6 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     set({ draft: { paneId: ws.focusedPaneId, nonce: Date.now() }, renamingId: null })
   },
   cancelDraft: () => get().draft && set({ draft: null }),
-  setCursor: (c) => set({ cursor: c }),
   showToast: (t) => set({ toast: t }),
 }))
 

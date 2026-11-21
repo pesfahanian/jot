@@ -50,3 +50,29 @@ Page parse to DOMContentLoaded: ~165 ms cold on first visit, ~50 ms warm. The ed
 | Sort toggle over 162 rows | ~30 ms |
 | Long names | truncate with an ellipsis in sidebar rows, tabs (220 px cap) and the export footer (full name on hover); nothing overflows |
 | Scrollbars | thin, in the edge color on a clear track, every scroll area, both themes |
+
+## Re-measured after the memory fixes (2026-11-21)
+
+The fixes from the memory investigation (`docs/research/memory-2026-11.md` on branch `perf-investigation`, findings 1–5) were measured against the same code without them.
+- **Method:** the investigation's method in brief.
+  - The installed Brave (Chromium) with a fresh temporary profile, on a Retina Mac at 1440×900.
+  - Production builds served as static files, without the CSP headers.
+  - Fake documents, mostly 1–10 KB, a few 50–100 KB, 30% Farsi; `pdf-benchmark.md` open in the editor.
+  - Each figure is the renderer's `phys_footprint` (what Brave's task manager shows), as the median of six readings taken 30 s after load, each after a forced GC.
+  - Expect ±5 MB between launches.
+- **Before:** stage 1 (languages) without the stage 2 fixes. **After:** with them.
+
+| | Before | After |
+|---|---|---|
+| 50 documents: footprint settled | 67–76 MB | 67–68 MB |
+| 50 documents: JS heap / DOM nodes / listeners | 11.0 MB / 1,180 / 383 | 9.5 MB / 896 / 307 |
+| 200 documents: footprint settled | 82 MB | 73 MB |
+| 200 documents: JS heap / DOM nodes / listeners | 18.3 MB / 2,230 / 683 | 11.9 MB / 1,946 / 457 |
+| 160 documents opened and closed (4 × 40): footprint | 245 MB | 86 MB |
+| …JS heap / DOM nodes / listeners | 33.0 MB / 14,158 / 4,644 | 11.7 MB / 890 / 304 |
+
+- **The leak is gone.** After 160 opens, nodes and listeners are back at their starting count (896 / 307 with nothing opened). Before the fix they grew by ~85 nodes and ~27 listeners for every document ever opened, and never came back.
+- **Where the 86 MB after the leak test comes from:** freed memory Chromium hasn't yet returned to the system. It doesn't grow with more opens.
+- **Rows:** each sidebar row costs about a third of the heap it did, because the row no longer carries its own context menu.
+- **Main bundle:** 950 → 811 KB minified, since the HTML/CSS/JS grammars now load only for a fence that needs them.
+- **Spell-check, when on:** runs in its own worker. The word-frequency list is ~3 MB smaller there.

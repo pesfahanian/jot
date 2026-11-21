@@ -1,5 +1,5 @@
 import { Settings2 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { JotDocument } from '@/lib/db'
 import { welcomeDocumentId } from '@/lib/welcome'
@@ -20,7 +20,7 @@ import { useNow } from '@/state/hooks'
 import { useUi } from '@/state/ui'
 import { docIdOf } from '@/state/layout'
 import { draftFieldInSidebar, focusedPane, useWorkspace } from '@/state/workspace'
-import { DocumentMenu } from './DocumentMenu'
+import { DocumentListMenu } from './DocumentMenu'
 import { FilterIcon, PinIcon, PlusIcon, SearchIcon } from './icons'
 import { SidebarToggle } from './SidebarToggle'
 import { tagClass } from './tagClass'
@@ -89,54 +89,58 @@ function RenameField({ doc }: { doc: JotDocument }) {
   )
 }
 
-function FileRow({ doc, selected, now }: { doc: JotDocument; selected: boolean; now: number }) {
+// Re-rendered only when its own row would look different (memory report,
+// finding 4): every autosave hands the list new document objects, and rows
+// used to redraw them all.
+const sameRow = (a: JotDocument, b: JotDocument) => a.id === b.id && a.title === b.title && a.color === b.color && a.pinned === b.pinned && a.updatedAt === b.updatedAt
+const FileRow = memo(FileRowBody, (a, b) => a.selected === b.selected && a.now === b.now && sameRow(a.doc, b.doc))
+
+function FileRowBody({ doc, selected, now }: { doc: JotDocument; selected: boolean; now: number }) {
   const renaming = useWorkspace((s) => s.renamingId === doc.id)
   const openDocument = useWorkspace((s) => s.openDocument)
   const setRenaming = useWorkspace((s) => s.setRenaming)
   const setDragTab = useWorkspace((s) => s.setDragTab)
   return (
-    <DocumentMenu doc={doc}>
-      <div
-        // Drag into the panes to open it there (Phase 8, as VSCode's
-        // explorer): a tab strip, a pane's middle, or its edge for a new
-        // column. Not while its name is being edited.
-        draggable={!renaming}
-        onDragStart={(e) => {
-          e.dataTransfer.setData('application/x-jot-tab', doc.id)
-          e.dataTransfer.effectAllowed = 'move'
-          setDragTab({ docId: doc.id, from: null })
-        }}
-        onDragEnd={() => setDragTab(null)}
-        role="button"
-        tabIndex={0}
-        data-doc-id={doc.id}
-        onClick={() => openDocument(doc.id)}
-        // Double-click anywhere on the row renames (the first click has
-        // already opened the document).
-        onDoubleClick={() => !renaming && setRenaming(doc.id)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            openDocument(doc.id)
-          }
-        }}
-        className={cn(
-          'flex cursor-default items-center gap-2 border-l-2 py-[5px] pr-3 pl-2.5 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
-          selected ? 'border-primary bg-popover' : 'border-transparent hover:bg-row-hover',
-        )}
-      >
-        <TagMark color={doc.color} className="size-2" />
-        <span className="flex w-[7px] flex-none text-secondary-foreground">{doc.pinned && <PinIcon />}</span>
-        {renaming ? (
-          <RenameField doc={doc} />
-        ) : (
-          <span className={cn('flex-auto truncate text-[13px]', selected ? 'font-medium text-foreground' : 'text-secondary-foreground')}>
-            {doc.title}
-          </span>
-        )}
-        <span className="flex-none font-mono text-[11px] text-muted-foreground">{relativeTime(doc.updatedAt, now)}</span>
-      </div>
-    </DocumentMenu>
+    <div
+      // Drag into the panes to open it there (Phase 8, as VSCode's
+      // explorer): a tab strip, a pane's middle, or its edge for a new
+      // column. Not while its name is being edited.
+      draggable={!renaming}
+      onDragStart={(e) => {
+        e.dataTransfer.setData('application/x-jot-tab', doc.id)
+        e.dataTransfer.effectAllowed = 'move'
+        setDragTab({ docId: doc.id, from: null })
+      }}
+      onDragEnd={() => setDragTab(null)}
+      role="button"
+      tabIndex={0}
+      data-doc-id={doc.id}
+      onClick={() => openDocument(doc.id)}
+      // Double-click anywhere on the row renames (the first click has
+      // already opened the document).
+      onDoubleClick={() => !renaming && setRenaming(doc.id)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          openDocument(doc.id)
+        }
+      }}
+      className={cn(
+        'flex cursor-default items-center gap-2 border-l-2 py-[5px] pr-3 pl-2.5 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+        selected ? 'border-primary bg-popover' : 'border-transparent hover:bg-row-hover',
+      )}
+    >
+      <TagMark color={doc.color} className="size-2" />
+      <span className="flex w-[7px] flex-none text-secondary-foreground">{doc.pinned && <PinIcon />}</span>
+      {renaming ? (
+        <RenameField doc={doc} />
+      ) : (
+        <span className={cn('flex-auto truncate text-[13px]', selected ? 'font-medium text-foreground' : 'text-secondary-foreground')}>
+          {doc.title}
+        </span>
+      )}
+      <span className="flex-none font-mono text-[11px] text-muted-foreground">{relativeTime(doc.updatedAt, now)}</span>
+    </div>
   )
 }
 
@@ -319,37 +323,37 @@ function SearchResults({ results, matches, now }: { results: SearchResult[]; mat
         {matches} {matches === 1 ? 'match' : 'matches'} in {results.length} {results.length === 1 ? 'document' : 'documents'}
       </div>
       {results.map(({ doc, titleMatch, hits }) => (
-        <DocumentMenu key={doc.id} doc={doc}>
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => openDocument(doc.id, { line: hits[0]?.line })}
-            onKeyDown={(e) => e.key === 'Enter' && openDocument(doc.id, { line: hits[0]?.line })}
-            className={cn(
-              'flex cursor-default flex-col gap-0.5 border-l-2 py-[5px] pr-3 pl-2.5 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
-              doc.id === selectedId ? 'border-primary bg-popover' : 'border-transparent hover:bg-row-hover',
-            )}
-          >
-            <div className="flex items-center gap-2">
-              <span className="flex-auto truncate text-[13px] text-foreground">{doc.title}</span>
-              <span className="font-mono text-[11px] text-muted-foreground">{relativeTime(doc.updatedAt, now)}</span>
-            </div>
-            {hits.length === 0 && titleMatch && <span className="font-mono text-[11px] text-muted-foreground">title match</span>}
-            {hits.map((h) => (
-              <span
-                key={h.line}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  openDocument(doc.id, { line: h.line })
-                }}
-                className="truncate font-mono text-[11px] text-secondary-foreground hover:text-foreground"
-              >
-                <span className="text-muted-foreground">{h.line} </span>
-                {highlight(h.text.trimEnd(), h.ranges)}
-              </span>
-            ))}
+        <div
+          key={doc.id}
+          role="button"
+          tabIndex={0}
+          data-doc-id={doc.id}
+          onClick={() => openDocument(doc.id, { line: hits[0]?.line })}
+          onKeyDown={(e) => e.key === 'Enter' && openDocument(doc.id, { line: hits[0]?.line })}
+          className={cn(
+            'flex cursor-default flex-col gap-0.5 border-l-2 py-[5px] pr-3 pl-2.5 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+            doc.id === selectedId ? 'border-primary bg-popover' : 'border-transparent hover:bg-row-hover',
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <span className="flex-auto truncate text-[13px] text-foreground">{doc.title}</span>
+            <span className="font-mono text-[11px] text-muted-foreground">{relativeTime(doc.updatedAt, now)}</span>
           </div>
-        </DocumentMenu>
+          {hits.length === 0 && titleMatch && <span className="font-mono text-[11px] text-muted-foreground">title match</span>}
+          {hits.map((h) => (
+            <span
+              key={h.line}
+              onClick={(e) => {
+                e.stopPropagation()
+                openDocument(doc.id, { line: h.line })
+              }}
+              className="truncate font-mono text-[11px] text-secondary-foreground hover:text-foreground"
+            >
+              <span className="text-muted-foreground">{h.line} </span>
+              {highlight(h.text.trimEnd(), h.ranges)}
+            </span>
+          ))}
+        </div>
       ))}
     </>
   )
@@ -394,6 +398,7 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
 
   const { pinned, rest } = useMemo(() => arrangeDocuments(filterByColors(docs, colorFilter), sort), [docs, colorFilter, sort])
   const search = useMemo(() => (searchOpen && query.trim() ? searchDocuments(docs, query) : null), [docs, searchOpen, query])
+  const docsById = useMemo(() => new Map(docs.map((d) => [d.id, d])), [docs])
   const empty = docs.length === 0
   const activeColors = TAG_SLOTS.filter((c) => colorFilter.has(c))
 
@@ -494,7 +499,7 @@ export function Sidebar({ docs }: { docs: JotDocument[] }) {
         }}
       >
         {draftHere && !search && <DraftRow />}
-        {body}
+        <DocumentListMenu docsById={docsById}>{body}</DocumentListMenu>
       </div>
       {/* The foot: settings and the guide. Import and the theme live in
           settings. */}

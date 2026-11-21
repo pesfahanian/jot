@@ -19,6 +19,12 @@ export interface JotDocument {
   // The title follows the first line (lib/autoTitle.ts) until the person
   // renames it. Set on new documents only; missing means a fixed title.
   autoTitle?: boolean
+  // Spell-check languages chosen for this document (status bar): a Latin
+  // language instead of the default, Arabic instead of Farsi, or 'off' for
+  // no checking of that script here. Missing: the defaults
+  // (lib/languages.ts).
+  spellLatin?: string
+  spellArabic?: string
 }
 
 export type KeyStatus = 'untested' | 'valid' | 'invalid' | 'offline'
@@ -49,6 +55,17 @@ export interface Settings {
   // unless turned on. spellIgnore: words never marked, lowercase.
   autofix?: boolean
   spellIgnore?: string[]
+  // The language Latin-script words are checked in, unless a document
+  // chooses another: 'en' (built in) or an installed pack's code.
+  spellLatin?: string
+  // Translating a selection: from (detect when missing) and into; text
+  // already in the target goes into translateBack instead (defaults fa,
+  // en — the behaviour before the setting). translateRecent: the last
+  // languages picked, newest first, listed first in the popover.
+  translateFrom?: string
+  translateTo?: string
+  translateBack?: string
+  translateRecent?: string[]
   // The person's own keyboard shortcuts (round 4): command id → keys, an
   // empty list for none. Missing commands keep their defaults
   // (state/commands.ts).

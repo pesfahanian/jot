@@ -1,18 +1,22 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Check, PanelRight, PanelRightDashed } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Check, PanelRight, PanelRightDashed, SpellCheck } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { hasRtl, lineDirections, type DirSetting } from '@/lib/direction'
 import { updateDocument } from '@/lib/documents'
 import { openContent, viewsOf } from '@/editor/sessions'
 import { activeEditor } from '@/editor/annotations'
 import { fixAllTypos } from '@/editor/spelling'
 import { useTypos } from '@/state/spelling'
+import { usePacks } from '@/state/packs'
+import { useUi } from '@/state/ui'
+import { ENGLISH, LANGUAGE, languageFor, OFF, PACKS } from '@/lib/languages'
 import type { JotDocument } from '@/lib/db'
 import { countText, groupDigits } from '@/lib/counts'
 import { applyUpdate, useUpdateReady } from '@/lib/offline'
 import { getSettings, updateSettings } from '@/lib/settings'
 import { cn } from '@/lib/utils'
 import { columnsOf, docIdOf } from '@/state/layout'
+import { useCursor } from '@/state/cursor'
 import { focusedPane, useWorkspace } from '@/state/workspace'
 import { NotesCell } from '@/components/annotations/NotesCell'
 
@@ -67,6 +71,81 @@ function DirCell({ doc, text, line }: { doc: JotDocument; text: string; line: nu
             <span className="font-mono text-[11px] text-muted-foreground">{c.hint}</span>
           </DropdownMenuItem>
         ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+// The languages this document is spell-checked in (lib/languages.ts) —
+// shown only once a language pack is installed, so without packs the bar
+// is as it always was. A quiet icon (owner, 2026-11-21: calm in the bar,
+// everything in the menu); a short code beside it only when the document
+// is checked in something other than English and Farsi. The menu is a
+// set of switches, one script per section (owner: a tick means "checked
+// here"): click a language to check that script in it, click the ticked
+// one to stop checking that script in this document.
+function LangCell({ doc }: { doc: JotDocument }) {
+  const settings = useLiveQuery(() => getSettings(), [])
+  const installed = usePacks((s) => s.installed)
+  const openSettings = useUi((s) => s.openSettings)
+  if (!settings?.autofix || !installed.size) return null
+  const latinDefault = settings.spellLatin ?? 'en'
+  const latin = languageFor('latin', installed, latinDefault, { latin: doc.spellLatin })
+  const arabic = languageFor('arabic', installed, latinDefault, { arabic: doc.spellArabic })
+  const latinChoices = [ENGLISH, ...PACKS.filter((p) => p.script === 'latin' && installed.has(p.code))]
+  const arabicChoices = PACKS.filter((p) => p.script === 'arabic' && installed.has(p.code))
+  const name = (code: string) => LANGUAGE.get(code)?.name ?? code
+  const unusual = [latin && latin !== 'en' && latin, arabic === 'ar' && arabic].filter(Boolean).join(' · ')
+  const none = !latin && !arabic
+  // Picking the language a script would get anyway stores nothing, so the
+  // document keeps following settings.
+  const pickLatin = (code: string) => void updateDocument(doc.id, { spellLatin: code === latin ? OFF : code === latinDefault ? undefined : code })
+  const arabicDefault = installed.has('fa') ? 'fa' : 'ar'
+  const pickArabic = (code: string) => void updateDocument(doc.id, { spellArabic: code === arabic ? OFF : code === arabicDefault ? undefined : code })
+  const item = (on: boolean, l: { code: string; name: string }, pick: (code: string) => void) => (
+    // The menu stays open, so several switches can be flipped in one go (owner).
+    <DropdownMenuItem
+      key={l.code}
+      onSelect={(e) => {
+        e.preventDefault()
+        pick(l.code)
+      }}
+      className={cn(on && 'text-foreground')}
+    >
+      <Check size={13} strokeWidth={2} className={cn('text-primary', !on && 'invisible')} aria-hidden />
+      <span className="flex-auto">{l.name}</span>
+      <span className="font-mono text-[11px] text-muted-foreground">{l.code}</span>
+    </DropdownMenuItem>
+  )
+  const head = (text: string) => <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">{text}</div>
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label="spell-check languages"
+          title={`spell-check in this document: ${[latin ? name(latin) : 'english alphabet off', arabicChoices.length ? (arabic ? name(arabic) : 'farsi alphabet off') : null].filter(Boolean).join(' · ')}`}
+          className={cn('flex items-center gap-1 px-2 hover:bg-hover-lift hover:text-foreground data-[state=open]:bg-hover-lift', none ? 'text-ink-dim' : 'text-secondary-foreground')}
+        >
+          <SpellCheck size={13} strokeWidth={1.75} aria-hidden />
+          {unusual && <span>{unusual}</span>}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" side="top" sideOffset={5} className="w-[220px]">
+        {head('english alphabet')}
+        {latinChoices.map((l) => item(latin === l.code, l, pickLatin))}
+        {arabicChoices.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            {head('farsi alphabet')}
+            {arabicChoices.map((l) => item(arabic === l.code, l, pickArabic))}
+          </>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => openSettings('languages')}>
+          <span className="w-[13px]" aria-hidden />
+          <span className="flex-auto text-secondary-foreground">language packs…</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -141,7 +220,7 @@ function MinimapToggle() {
 
 export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) {
   const pane = useWorkspace(focusedPane)
-  const cursor = useWorkspace((s) => s.cursor)
+  const cursor = useCursor((s) => s.cursor)
   // A rendered tab counts as its document.
   const doc = pane?.active ? docsById.get(docIdOf(pane.active)) : undefined
   const text = doc ? (openContent(doc.id) ?? doc.content) : ''
@@ -158,6 +237,7 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
       <div className="flex items-stretch divide-x divide-border-subtle [&:not(:empty)]:border-r [&:not(:empty)]:border-border-subtle">
         <UpdateReady />
         {doc && <DirCell doc={doc} text={text} line={cur.line} />}
+        {doc && <LangCell doc={doc} />}
         {doc && <TyposCell documentId={doc.id} />}
         {doc && <NotesCell documentId={doc.id} />}
       </div>
