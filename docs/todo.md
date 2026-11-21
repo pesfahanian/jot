@@ -25,6 +25,16 @@ Phase 14 runs as two parallel tracks — building the quick items while the desi
 | **17: AI mode** ✓ (built 2026-10-20, branch `phase-17`; prompts tested against a stubbed provider only — live tuning with a real key still open) | The mode and its transition; chat with local per-document history (deleted with the document, kept through undo; in the zip — lean yes); AI notes queued and sent Claude Design style, personal notes by switch; a proposals prompt (edits anchored like review flags) and one results screen for every run, the style review folded in, with the review / diff switch (as decided / all accepted); full translation to a new side-by-side document | 14b, 16 (notes); prompt work: proposals and translation (Farsi ↔ English), token budgets for document + history |
 | **Later** | ~~Telemetry~~ done 2026-11-16 (Cloudflare Web Analytics, polish round 3); premium tier (own big decision — needs a backend; its AI premise went with the AI suite on 2026-11-15); Jot's own autocomplete | — |
 
+## Small fix: numbered lists written with Persian digits (friend's feedback, 2026-11-21; not built yet)
+
+`۱. … ۲. …` at the start of lines isn't a list. Markdown only treats ASCII digits (`1.`) as list numbers, so the rendered view, and the PDF, join the lines into one run-on paragraph. The friend read it as "something's wrong with new lines".
+
+Fix: treat Persian (`۰–۹`) and Arabic-Indic (`٠–٩`) digits followed by `.` or `)` at the start of a line as list numbers.
+- **Renderer** (`src/lib/render.ts`): map the marker's digits to ASCII before parsing. They're the same length, so line positions and scroll sync are unaffected. The start number is kept, and right-to-left lists already count in Persian digits.
+- **Editor:** the marker is coloured like `1.`, and Enter continues the list in the same digits (`۳.` → `۴.`), using the same list continuation as `1.`.
+- **The document text is never changed.** Markdown export keeps it as written, so other markdown apps still won't see a list. That's expected.
+- **Tests:** unit-test the marker mapping. Then re-export `farsi-benchmark.md`.
+
 ## Memory and responsiveness (investigation 2026-11-21; not built yet)
 
 Report: `docs/research/memory-2026-11.md` on branch `perf-investigation` (commit 66b1e02, off `main` at 57f60dd, not pushed). Read it with `git show perf-investigation:docs/research/memory-2026-11.md`. To get it onto main: cherry-pick 66b1e02 onto a docs branch and open a PR when the owner wants it. Never push `perf-investigation` itself.
