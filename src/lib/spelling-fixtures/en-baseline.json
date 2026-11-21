@@ -434,7 +434,6 @@
 {"typed":"well","before":"","fixes":null,"sure":null},
 {"typed":"were","before":"","fixes":null,"sure":null},
 {"typed":"ill","before":"","fixes":null,"sure":null},
-{"typed":"wether","before":"","fixes":["weather","whether","ether","tether"],"sure":false},
 {"typed":"lead","before":"","fixes":null,"sure":null},
 {"typed":"led","before":"","fixes":null,"sure":null},
 {"typed":"dessert","before":"","fixes":null,"sure":null},

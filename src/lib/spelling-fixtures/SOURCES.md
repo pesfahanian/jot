@@ -5,7 +5,7 @@ nspell to Hunspell-WASM (open decision #30): Hunspell plus Jot's ranking
 (`src/lib/spelling.ts`) must give the answers recorded in `en-baseline.json`,
 except where this report says today's answer is wrong.
 
-- `en-typos.tsv` — 500 cases. Columns: `typed`, `expected` (empty = must come
+- `en-typos.tsv` — 499 cases. Columns: `typed`, `expected` (empty = must come
   back `null`: a real word, a name, a code-ish token, a word under 3 letters),
   `kind`, `source`, `before` (the text before the word on its line; empty for
   all but the sentence-start group).
@@ -82,8 +82,8 @@ makes.
 | apostrophe | 32 |
 | sentence-start | 41 (27 typos, 14 left alone) |
 | british-american | 42 |
-| leave-alone | 56 |
-| **total** | **500** (388 typos, 112 left alone) |
+| leave-alone | 55 |
+| **total** | **499** (388 typos, 111 left alone) |
 
 ## Report — today's behaviour (nspell + Jot's ranking)
 
@@ -101,8 +101,8 @@ anywhere in the menu. Sure: the case would be changed by "fix all".
 | apostrophe | 32 | 32 | 25 (78%) | 29 (91%) | 2 | 18 (56%) | 0 | – | – |
 | sentence-start | 41 | 27 | 27 (100%) | 27 (100%) | 0 | 19 (70%) | 0 | 14 | 0 |
 | british-american | 42 | – | – | – | – | – | – | 42 | 0 |
-| leave-alone | 56 | – | – | – | – | – | – | 56 | 1 |
-| **total** | 500 | 388 | 359 (93%) | 378 (97%) | 5 | 255 (66%) | 4 | 112 | 1 |
+| leave-alone | 55 | – | – | – | – | – | – | 55 | 0 |
+| **total** | 499 | 388 | 359 (93%) | 378 (97%) | 5 | 255 (66%) | 4 | 111 | 0 |
 
 ### Sure but wrong — "fix all" would change these to the wrong word
 
@@ -117,9 +117,9 @@ second fix still clears `SURE_GAP`.
 
 ### Wrongly marked — should have been left alone
 
-- `wether` → weather, whether, ether, tether. *Wether* is a real (rare) English
-  word missing from the dictionary. Arguably right to mark in practice — it is
-  nearly always a typo for *whether* — so this is a judgement call, not a bug.
+None. (`wether` was dropped from the fixture: it isn't in the dictionary, and
+the corpora list it as a misspelling of both *weather* and *whether*, so it
+has no one right answer.)
 
 ### Top fix is not the expected word (not sure, so a click is wrong but "fix all" leaves it)
 
