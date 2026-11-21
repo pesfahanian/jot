@@ -4,7 +4,7 @@ import { titleFromContent } from './autoTitle'
 // Document CRUD against IndexedDB (PRD §5). Deletion here is the hard
 // delete; the undo-toast flow in T3.5 sits on top of it.
 
-export type DocumentPatch = Partial<Pick<JotDocument, 'title' | 'content' | 'color' | 'pinned' | 'dir' | 'autoTitle'>>
+export type DocumentPatch = Partial<Pick<JotDocument, 'title' | 'content' | 'color' | 'pinned' | 'dir' | 'autoTitle' | 'spellLatin' | 'spellArabic'>>
 
 export async function createDocument(init: DocumentPatch = {}): Promise<JotDocument> {
   const now = Date.now()

@@ -27,7 +27,8 @@ function siteHeaders(): Record<string, string> {
 // and works offline. Older font formats (.woff, .ttf) are left out —
 // browsers that run service workers all take .woff2. Not in dev.
 function offline(): Plugin {
-  const skip = (f: string) => /\.(map|woff|ttf)$/.test(f) || f === '_headers' || f.endsWith('LICENSE.txt') || f === 'sw.js'
+  // Language packs (packs/) are downloaded only when someone adds one.
+  const skip = (f: string) => /\.(map|woff|ttf)$/.test(f) || f === '_headers' || f.endsWith('LICENSE.txt') || f === 'sw.js' || f.startsWith('packs/')
   const walk = (dir: string, base = ''): string[] =>
     readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name), `${base}${e.name}/`) : [`${base}${e.name}`]))
   return {
@@ -88,6 +89,8 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(pkg.version),
     __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),
   },
+  // The speller worker loads Hunspell's WebAssembly with import().
+  worker: { format: 'es' },
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),

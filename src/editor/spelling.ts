@@ -3,7 +3,10 @@ import { Compartment, StateEffect, StateField, type EditorState, type Extension 
 import { Decoration, EditorView, ViewPlugin, type DecorationSet, type ViewUpdate } from '@codemirror/view'
 import { liveQuery } from 'dexie'
 import { db } from '@/lib/db'
-import { loadSpeller, suggestionFor } from '@/lib/spelling'
+import { languageFor, scriptOf, type Script } from '@/lib/languages'
+import { checkWords } from '@/lib/speller'
+import type { Suggestion } from '@/lib/spelling'
+import { usePacks } from '@/state/packs'
 import { useOverlays } from '@/state/overlays'
 import { useTypos, type Typo } from '@/state/spelling'
 import { directionAt } from './direction'
@@ -15,23 +18,46 @@ import { directionAt } from './direction'
 // one applies the best guess, the status bar's "fix" applies every sure one
 // as one undo step, and a right-click offers the next guesses, or ignore
 // (the word stays unmarked from then on, everywhere). Never
-// inside code, links or maths, never on a right-to-left line, never the
-// word being typed; a capitalised word only where a sentence starts.
+// inside code, links or maths, never the word being typed; a capitalised
+// word only where a sentence starts. Latin words are checked in the
+// document's Latin language (English unless a pack is chosen) and never on
+// a right-to-left line; Farsi or Arabic words only with their pack
+// installed (lib/languages.ts). The speller runs in a worker
+// (lib/speller.ts).
 
 export const spellingCompartment = new Compartment()
 
 const PAUSE = 600
 const WORD = /[A-Za-z]+(?:'[A-Za-z]+)*/g
+// Other Latin languages: accented letters too (é, ß, ñ, ij).
+const LATIN_WORD = /\p{Script=Latin}+(?:['’]\p{Script=Latin}+)*/gu
+// Farsi and Arabic: letters and their marks, joined by the ZWNJ; never digits.
+const ARABIC_WORD = /(?:(?=\p{Script=Arabic})[\p{L}\p{M}])+(?:\u200c(?:(?=\p{Script=Arabic})[\p{L}\p{M}])+)*/gu
 const SKIP = new Set(['InlineCode', 'FencedCode', 'CodeBlock', 'URL', 'Autolink', 'LinkLabel', 'HTMLTag', 'HTMLBlock', 'CodeText', 'CodeInfo'])
 
-// Words the person chose to ignore (settings), kept current for the check.
+// Words the person chose to ignore and the default Latin language
+// (settings), and the installed packs, kept current for the check.
 let ignored = new Set<string>()
+let latinDefault = 'en'
+let installed: ReadonlySet<string> = usePacks.getState().installed
 const ignoreListeners = new Set<() => void>()
+const changed = () => {
+  for (const l of ignoreListeners) l()
+}
 liveQuery(() => db.settings.get('settings')).subscribe({
   next: (s) => {
-    ignored = new Set(s?.spellIgnore ?? [])
-    for (const l of ignoreListeners) l()
+    const list = s?.spellIgnore ?? []
+    const latin = s?.spellLatin ?? 'en'
+    if (list.length === ignored.size && list.every((w) => ignored.has(w)) && latin === latinDefault) return
+    ignored = new Set(list)
+    latinDefault = latin
+    changed()
   },
+})
+usePacks.subscribe((s) => {
+  if (s.installed === installed) return
+  installed = s.installed
+  changed()
 })
 
 const setTypos = StateEffect.define<Typo[]>()
@@ -48,13 +74,13 @@ const typoField = StateField.define<Typo[]>({
   provide: (f) => EditorView.decorations.from(f, (list): DecorationSet => Decoration.set(list.map((t) => typoMark(t).range(t.from, t.to)))),
 })
 
-function skipAt(state: EditorState, pos: number) {
+function skipAt(state: EditorState, pos: number, script: Script) {
   // Parsed as far as this word, no further (incremental across calls).
   const tree = ensureSyntaxTree(state, pos + 1, 50) ?? syntaxTree(state)
   for (let n: { name: string; parent: unknown } | null = tree.resolveInner(pos, 1); n; n = n.parent as typeof n) if (SKIP.has(n.name)) return true
   const line = state.doc.lineAt(pos)
   if (/\$[^$]*$/.test(line.text.slice(0, pos - line.from))) return true
-  return directionAt(state, pos) === 'rtl'
+  return script === 'latin' && directionAt(state, pos) === 'rtl'
 }
 
 const codeLike = (text: string, from: number, to: number) => {
@@ -101,6 +127,9 @@ function plugin(documentId: string) {
       timer: ReturnType<typeof setTimeout> | undefined
       view: EditorView
       offIgnore: () => void
+      // The document's own languages (status bar), if it chose any.
+      docLang: { latin?: string; arabic?: string } = {}
+      offDoc: () => void
       // Stretches to check again (null: none; "all": the whole document).
       dirty: { from: number; to: number } | 'all' | null = 'all'
       // The word the cursor was in at the last check.
@@ -114,6 +143,16 @@ function plugin(documentId: string) {
         }
         ignoreListeners.add(recheck)
         this.offIgnore = () => ignoreListeners.delete(recheck)
+        // Only a change of its languages counts, not every autosave.
+        const sub = liveQuery(() => db.documents.get(documentId)).subscribe({
+          next: (d) => {
+            const next = { latin: d?.spellLatin, arabic: d?.spellArabic }
+            if (next.latin === this.docLang.latin && next.arabic === this.docLang.arabic) return
+            this.docLang = next
+            recheck()
+          },
+        })
+        this.offDoc = () => sub.unsubscribe()
         this.schedule(0)
       }
       schedule(delay: number) {
@@ -145,8 +184,7 @@ function plugin(documentId: string) {
       async check() {
         const view = this.view
         const run = ++this.run
-        const spell = await loadSpeller().catch(() => null)
-        if (!spell || !view.dom.isConnected || run !== this.run || !this.dirty) return
+        if (!view.dom.isConnected || !this.dirty) return
         if (view.composing) return this.schedule(PAUSE)
         const state = view.state
         const doc = state.doc
@@ -155,43 +193,63 @@ function plugin(documentId: string) {
         const last = dirty === 'all' ? doc.lines : doc.lineAt(Math.min(dirty.to, doc.length)).number
         this.dirty = null
         const head = state.selection.main.head
+        const latinLang = languageFor('latin', installed, latinDefault, this.docLang)
+        const arabicLang = languageFor('arabic', installed, latinDefault, this.docLang)
+        const scans: [RegExp, Script, string][] = [[latinLang === 'en' ? WORD : LATIN_WORD, 'latin', latinLang!]]
+        if (arabicLang) scans.push([ARABIC_WORD, 'arabic', arabicLang])
         let held: { from: number; to: number } | null = null
-        const found: Typo[] = []
+        const words: { from: number; to: number; word: string; before: string; script: Script; lang: string }[] = []
+        const requeue = () => {
+          if (run === this.run) {
+            this.dirty = dirty
+            this.schedule(PAUSE)
+          }
+        }
         let sliceStart = performance.now()
         for (let n = first; n <= last; n++) {
           // Yield now and then; an edit meanwhile means starting over.
           if (performance.now() - sliceStart > SLICE_MS) {
             await new Promise((r) => setTimeout(r))
-            if (run !== this.run || view.state.doc !== doc || !view.dom.isConnected) {
-              if (run === this.run) {
-                this.dirty = dirty
-                this.schedule(PAUSE)
-              }
-              return
-            }
+            if (run !== this.run || view.state.doc !== doc || !view.dom.isConnected) return requeue()
             sliceStart = performance.now()
           }
           const line = doc.line(n)
-          for (const m of line.text.matchAll(WORD)) {
-            const from = line.from + m.index
-            const to = from + m[0].length
-            // Still being typed: the cursor is in it or right after it.
-            if (head >= from && head <= to) {
-              held = { from, to }
-              continue
+          for (const [pattern, script, lang] of scans) {
+            for (const m of line.text.matchAll(pattern)) {
+              const from = line.from + m.index
+              const to = from + m[0].length
+              // Still being typed: the cursor is in it or right after it.
+              if (head >= from && head <= to) {
+                held = { from, to }
+                continue
+              }
+              // A LaTeX-style command (\newpage), not a word; nor one glued to a
+              // slash, underscore, digit or a file name's dot (Cmd/Ctrl,
+              // snake_case, file.ts) — code-like, left alone as code is.
+              if (codeLike(line.text, m.index, m.index + m[0].length)) continue
+              if (ignored.has(m[0].toLowerCase())) continue
+              if (script === 'latin' && scriptOf(m[0]) !== 'latin') continue
+              // Where it sits on its line matters only for a capitalised word.
+              const before = m[0][0] !== m[0][0].toLowerCase() ? line.text.slice(0, m.index) : ''
+              words.push({ from, to, word: m[0], before, script, lang })
             }
-            // A LaTeX-style command (\newpage), not a word; nor one glued to a
-            // slash, underscore, digit or a file name's dot (Cmd/Ctrl,
-            // snake_case, file.ts) — code-like, left alone as code is.
-            if (codeLike(line.text, m.index, m.index + m[0].length)) continue
-            if (ignored.has(m[0].toLowerCase())) continue
-            const s = suggestionFor(spell, m[0], line.text.slice(0, m.index))
-            if (s && !skipAt(state, from)) found.push({ from, to, word: m[0], fix: s.fixes[0], others: s.fixes.slice(1), sure: s.sure })
           }
         }
-        if (view.state.doc !== doc) {
-          this.dirty = dirty
-          return this.schedule(PAUSE)
+        // One request per language, each distinct word once.
+        const answers = new Map<string, Suggestion | null>()
+        const key = (w: { word: string; before: string; lang: string }) => `${w.lang}\u0000${w.word}\u0000${w.before}`
+        for (const lang of new Set(words.map((w) => w.lang))) {
+          const items = [...new Map(words.filter((w) => w.lang === lang).map((w) => [key(w), { word: w.word, before: w.before }])).values()]
+          const results = await checkWords(lang, items)
+          if (!results) continue
+          items.forEach((it, i) => answers.set(key({ ...it, lang }), results[i]))
+        }
+        if (run !== this.run || !view.dom.isConnected) return
+        if (view.state.doc !== doc) return requeue()
+        const found: Typo[] = []
+        for (const w of words) {
+          const s = answers.get(key(w))
+          if (s && !skipAt(state, w.from, w.script)) found.push({ from: w.from, to: w.to, word: w.word, fix: s.fixes[0], others: s.fixes.slice(1), sure: s.sure })
         }
         this.held = held
         const from = doc.line(first).from
@@ -205,6 +263,7 @@ function plugin(documentId: string) {
         clearTimeout(this.timer)
         this.run++
         this.offIgnore()
+        this.offDoc()
       }
     },
   )

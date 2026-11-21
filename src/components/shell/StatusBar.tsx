@@ -7,6 +7,8 @@ import { openContent, viewsOf } from '@/editor/sessions'
 import { activeEditor } from '@/editor/annotations'
 import { fixAllTypos } from '@/editor/spelling'
 import { useTypos } from '@/state/spelling'
+import { usePacks } from '@/state/packs'
+import { ENGLISH, LANGUAGE, languageFor, PACKS } from '@/lib/languages'
 import type { JotDocument } from '@/lib/db'
 import { countText, groupDigits } from '@/lib/counts'
 import { applyUpdate, useUpdateReady } from '@/lib/offline'
@@ -67,6 +69,50 @@ function DirCell({ doc, text, line }: { doc: JotDocument; text: string; line: nu
             <span className="font-mono text-[11px] text-muted-foreground">{c.hint}</span>
           </DropdownMenuItem>
         ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+// The languages this document is spell-checked in (lib/languages.ts) —
+// shown only once a language pack is installed, so without packs the bar
+// is as it always was. Latin words: the default from settings unless the
+// document picks another; Farsi-script words: Farsi, or Arabic.
+function LangCell({ doc }: { doc: JotDocument }) {
+  const settings = useLiveQuery(() => getSettings(), [])
+  const installed = usePacks((s) => s.installed)
+  if (!settings?.autofix || !installed.size) return null
+  const latinDefault = settings.spellLatin ?? 'en'
+  const latin = languageFor('latin', installed, latinDefault, { latin: doc.spellLatin })!
+  const arabic = languageFor('arabic', installed, latinDefault, { arabic: doc.spellArabic })
+  const latinChoices = [ENGLISH, ...PACKS.filter((p) => p.script === 'latin' && installed.has(p.code))]
+  const arabicChoices = PACKS.filter((p) => p.script === 'arabic' && installed.has(p.code))
+  const item = (on: boolean, label: string, hint: string, pick: () => void, key: string) => (
+    <DropdownMenuItem key={key} onSelect={pick} className={cn(on && 'text-foreground')}>
+      <Check size={13} strokeWidth={2} className={cn('text-primary', !on && 'invisible')} aria-hidden />
+      <span className="flex-auto">{label}</span>
+      <span className="font-mono text-[11px] text-muted-foreground">{hint}</span>
+    </DropdownMenuItem>
+  )
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button type="button" title="spell-check languages of this document" className="flex items-center px-2 hover:bg-hover-lift data-[state=open]:bg-hover-lift">
+          <span className="text-muted-foreground">spell</span>&nbsp;{latin}
+          {arabic && <span className="text-muted-foreground">&nbsp;·&nbsp;</span>}
+          {arabic}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" side="top" sideOffset={5} className="w-[220px]">
+        <div className="px-2.5 pt-1 pb-0.5 font-mono text-[11px] text-muted-foreground">latin script · this document</div>
+        {item(!doc.spellLatin, `default (${LANGUAGE.get(latinDefault)?.name ?? latinDefault})`, '', () => void updateDocument(doc.id, { spellLatin: undefined }), 'default')}
+        {latinChoices.map((l) => item(doc.spellLatin === l.code, l.name, l.code, () => void updateDocument(doc.id, { spellLatin: l.code }), l.code))}
+        {arabicChoices.length > 1 && (
+          <>
+            <div className="px-2.5 pt-2 pb-0.5 font-mono text-[11px] text-muted-foreground">farsi / arabic script</div>
+            {arabicChoices.map((l) => item(arabic === l.code, l.name, l.code, () => void updateDocument(doc.id, { spellArabic: l.code === 'fa' ? undefined : l.code }), l.code))}
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -158,6 +204,7 @@ export function StatusBar({ docsById }: { docsById: Map<string, JotDocument> }) 
       <div className="flex items-stretch divide-x divide-border-subtle [&:not(:empty)]:border-r [&:not(:empty)]:border-border-subtle">
         <UpdateReady />
         {doc && <DirCell doc={doc} text={text} line={cur.line} />}
+        {doc && <LangCell doc={doc} />}
         {doc && <TyposCell documentId={doc.id} />}
         {doc && <NotesCell documentId={doc.id} />}
       </div>

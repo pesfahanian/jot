@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs'
-import nspell from 'nspell'
+import { hunspellSpeller } from './hunspell'
 import { describe, expect, it } from 'vitest'
 import { fixFor, setFrequencies, suggestionFor, suggestionsFor } from './spelling'
 
 // The suggestion ranking against the real dictionary and word levels
 // (public/dict/).
-const spell = nspell(readFileSync('public/dict/en.aff', 'utf8'), readFileSync('public/dict/en.dic', 'utf8'))
+const spell = await hunspellSpeller(readFileSync('public/dict/en.aff', 'utf8'), readFileSync('public/dict/en.dic', 'utf8'), { ownSuggestions: false })
 setFrequencies(readFileSync('public/dict/en.freq', 'utf8'))
 
 describe('spelling suggestions', () => {
